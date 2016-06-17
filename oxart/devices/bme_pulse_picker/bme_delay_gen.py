@@ -1,3 +1,4 @@
+"""Control a BME delay generator PCI cards using the vendor driver DLL."""
 from ctypes import byref, cdll, c_bool, c_double, c_long, c_ulong
 from enum import Enum, unique
 
@@ -49,7 +50,10 @@ class Driver:
     Interface to the driver DLL for the delay generator PCI cards by BME
     (Bergmann Messgeräte Entwicklung KG).
 
-    There should typically only be one instace of this class per process.
+    There should typically only be one instance of this class per process. Note
+    also that the class does not currently uninitialise and unload the DLL upon
+    destruction (although that would be easily fixable), so creating many objects
+    would eventually deplete the process handle pool.
     """
     def __init__(self):
         try:
