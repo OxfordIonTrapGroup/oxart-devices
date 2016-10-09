@@ -211,6 +211,10 @@ class PulsePickerTiming:
         self._times = new
         self._update_pulses()
 
+    def ping():
+        """Return true (for ARTIQ controller heartbeat mechanism)."""
+        return True
+
     def _update_pulses(self):
         if not self._delay_gen:
             return
