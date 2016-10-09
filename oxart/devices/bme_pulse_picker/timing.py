@@ -211,7 +211,7 @@ class PulsePickerTiming:
         self._times = new
         self._update_pulses()
 
-    def ping():
+    def ping(self):
         """Return true (for ARTIQ controller heartbeat mechanism)."""
         return True
 
