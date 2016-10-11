@@ -143,7 +143,7 @@ class ClockSource(Enum):
 
 @unique
 class OutputGateMode(Enum):
-    """Modes for the delay generator to combine pairs of adjacient channels
+    """Modes for the delay generator to combine pairs of adjacent channels
     instead of directly routing them to the respective outputs."""
 
     #: Route channels to the respective outputs.
@@ -187,9 +187,13 @@ class BME_SG08p:
     # By default, the delay generator card is configured to use a 10 MHz clock
     # derived from the internal oscillator. The manufacturer suggested using a
     # higher clock rate for our application to cut down on various internal
-    # delays, 40 MHz. However, the timing values are not automatically rescaled
-    # by the driver, so we need to manually stretch them.
-    CLOCK_FACTOR = 4
+    # delays, 40 MHz. The timing values are not automatically rescaled by the
+    # driver, so we need to manually stretch them.
+    #
+    # After a while in continuous use, timing issues occurred with the 40 MHz
+    # clock, though, causing edges on some channels to be deterministically
+    # placed incorrectly. For now, a 10 MHz clock is used.
+    CLOCK_FACTOR = 1
 
     def __init__(self, driver_lib, device_idx):
         self._lib = driver_lib
@@ -265,13 +269,16 @@ class BME_SG08p:
         else:
             raise DelayGenException("Unrecognised clock source")
 
+        int_divider = int(16 / self.CLOCK_FACTOR)
+        ext_divider = int(8 / self.CLOCK_FACTOR)
         self._lib.set_g08_clock_parameters(
-            True, # Enable clock circuit
-            4,    # Internal oscillator divider (160 MHz base frequency)
-            2,    # Trigger input divider
-            1,    # Trigger input multiplier
-            s,   # 1: crystal, 2: trigger in, 3: trigger in with crystal as
-                  # fallback, 4: master/slave bus)
+            True,         # Enable clock circuit
+            int_divider,  # Internal oscillator divider (160 MHz base
+                          # frequency)
+            ext_divider,  # Trigger input divider (80 MHz input assumed)
+            1,            # Trigger input multiplier
+            s,            # 1: crystal, 2: trigger in, 3: trigger in with
+                          # crystal as fallback, 4: master/slave bus
             self._device_idx)
 
     def set_trigger(self, use_external_gate, inhibit_us):
