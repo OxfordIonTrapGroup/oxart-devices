@@ -11,7 +11,7 @@ class TimingParams:
     microseconds."""
 
     # 80 MHz repetition rate
-    LASER_PERIOD_US = 1.25e-3
+    LASER_PERIOD_US = 12.5e-3
 
     # The safe hardware limit is actually 50 us, but with the delay
     # generator currently running at 10 MHz, the trigger pulses themselves
