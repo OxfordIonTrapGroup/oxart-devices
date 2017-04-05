@@ -3,6 +3,8 @@ import serial
 import logging
 import asyncio
 import numpy as np
+from artiq.protocols import pyon
+from artiq.language.core import *
 
 logger = logging.getLogger(__name__)
 
@@ -11,12 +13,15 @@ logger = logging.getLogger(__name__)
 class TrapController:
     """A mediation layer to sanitise control of trap RF and DC voltages"""
 
-    def __init__(self, dmgr, dc_config=None, rf_config=None):
+    def __init__(self, dmgr, dc_config_file=None, rf_config=None):
         """dc_config: configuration dictionary for dc electrodes
         rf_config: configuration dictionary for rf electrodes
         """
 
-        if dc_config is not None:
+        logger.info("Loading TrapController with dc_config: " + str(dc_config_file))
+
+        if dc_config_file is not None:
+            dc_config = pyon.load_file(dc_config_file)
             self._parse_dc_config(dmgr, dc_config)
             # Set the trap voltages to their default setting
             self.set_trap_setting(self._dc_default_trap_setting)
@@ -26,7 +31,7 @@ class TrapController:
         sets of voltages.
         """
 
-        logical_voltage_array = self._dc_trap_settings[trap_setting]
+        self._dc_logical_voltages = self._dc_trap_settings[trap_setting]
 
         # Update the physical voltages
         self._update_physical_voltages()
@@ -41,6 +46,11 @@ class TrapController:
         # Calculate the new physical values, through matrix multiplication
         self._dc_physical_voltages = self._dc_translation_matrix.dot(
             self._dc_logical_voltages)
+
+        print(self._dc_logical_channel_names)
+        print(self._dc_logical_voltages)
+        print(self._dc_physical_channel_names)
+        print(self._dc_physical_voltages)
 
         # If we are asked to update the voltages, do it
         if update_hw:
@@ -108,7 +118,7 @@ class TrapController:
 
         # Populate the matrix.
         for i, physical_name in enumerate(self._dc_physical_channel_names):
-            components = dc_config["relations"][physical_channel]
+            components = dc_config["relations"][physical_name]
 
             for logical_name in components.keys():
                 j = self._dc_logical_channel_names.index(logical_name)
@@ -132,8 +142,9 @@ class TrapController:
             logical_voltage_array = np.zeros(len(self._dc_logical_voltages))
             for electrode in dc_config["trap_settings"][name].keys():
                 index = self._dc_logical_channel_names.index(electrode)
-                logical_voltage_array[i] = 
+                logical_voltage_array[index] = \
                     dc_config["trap_settings"][name][electrode]
+            self._dc_trap_settings[name] = logical_voltage_array
 
         # Store the default trap setting
         self._dc_default_trap_setting = dc_config["default_trap_setting"]

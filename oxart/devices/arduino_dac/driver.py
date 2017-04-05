@@ -94,6 +94,9 @@ class ArduinoDAC:
 
         self._voltages[channel] = voltage
 
+        logger.info("Setting voltage channel {} to {}".format(
+            channel, voltage))
+
     def get_voltage(self, channel):
         """Reads the voltage on the given channel
         """
