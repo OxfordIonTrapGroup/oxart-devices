@@ -6,54 +6,28 @@ class ShutterWrapper:
     """
     Wraps one or more shutter drivers to allow reference to channels by an
     easily remappable logical name. The arguments are:
-        'devices', the list of shutter controllers, and
-        'mappings', a dictionary mapping logical devices names to
+        'mappings': a dictionary mapping logical devices names to
             (device,channel) tuples
     """
-    def __init__(self, dmgr, devices, mappings):
-        self.core = dmgr.get("core")
-        self.devices = { dev: dmgr.get(dev) for dev in devices }
-        
-        self.mappings = mappings
-
-    def _get_dev_channel(self, channel):
-        """Return a (device handle, channel) tuple given a logical channel"""
-        try:
-            (device_name,ch) = self.mappings[channel]
-        except KeyError:
-            raise UnknownLogicalChannel
-
-        try:
-            device = self.devices[device_name]
-        except KeyError:
-            raise UnknownDeviceName
-
-        return (device, ch)
-
-    def set_shutter(self, channel, value):
-        """Set a shutter state"""
-        (device, ch) = self._get_dev_channel(channel)
-        device.set_shutter(ch, value)
-
-    def get_shutter(self, channel):
-        (device, ch) = self._get_dev_channel(channel)
-        return device.get_shutter(ch)
-
-    def open_shutter(self, channel):
-        (device, ch) = self._get_dev_channel(channel)
-        device.set_shutter(ch, True)
-
-    def close_shutter(self, channel):
-        # Look up device and channel
-        (device, ch) = self._get_dev_channel(channel)
-        device.set_shutter(ch, False)
+    def __init__(self, dmgr, mappings):
+        for channel in mappings:
+            dev_name, ch = mappings[channel]
+            dev = dmgr.get(dev_name)
+            channel_cls = ShutterChannel(dev, ch)
+            setattr(self, channel, channel_cls)
 
 
-class UnknownLogicalChannel(Exception):
-    """The logical channel given was not found in the mappings dictionary"""
-    pass
+class ShutterChannel:
+    def __init__(self, dev, channel):
+        self.dev = dev
+        self.channel = channel
 
-class UnknownDeviceName(Exception):
-    """The device name for the given logical channel was not found in the devices list"""
-    pass
+    def set(self, state):
+        self.dev.set_state(self.channel, state)
+
+    def on(self):
+        self.set(True)
+
+    def off(self):
+        self.set(False)
 
