@@ -1,0 +1,1 @@
+{"ramp": 12.5, "date_ramp_modified": "2017-10-24T15:02:50.649650", "date_freq_updated": "2017-10-24T15:11:18.264902", "last_freq_set": 45000000.0, "date_freq_set": "2017-10-24T15:02:50.680944"}

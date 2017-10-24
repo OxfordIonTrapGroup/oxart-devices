@@ -1,83 +1,128 @@
-import logging
-import ctypes
-import numpy as np
-
-logger = logging.getLogger(__name__)
+from artiq.language.core import *
+from .driver_raw import HolzworthSynthRaw
+import math
+import json
+import datetime
+import dateutil.parser as parser
+import asyncio
+import os
 
 class HolzworthSynth():
+    """Driver for Holzworth synth to get and set the frequency, and get and set the ramp rate to track the 674 nm quadrupole laser cavity drift."""
 
     def __init__(self):
 
-        self.dll = ctypes.WinDLL("HolzworthHS1001.dll")
+        self.synth_raw = HolzworthSynthRaw() #The raw driver
+        self.max_step = 10e3 # Hz
+        folder = os.path.dirname(os.path.realpath(__file__)) #Saves the log file in the same folder as the driver, so it can be backed up with git
+        file_name = "Holzworth_freq_log.txt"
+        self.logfile_path = os.path.join(folder,file_name)
+        if not os.path.isfile(self.logfile_path):
+            raise Exception("No log file found")
 
-        self.dll.getAttachedDevices.restype = ctypes.c_char_p
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.continuously_update_freq(loop)) # Starts continuously_update_freq
 
-        self.serialnum = self.dll.getAttachedDevices()
+    async def continuously_update_freq(self,loop):
+        """Updates the frequency every 10 seconds and adds itself back to the lop"""
+        await self.update_freq()
+        await asyncio.sleep(10)
+        asyncio.ensure_future(self.continuously_update_freq(loop),loop = loop)
 
-        if self.serialnum.decode() == '':
-            raise Exception("No devices connected")
 
-        rc = self.dll.openDevice(self.serialnum)
-        assert(rc>0)
+    async def _move_freq(self, freq):
+        """ Slowly scans synth in small steps to requested frequency to keep lock"""
+        freq_start = self.synth_raw.get_freq()
+        freq_end  = freq
+        n_steps = math.ceil(abs(freq_end-freq_start)/self.max_step)
+        for n in range(1,n_steps+1):
+            f = freq_start + (n/n_steps)*(freq_end-freq_start)
 
-        self.dll.usbCommWrite.restype = ctypes.c_char_p
+            self.synth_raw.set_freq(f)
+            await asyncio.sleep(0)
 
-        self.suffix_dict = {'Hz':1,'kHz':1e3,'MHz':1e6,'GHz':1e9} # SI suffixes
-        self.multiplier_dict = {v: k for k, v in self.suffix_dict.items()} # swap keys for values
+        assert(math.isclose(await self.get_freq(),freq_end,rel_tol=0.5e-12,abs_tol=0.0011)) #Checking we reach the final frequency, allowing for rounding differences in the 3rd decimal place for values as large as 2.048 GHZ (max frequency output)
 
-    def get_freq(self,limits=0):
-        """Returns the current set frequency of the Holzworth synth when called without arguments or limits=0
-        , and returns the maximum and minimum allowed frequency when called with limits=1 and limits =-1 respectively"""
 
-        limits_dict = {0:'',1:':MAX',-1:':MIN'}
-        command = ctypes.c_char_p((':FREQ'+limits_dict[limits]+'?').encode())
+    async def set_freq(self, freq):
+        """Sets the Holzworth frequency and saves the value and datetime to file."""
+        with open(self.logfile_path,"r+") as f: # Reads file only
+            try:                               # try block to catch when logfile is empty
+                data = json.load(f)
+            except ValueError:
+                data = {}
 
-        rx = self.dll.usbCommWrite(self.serialnum,command)
+        await self._move_freq(freq)
 
-        freq_string = rx.decode()
-        assert(freq_string!='Invalid Command')
-        [value,suffix] = freq_string.strip().split()
+        data["date_freq_set"] = datetime.datetime.now().isoformat()
+        data["last_freq_set"] = freq
 
-        try:
-            freq = float(value)*self.suffix_dict[suffix]
-        except KeyError as e:
-            raise Exception('Invalid suffix "' + e.args[0] + '"')
-        return freq
+        with open(self.logfile_path,"w") as f: # Overwrites files       
+            json.dump(data,f)
 
-    def set_freq(self,freq):
-        """Sets the output frequency of the Holzworth synth"""
-
-        if (freq<1e5) or (freq>2.048e9):
-            raise Exception("Frequency out of range")
-
-        exponent = 3.0*np.floor(np.log10(freq)/3.0) #find nearest SI suffix exponent (i.e. 1,3,6 or 9)
-        multiplier = np.power(10,exponent)
-
-        try:
-            freq_string = str(freq/multiplier) + self.multiplier_dict[multiplier]
-        except KeyError as e:
-            raise Exception('Invalid suffix "' + e.args[0] + '"')
-
-        command = ctypes.c_char_p((':FREQ:'+freq_string).encode())
-        rx = self.dll.usbCommWrite(self.serialnum,command)
-        assert(rx.decode()!='Invalid Command')
-
-        if rx.decode() != 'Frequency Set':
-            assert(self.get_freq() == freq)
-
-    def identity(self):
-        command = ctypes.c_char_p((':IDN?').encode())
-        rx = self.dll.usbCommWrite(self.serialnum,command)
-        return rx.decode()
-
-    def ping(self):
-        if self.identity() == '':
-            raise Exception("No devices connected")
         
-        return True
+    async def get_freq(self):
+        """Gets the current frequency of the synth"""
+        return self.synth_raw.get_freq()
+
+
+
+    async def update_freq(self):
+        """Updates the frequency by the difference between the current time and the last time set_freq was called multiplied by the drift rate."""
+        with open(self.logfile_path,"r") as f:
+            try:
+                data = json.load(f)
+            except ValueError:
+                raise Exception("Empty log file")
+
+        ramp = data["ramp"] #Hz per second
+        ref_freq = data["last_freq_set"] #Freq when it was last set (not updated)
+        duration  = datetime.datetime.now() - parser.parse(data["date_freq_set"])
+        new_freq = duration.total_seconds()*ramp + ref_freq
+
+        await self._move_freq(new_freq)
+
+        data["date_freq_updated"] = datetime.datetime.now().isoformat()
+        #print("Frequency updated to {} Hz".format(self.get_freq()))
+
+        with open(self.logfile_path,"w") as f: # Overwrites files       
+            json.dump(data,f)
+
+    def get_ramp(self):
+        """Retrives the ramp rate from the log file"""
+        with open(self.logfile_path,"r") as f:
+            try:
+                data = json.load(f)
+            except ValueError:
+                raise Exception("Empty log file")
+
+        return data["ramp"]
+
+    def set_ramp(self,ramp):
+        """Sets the ramp rate the ramp rate from the log file"""
+        with open(self.logfile_path,"r") as f:
+            try:                                     # try block to catch when logfile is empty
+                data = json.load(f)
+            except ValueError:
+                data = {}
+
+        data["ramp"] = ramp #Hz per second
+        data["date_ramp_modified"] = datetime.datetime.now().isoformat()
+
+        with open(self.logfile_path,"w") as f: # Overwrites files       
+            json.dump(data,f)
+
+    async def ping(self):
+        """Master needs to be able to ping the device"""
+        return self.synth_raw.ping()
 
     def close(self):
-        """Closes connection to the Holzworth. Must be called when disconnecting else future connections may not work"""
+        self.synth_raw.close()
 
-        self.dll.close_all()
-        print('Connection to Holzworth synth closed safely')
+    async def terminate(self):
+        """If something goes wrong the master calls this function"""
+        self.close()
+        
+
+
+

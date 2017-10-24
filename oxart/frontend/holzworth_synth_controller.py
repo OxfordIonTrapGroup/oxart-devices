@@ -19,10 +19,10 @@ def main():
     args = get_argparser().parse_args()
     init_logger(args)
 
-    dev = HolzworthSynth()
+    dev = HolzworthSynth() # Starts frequency update loop to track cavity drift
 
     try:
-        simple_server_loop({"Holzworth": dev}, args.bind, args.port)
+        simple_server_loop({"HolzworthSynth": dev}, args.bind, args.port)
     finally:
         dev.close()
 
