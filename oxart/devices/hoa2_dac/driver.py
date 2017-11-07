@@ -32,6 +32,9 @@ class HOA2Dac:
             self.dac.set_channel(v, ch=ch, update=False)
         self.dac.pulse_ldac()
 
+    def read_raw_voltages(self):
+        return [self.dac.read_channel(ch) for ch in range(4)]
+
     def update_voltages(self):
         voltages = [0]*4
 

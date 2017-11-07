@@ -38,6 +38,13 @@ class PirateDac:
         return self.spi.transfer([0x18, 0x0, 0x0])
         self.spi.cs = False
 
+    def read_channel(self, ch=0):
+        self._write(0,reg=0,ch=ch,rw=1)
+        raw = self._read()
+        val_lsb = int.from_bytes(raw[1:], byteorder='big')
+        val = val_lsb * (10/32767)
+        return val
+
     def set_channel(self, v, ch=0, update=True):
         """Set channel to a given voltage.
         If update, pulse LDAC and update immediately,
@@ -64,7 +71,7 @@ if __name__ == "__main__":
     def write(v):
         for ch in range(4):
             dac.set_channel(v, ch=ch, update=False)
-        dac.pulse_ldac()  
+        dac.pulse_ldac()
 
     i=0
     while True:
