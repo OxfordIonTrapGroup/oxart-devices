@@ -1,9 +1,8 @@
 from artiq.language.core import *
 from .driver_raw import HolzworthSynthRaw
 import math
+import time
 import json
-import datetime
-import dateutil.parser as parser
 import asyncio
 import os
 
@@ -15,10 +14,19 @@ class HolzworthSynth():
         self.synth_raw = HolzworthSynthRaw() #The raw driver
         self.max_step = 10e3 # Hz
         folder = os.path.dirname(os.path.realpath(__file__)) #Saves the log file in the same folder as the driver, so it can be backed up with git
-        file_name = "Holzworth_freq_log.txt"
+        file_name = "Holzworth_synth_config.txt"
         self.logfile_path = os.path.join(folder,file_name)
         if not os.path.isfile(self.logfile_path):
             raise Exception("No log file found")
+
+        with open(self.logfile_path,"r") as f:
+            try:
+                self.data = json.load(f)
+            except ValueError:
+                raise Exception("Empty log file")
+
+        self.time_freq_updated = None
+
 
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.continuously_update_freq(loop)) # Starts continuously_update_freq
@@ -45,20 +53,15 @@ class HolzworthSynth():
 
 
     async def set_freq(self, freq):
-        """Sets the Holzworth frequency and saves the value and datetime to file."""
-        with open(self.logfile_path,"r+") as f: # Reads file only
-            try:                               # try block to catch when logfile is empty
-                data = json.load(f)
-            except ValueError:
-                data = {}
+        """Sets the Holzworth frequency and saves the value and time to file."""
 
         await self._move_freq(freq)
 
-        data["date_freq_set"] = datetime.datetime.now().isoformat()
-        data["last_freq_set"] = freq
+        self.data["time_freq_set"] = time.time() #All times are read and written as UNIX time (seconds since epoch)
+        self.data["last_freq_set"] = freq
 
         with open(self.logfile_path,"w") as f: # Overwrites files       
-            json.dump(data,f)
+            json.dump(self.data,f)
 
         
     async def get_freq(self):
@@ -69,48 +72,42 @@ class HolzworthSynth():
 
     async def update_freq(self):
         """Updates the frequency by the difference between the current time and the last time set_freq was called multiplied by the drift rate."""
-        with open(self.logfile_path,"r") as f:
-            try:
-                data = json.load(f)
-            except ValueError:
-                raise Exception("Empty log file")
 
-        ramp = data["ramp"] #Hz per second
-        ref_freq = data["last_freq_set"] #Freq when it was last set (not updated)
-        duration  = datetime.datetime.now() - parser.parse(data["date_freq_set"])
-        new_freq = duration.total_seconds()*ramp + ref_freq
+        ramp = self.data["ramp"] #Hz per second
+        ref_freq = self.data["last_freq_set"] #Freq when it was last set (not updated)
+        duration  = time.time() - self.data["time_freq_set"]
+        new_freq = duration*ramp + ref_freq
 
         await self._move_freq(new_freq)
 
-        data["date_freq_updated"] = datetime.datetime.now().isoformat()
-        #print("Frequency updated to {} Hz".format(self.get_freq()))
+        self.time_freq_updated = time.time()
 
-        with open(self.logfile_path,"w") as f: # Overwrites files       
-            json.dump(data,f)
 
     def get_ramp(self):
         """Retrives the ramp rate from the log file"""
-        with open(self.logfile_path,"r") as f:
-            try:
-                data = json.load(f)
-            except ValueError:
-                raise Exception("Empty log file")
 
-        return data["ramp"]
+        return self.data["ramp"]
 
-    def set_ramp(self,ramp):
+    async def set_ramp(self,ramp):
         """Sets the ramp rate the ramp rate from the log file"""
-        with open(self.logfile_path,"r") as f:
-            try:                                     # try block to catch when logfile is empty
-                data = json.load(f)
-            except ValueError:
-                data = {}
 
-        data["ramp"] = ramp #Hz per second
-        data["date_ramp_modified"] = datetime.datetime.now().isoformat()
+        current_freq = await self.get_freq()
+        await self.set_freq(current_freq) # needed to ensure update_freq's calculations start from now
+
+        self.data["ramp"] = ramp #Hz per second
 
         with open(self.logfile_path,"w") as f: # Overwrites files       
-            json.dump(data,f)
+            json.dump(self.data,f)
+
+
+    def get_time_freq_set(self):
+        return self.data["time_freq_set"]
+
+    def get_last_freq_set(self):
+        return self.data["last_freq_set"]
+
+    def get_time_freq_updated(self):
+        return self.time_freq_updated
 
     async def ping(self):
         """Master needs to be able to ping the device"""
