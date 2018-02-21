@@ -3,6 +3,7 @@ import serial
 import sys
 import asyncio
 from enum import Enum
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -111,8 +112,8 @@ class Conex:
     def get_status(self):
         """Return the status code of the controller"""
         self._send_command("TS")
-        line = self._read_line()
-        state_code = line[7:8].lower()
+        line = self._read_line().strip()
+        state_code = line[7:9].lower()
         st = StateType.Other
         if state_code in ["0a", "0b", "0c", "0d", "0e", "0f", "10"]:
             st = StateType.NotReferenced
