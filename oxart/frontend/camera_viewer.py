@@ -14,10 +14,9 @@ async def recv_and_process(ctx, imv, args):
     sock.set_hwm(1)
     sock.connect("tcp://{}:{}".format(args.server, args.port))
     sock.setsockopt_string(zmq.SUBSCRIBE, '')
-    n = 0
     while True:
         im = await sock.recv_pyobj()
-        imv.setImage(im)
+        imv.setImage(im, autoRange=False)
 
 
 def main():
