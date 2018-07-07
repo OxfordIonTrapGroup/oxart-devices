@@ -1,6 +1,6 @@
 """ Driver for Lake Shore Cryogenics Model 335 Temperature controllers """
 
-from oxart.streams import Ethernet
+from oxart.devices.streams import Ethernet
 
 
 class LakeShore335:
@@ -9,10 +9,16 @@ class LakeShore335:
         self.sock = Ethernet(addr, port)
 
     def identify(self):
-        return self.sock.write("*IDN?\n".encode())
+        self.sock.write("*IDN?\n".encode())
+        return self.sock.readline().decode()
 
-    def get_temp(self):
-        return self.sock.write("KRDG?\n".encode())
+    def get_temp(self, input="A"):
+        """ Returns the temperature of an input channel as a float in Kelin
+        : param input: either "A" or "B"
+        """
+        self.sock.write("KRDG? {}\n".format(input).encode())
+        return float(self.sock.readline())
 
     def ping(self):
-        return bool(self.get_version())
+        idn = self.identify().split(',')
+        return idn[0:2] == ['LSCI', 'MODEL335']
