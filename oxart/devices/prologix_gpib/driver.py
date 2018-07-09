@@ -3,7 +3,7 @@
 
 class GPIB:
     """ Simple pySerial-compatible wrapper for GPIB devices connected to a
-    Prologix ethernet/USB <-> GPIB  adapter.
+    Prologix Ethernet/USB <-> GPIB  adapter.
 
     NB this implementation does not auto-escape data sent to the GPIB
     controller. As a result, any lines beginning with "++" are interpreted as
@@ -24,6 +24,8 @@ class GPIB:
         self.gpib_addr = None
         self.set_addr(gpib_addr)
 
+        assert self.ping()  # Check we are connected to a GPIB controller
+
     def set_addr(self, gpib_addr=None):
         """ Sets the controller to address the device at a given GPIB address.
         If gpib_addr is None we keep the current address. """
@@ -31,13 +33,7 @@ class GPIB:
             return
 
         self.gpib_addr = gpib_addr
-        self.sock.write("++addr {:d}\n".format(gpib_addr).encode())
-
-    def get_version(self):
-        """ Returns a hardware/firmware version string for the GPIB controller.
-        """
-        self.sock.write("++ver\n".encode())
-        return self.sock.readline().decode()
+        self.stream.write("++addr {:d}\n".format(gpib_addr).encode())
 
     def read(self, size=1, gpib_addr=None):
         """ Read up to size bytes from the GPIB device at gpib_addr.
@@ -59,10 +55,6 @@ class GPIB:
 
         The final '\n' character and any immediately preceding '\r's are
         trimmed.
-
-        This implementation is dumb and slow. We could (should?) use
-        sock.makefile.readline instead, however that has some potential
-        compatibility issues.
         """
         self.set_addr(gpib_addr)
         self.stream.write("++read_eoi\n".encode())
@@ -82,10 +74,16 @@ class GPIB:
         """ Create an interface to the device at a given GPIB address. """
         return self.stream(self, gpib_addr)
 
+    def identify(self):
+        """ Returns a version string. """
+        self.stream.write("++ver\n".encode())
+        return self.stream.readline().decode()
+
     def ping(self):
         """" Returns True if it receives a non-empty version string from the
         controller """
-        return bool(self.get_version())
+        idn = self.identify().split(' ')
+        return idn[0] == "Prologix" and idn[1].startswith("GPIB-")
 
     class Stream:
         """ pySerial-compatible interface to a single GPIB device. """
@@ -110,10 +108,6 @@ class GPIB:
 
             The final '\n' character and any immediately preceding '\r's are
             trimmed.
-
-            This implementation is dumb and slow. We could (should?) use
-            sock.makefile.readline instead, however that has some potential
-            compatibility issues.
             """
             return self.stream.readline(self.addr)
 
