@@ -32,7 +32,7 @@ def address_args(parser, gpib=None):
         parser.add_argument("-d", "--device", help="device's address")
 
 
-def get_stream(args, baudrate=115200, port=None):
+def get_stream(args, baudrate=115200, port=None, timeout=None):
     """ Returns a connection the device whose address is given in args.
 
     If args has a valid gpib address, we assume the device is a GPIB device.
@@ -40,6 +40,8 @@ def get_stream(args, baudrate=115200, port=None):
 
     :param baudrate: baudrate to use for serial connections (default:115200)
     :param port: port to use for Ethernet connections
+    :param timeout: timeout to use for read and write operations. Setting to
+        None causes IO operations to block.
     """
     if hasattr(args, "gpib_addr") and isinstance(args.gpib_addr, int):
         port = 1234  # Port used by Prologix GPIB Ethernet controllers
@@ -50,9 +52,12 @@ def get_stream(args, baudrate=115200, port=None):
     except ValueError:
         if args.device.startswith("/dev/") \
            or args.device.lower().startswith("com"):
-            dev = serial.Serial(args.device, baudrate=baudrate)
+            dev = serial.Serial(args.device,
+                                baudrate=baudrate,
+                                timeout=timeout,
+                                write_timeout=timeout)
     else:
-        dev = Ethernet(args.device, port)
+        dev = Ethernet(args.device, port, timeout=timeout)
     if hasattr(args, "gpib_addr") and isinstance(args.gpib_addr, int):
         dev = GPIB(dev).get_stream(args.gpib_addr)
     return dev
@@ -60,9 +65,14 @@ def get_stream(args, baudrate=115200, port=None):
 
 class Ethernet:
     """ Simple pySerial-compatible wrapper for Ethernet sockets. """
-    def __init__(self, addr, port):
+    def __init__(self, addr, port, timeout=None):
+        """
+        :param timeout: timeout to use for read and write operations. Setting
+        to None causes IO operations to block.
+        """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((addr, port))
+        self.sock.settimeout(timeout)
 
     def read(self, size=1):
         """ Reads up to size bytes from the serial port. If a timeout is set it
@@ -77,9 +87,12 @@ class Ethernet:
         The final '\n' character and any immediately preceding '\r's are
         trimmed.
 
-        This implementation is dumb and slow. We could (should?) use
+        This implementation is dumb and slow. We could use
         sock.makefile.readline instead, however that has some potential
-        compatibility issues.
+        compatibility issues and does not work with non-blocking sockets.
+
+        This implementation blocks, regardless of timeouts. That should be
+        fixed at some point.
         """
         data = b""
         while True:
