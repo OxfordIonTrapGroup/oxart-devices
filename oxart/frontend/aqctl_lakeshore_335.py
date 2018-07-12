@@ -4,7 +4,6 @@ import argparse
 import logging
 
 from oxart.devices.streams import address_args, get_stream
-from oxart.devices.prologix_gpib.driver import GPIB
 from oxart.devices.lakeshore_335.driver import LakeShore335
 from artiq.protocols.pc_rpc import simple_server_loop
 from artiq.tools import verbosity_args, simple_network_args, init_logger

@@ -79,6 +79,10 @@ class GPIB:
         self.stream.write("++ver\n".encode())
         return self.stream.readline().decode()
 
+    def close(self):
+        self.stream.close()
+        self.gpib_addr = None
+
     def ping(self):
         """" Returns True if it receives a non-empty version string from the
         controller """
@@ -118,3 +122,6 @@ class GPIB:
             - Returns the number of bytes written.
             """
             return self.bus.write(data, self.addr)
+
+        def close(self):
+            pass

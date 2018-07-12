@@ -1,6 +1,3 @@
-from artiq.language.core import *
-
-
 class PsuWrapper:
     """Wraps multiple power supplies to allow reference to channels by an
     easily remappable logical name. The arguments are:

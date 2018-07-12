@@ -1,7 +1,4 @@
 import logging
-import serial
-import sys
-import asyncio
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -13,63 +10,38 @@ class QL355:
     """Driver for TTI QL355P (single channel) and QL355TP (two channel
     + aux channel) power supplies.
 
-    QL355P: Single channel PSU
-    QL355TP: Two channel PSU (ch 0 & 1), with an auxillary channel (ch 2)
-    that can be enabled/disabled, but voltage and current cannot be set.
-
     Note that this driver does not set the output range of the PSU
-    automatically
+    automatically.
+    """
 
-    All voltages are in Volts, and currents in Amps."""
-
-    def __init__(self, serial_addr):
-        self.port = serial.Serial(
-            serial_addr,
-            baudrate=19200,
-            timeout=0.1,
-            write_timeout=0.1)
+    def __init__(self, stream):
+        self.stream = stream
         self._purge()
+        assert self.ping()
 
-        ident = self.identity()
-        if ident.startswith("THURLBY-THANDAR,QL355P"):
+        ident = self.identify().split(',')
+        if ident[1].strip() == "QL355P":
             self.type = PsuType.QL355P
-        elif ident.startswith("THURLBY-THANDAR,QL355TP"):
+        elif ident[1].strip() == "QL355TP":
             self.type = PsuType.QL355TP
         else:
             raise Exception("Unsupported PSU type '{}'".format(ident))
-        logger.info("Connected to {}".format(self.type))
 
     def _purge(self):
-        """Make sure we start from a clean slate with the controller"""
+        """Make sure we start from a clean slate with the controller.
+
+        NB the stream must be configured in non-blocking mode for this method
+        to return, see aqctl_tti_ql355.
+        """
         # Send a carriage return to clear the controller's input buffer
-        self.port.write('\r'.encode())
+        self.stream.write('\r'.encode())
         # Read any old gibberish from input until a timeout occurs
-        c = 'c'
-        while c != '':
-            c = self.port.read().decode()
+        while self.stream.read() != b"":
+            pass
 
     def close(self):
         """Close the serial port."""
-        self.port.close()
-
-    def _send_command(self, cmd):
-        try:
-            self.port.write((cmd+'\r\n').encode())
-        except serial.SerialTimeoutException as e:
-            logger.exception("Serial write timeout: Force exit")
-            # This is hacky but makes the server exit
-            asyncio.get_event_loop().call_soon(sys.exit, 42)
-            raise
-
-    def _read_line(self):
-        """Read a CR terminated line. Returns '' on timeout"""
-        s = ''
-        while len(s) == 0 or s[-1] != '\r':
-            c = self.port.read().decode()
-            if c == '':  # Timeout
-                break
-            s += c
-        return s
+        self.stream.close()
 
     def _check_valid_channel(self, channel, is_enable=False):
         """Raises a ValueError if the channel number is not valid for
@@ -87,78 +59,66 @@ class QL355:
                 raise ex
 
     def set_voltage_limit(self, voltage, channel=0):
-        """Sets the voltage limit for channel"""
+        """Sets the voltage limit for channel in volts"""
         self._check_valid_channel(channel)
         if voltage < 0:
             raise ValueError("Voltage limit must be positive")
-        self._send_command("V{} {}".format(channel+1, voltage))
+        self.stream.write("V{} {}\n".format(channel+1, voltage).encode())
 
     def get_voltage_limit(self, channel=0):
-        """Returns the voltage limit for channel"""
+        """Returns the voltage limit for channel in volts"""
         self._check_valid_channel(channel)
-        self._send_command("V{}?".format(channel+1))
-        response = self._read_line().split()
+        self.stream.write("V{}?\n".format(channel+1).encode())
+        response = self.stream.readline().decode().split()
         if response[0] != "V{}".format(channel+1):
             raise Exception("Device responded incorrectly")
-        try:
-            val = float(response[1])
-        except ValueError:
-            raise ValueError("Could not interpret device response as a float")
-        return val
+        return float(response[1])
 
     def set_current_limit(self, current, channel=0):
-        """Sets the current limit for channel"""
+        """Sets the current limit for channel in amps"""
         self._check_valid_channel(channel)
         if current < 0:
             raise ValueError("Current limit must be positive")
-        self._send_command("I{} {}".format(channel+1, current))
+        self.stream.write("I{} {}\n".format(channel+1, current).encode())
 
     def get_current_limit(self, channel=0):
-        """Returns the current limit for channel"""
+        """Returns the current limit for channel in amps"""
         self._check_valid_channel(channel)
-        self._send_command("I{}?".format(channel+1))
-        response = self._read_line().split()
+        self.stream.write("I{}?\n".format(channel+1).encode())
+        response = self.stream.readline().decode().split()
         if response[0] != "I{}".format(channel+1):
             raise Exception("Device responded incorrectly")
-        try:
-            val = float(response[1])
-        except ValueError:
-            raise ValueError("Could not interpret device response as a float")
-        return val
+        return float(response[1])
 
     def set_output_enable(self, enable, channel=0):
         """Enable / disable a channel"""
         self._check_valid_channel(channel, is_enable=True)
-        # enable flag needs to be 0 or 1, hence int(bool) dance
-        self._send_command("OP{} {}".format(channel+1, int(bool(enable))))
+        self.stream.write("OP{} {}\n".format(
+            channel+1, int(bool(enable))).encode())
 
     def get_voltage(self, channel=0):
-        """Returns the actual output voltage"""
+        """Returns the actual (measured) output voltage in volts"""
         self._check_valid_channel(channel)
-        self._send_command("V{}O?".format(channel+1))
-        response = self._read_line().strip()
-        try:
-            val = float(response[0:-1])
-        except ValueError:
-            raise ValueError("Could not interpret device response as a float")
-        return val
+        self.stream.write("V{}O?\n".format(channel+1).encode())
+        return float(self.stream.readline().decode()[:-1])
 
     def get_current(self, channel=0):
-        """Returns the actual output current"""
+        """Returns the actual (measured) output current in amps"""
         self._check_valid_channel(channel)
-        self._send_command("I{}O?".format(channel+1))
-        response = self._read_line().strip()
-        try:
-            val = float(response[0:-1])
-        except ValueError:
-            raise ValueError("Could not interpret device response as a float")
-        return val
+        self.stream.write("I{}O?\n".format(channel+1).encode())
+        return float(self.stream.readline().decode()[:-1])
 
-    def identity(self):
-        """Returns the identity string of the device"""
-        self._send_command("*IDN?")
-        return self._read_line()
+    def identify(self):
+        """Returns device identity string"""
+        self.stream.write("*IDN?\n".encode())
+        return self.stream.readline().decode()
 
     def ping(self):
-        self.identity()
+        """ Returns True if we are connected to a PSU, otherwise returns False.
+        """
+        ident = self.identify().split(',')
+        if ident[0] != "THURLBY-THANDAR":
+            return False
+        if ident[1].strip() not in ["QL355P", "QL355TP"]:
+            return False
         return True
