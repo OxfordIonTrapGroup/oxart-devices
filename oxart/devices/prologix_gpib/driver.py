@@ -72,7 +72,7 @@ class GPIB:
 
     def get_stream(self, gpib_addr):
         """ Create an interface to the device at a given GPIB address. """
-        return self.stream(self, gpib_addr)
+        return self.Stream(self, gpib_addr)
 
     def identify(self):
         """ Returns a version string. """
@@ -109,7 +109,7 @@ class GPIB:
             The final '\n' character and any immediately preceding '\r's are
             trimmed.
             """
-            return self.stream.readline(self.addr)
+            return self.bus.readline(self.addr)
 
         def write(self, data, gpib_addr=None):
             """ Sends data to the GPIB device.
