@@ -96,3 +96,6 @@ class Ethernet:
         data must be a bytes-compatible type.
         """
         return self.sock.send(data)
+
+    def close(self):
+        self.sock.close()
