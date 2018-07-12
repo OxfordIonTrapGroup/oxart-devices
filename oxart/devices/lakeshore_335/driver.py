@@ -21,3 +21,6 @@ class LakeShore335:
     def ping(self):
         idn = self.identify().split(',')
         return idn[0:2] == ['LSCI', 'MODEL335']
+
+    def close(self):
+        self.stream.close()
