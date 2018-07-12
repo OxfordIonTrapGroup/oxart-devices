@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from artiqDrivers.devices.thorlabs_k10cr1m.driver import K10CR1MDriver
+from oxart.devices.thorlabs_k10cr1m.driver import K10CR1MDriver
 from artiq.protocols.pc_rpc import simple_server_loop
 from artiq.tools import verbosity_args, simple_network_args, init_logger
 
