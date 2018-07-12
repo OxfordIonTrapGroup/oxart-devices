@@ -68,7 +68,8 @@ class Ethernet:
     def __init__(self, addr, port, timeout=None):
         """
         :param timeout: timeout to use for read and write operations. Setting
-        to None causes IO operations to block.
+        to None causes IO operations to block. For consistency with pySerail,
+        we catch timeout exceptions; reads return b"".
         """
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((addr, port))
@@ -79,7 +80,10 @@ class Ethernet:
         may return fewer characters than requested, otherwise it blocks until
         the requested number of bytes have been read.
         """
-        return self.sock.recv(size)
+        try:
+            return self.sock.recv(size)
+        except socket.timeout:
+            return b""
 
     def readline(self):
         """ Returns a line terminated with a single '\n' character.
@@ -96,7 +100,7 @@ class Ethernet:
         """
         data = b""
         while True:
-            char = self.sock.recv(1)
+            char = self.read(1)
             if char == b"\n":
                 break
 
