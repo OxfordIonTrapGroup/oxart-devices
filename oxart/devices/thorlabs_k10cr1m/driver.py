@@ -41,7 +41,7 @@ class K10CR1MDriver:
         self.dev.set_move_home_parameters(2,1,1,4)
         self.dev.move_home(True)
 
-        self.dev.set_velocity_parameter(0,4,6)
+        self.dev.set_velocity_parameters(0,4,6)
 
         def set_angle(self, angle):
             self.dev.move_to(angle, blocking=True)
