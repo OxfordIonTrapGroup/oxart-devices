@@ -43,11 +43,11 @@ class K10CR1MDriver:
 
         self.dev.set_velocity_parameters(0,4,6)
 
-        def set_angle(self, angle):
-            self.dev.move_to(angle, blocking=True)
+    def set_angle(self, angle):
+        self.dev.move_to(angle, blocking=True)
 
-        def get_angle(self):
-            return self.dev.position
+    def get_angle(self):
+        return self.dev.position
 
-        def ping(self):
-            return True
+    def ping(self):
+        return True
