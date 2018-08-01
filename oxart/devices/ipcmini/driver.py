@@ -1,5 +1,5 @@
 import telnetlib
-import constants as c
+from . import constants as c
 
 
 class IPCMini:
