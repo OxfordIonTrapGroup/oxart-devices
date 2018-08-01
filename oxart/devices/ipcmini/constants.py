@@ -102,7 +102,7 @@ windows = {
     "rs485_address":{"win":503, "type":"N"},
     "serial_type":{"win":504, "type":"L"},
     "pressure_units":{"win":600, "type":"N",
-        "docstring":"pressure units, allowed values are Torr/mBar/Pa"},
+        "docstring":"pressure units, allowed values are Torr/mbar/Pa"},
     "autostart":{"win":601, "type":"L"},
     "protect":{"win":602, "type":"L"},
     "fixed_step":{"win":603, "type":"L"},
@@ -143,11 +143,11 @@ lookups = {
     },
     "pressure_units":{
         0:"Torr",
-        1:"mBar",
+        1:"mbar",
         2:"Pa"
     },
     "error_code":{
-        0:"No error",
+        0:"No Error",
         4:"Over Temperature",
         32:"Interlock Cable",
         64:"Short Circuit",
