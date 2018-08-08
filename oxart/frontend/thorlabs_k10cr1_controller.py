@@ -26,7 +26,7 @@ def main():
     args = get_argparser().parse_args()
     init_logger(args)
 
-    dev = K10CR1(port, auto_home = not args.no_auto_home)
+    dev = K10CR1(args.port, auto_home = not args.no_auto_home)
 
     # Q: Why not use try/finally for port closure?
     # A: We don't want to try to close the serial if sys.exit() is called,
