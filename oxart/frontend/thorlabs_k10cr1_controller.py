@@ -2,9 +2,8 @@
 
 import argparse
 import sys
-from threading import Thread
 
-from oxart.devices.thorlabs_k10cr1.driver import K10CR1Driver
+from oxart.devices.thorlabs_k10cr1.driver import K10CR1
 from artiq.protocols.pc_rpc import simple_server_loop
 from artiq.tools import verbosity_args, simple_network_args, init_logger
 
@@ -27,7 +26,7 @@ def main():
     args = get_argparser().parse_args()
     init_logger(args)
 
-    dev = K10CR1Driver(port, auto_home = not args.no_auto_home)
+    dev = K10CR1(port, auto_home = not args.no_auto_home)
 
     # Q: Why not use try/finally for port closure?
     # A: We don't want to try to close the serial if sys.exit() is called,
