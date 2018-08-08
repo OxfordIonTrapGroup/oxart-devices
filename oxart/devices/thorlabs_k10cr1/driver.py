@@ -4,6 +4,8 @@ import time
 import numpy as np
 import logging
 
+logger = logging.getLogger(__name__)
+
 class Message:
     _id = 0
     param1 = 0
