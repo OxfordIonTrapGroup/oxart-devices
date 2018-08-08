@@ -14,9 +14,25 @@ class ScpiDmm:
     def measure(self):
         """ Performs a measurement and returns the result.
 
-        The device must already be configured.
+        The device must already be configured. Note for slow measurements
+        (low BW, high integration time, auto-zero enabled) over GPIB may hang
+        due to the "read_eoi" command hitting a timeout. To avoid this, use
+        :meth initiate_measurement: followed by :meth fetch_result:.
         """
         self.stream.write("READ?\n".encode())
+        return float(self.stream.readline().decode())
+
+    def initiate_measurement(self):
+        """ Triggers a measurement, without transferring the results to the
+        device's output buffer. The device must already be configured for
+        the measurement.
+        """
+        self.stream.write("INIT\n".encode())
+
+    def fetch_result(self):
+        """ Fetch measurement results from the device's output buffer (see
+        :meth initiate_measurement:) """
+        self.stream.write("FETCH?\n".encode())
         return float(self.stream.readline().decode())
 
     def set_measurement_mode(self, mode):
