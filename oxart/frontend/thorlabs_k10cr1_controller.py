@@ -5,7 +5,8 @@ import sys
 
 from oxart.devices.thorlabs_k10cr1.driver import K10CR1
 from artiq.protocols.pc_rpc import simple_server_loop
-from artiq.tools import verbosity_args, simple_network_args, init_logger
+from artiq.tools import (verbosity_args, simple_network_args, init_logger
+                                                    bind_address_from_args)
 
 def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller for the "

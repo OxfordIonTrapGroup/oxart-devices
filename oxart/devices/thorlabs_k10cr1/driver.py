@@ -2,7 +2,7 @@ import serial
 import struct
 import time
 import numpy as np
-
+import logging
 
 class Message:
     _id = 0
@@ -124,7 +124,9 @@ class K10CR1(APTDevice):
         self.set_power_params(0.05, 0.3)
 
         if auto_home:
+            logger.info("Homing ...")
             self.home()
+            logger.info("Done")
 
     def set_angle(self, angle):
         """Set angle in degrees"""
