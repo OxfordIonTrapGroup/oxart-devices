@@ -1,4 +1,4 @@
-""" Driver for Keysight V3500A USB RF power meters """
+""" Driver for SCPI-compatible frequency synthesisers """
 
 import serial
 
