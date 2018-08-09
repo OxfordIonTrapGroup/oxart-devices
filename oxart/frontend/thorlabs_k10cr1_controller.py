@@ -29,16 +29,8 @@ def main():
 
     dev = K10CR1(args.device, auto_home = not args.no_auto_home)
 
-    # Q: Why not use try/finally for port closure?
-    # A: We don't want to try to close the serial if sys.exit() is called,
-    #    and sys.exit() isn't caught by Exception
-    try:
-        simple_server_loop({"k10cr1": dev}, bind_address_from_args(args),
-                           args.port)
-    except Exception:
-        dev.close()
-    else:
-        dev.close()
+    simple_server_loop({"k10cr1": dev}, bind_address_from_args(args), args.port)
+
 
 if __name__ == "__main__":
     main()
