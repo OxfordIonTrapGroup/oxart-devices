@@ -10,17 +10,11 @@ class V3500A:
         self.bus.baudrate = 9600
         assert self.ping()
 
-    def identify(self):
-        self.stream.write("*IDN?\n".encode())
-        return self.stream.readline().decode()
-
     def ping(self):
-        ident = self.identify().lower().split(",")
-        ident = [sub_str.strip() for sub_str in ident]
-        return ident[0:2] == ["hewlett-packard", "e4405b"]
+        return bool(self.get_firmware_rev())
 
     def close(self):
-        self.stream.close()
+        self.bus.close()
 
     def _set(self, cmd):
         """ Send a command to the power meter and check that the response is
