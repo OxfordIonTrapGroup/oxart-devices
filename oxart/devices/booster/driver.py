@@ -1,8 +1,9 @@
 import socket
+import numpy as np
 
 
 def _validate_channel(channel):
-    if not isinstance(channel, int):
+    if not isinstance(channel, int) and not isinstance(channel, np.int32):
         raise ValueError("channel must be an int")
     if (channel < 0) or (channel > 7):
         raise ValueError("invalid channel number {}".format(channel))
@@ -19,9 +20,12 @@ class Booster:
 
     def identify(self):
         """ Returns a device identification string """
+        print("ping!")
         self.sock.send("*IDN?\r\n".encode())
         with self.sock.makefile() as stream:
-            return stream.readline().strip()
+            line = stream.readline().strip()
+            print(line)
+            return line
 
     def get_version(self):
         """
@@ -94,7 +98,7 @@ class Booster:
         Returns the output forward power interlock threshold for a channel in
         dBm.
         """
-        return float(self._cmd(channel, "INT:POW?"))
+        return float(self._cmd(channel, "INT:HPOW?"))
 
     def get_interlock_status(self, channel):
         """
