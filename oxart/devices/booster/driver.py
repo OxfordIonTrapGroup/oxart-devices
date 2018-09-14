@@ -20,12 +20,9 @@ class Booster:
 
     def identify(self):
         """ Returns a device identification string """
-        print("ping!")
         self.sock.send("*IDN?\r\n".encode())
         with self.sock.makefile() as stream:
-            line = stream.readline().strip()
-            print(line)
-            return line
+            return stream.readline().strip()
 
     def get_version(self):
         """
