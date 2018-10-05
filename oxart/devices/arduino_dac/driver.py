@@ -90,12 +90,16 @@ class ArduinoDAC:
 
         command += ' {:.4f}\n'.format(voltage)
 
+        print(str(command))
         self._send_command(command)
 
         self._voltages[channel] = voltage
 
-        logger.info("Setting voltage channel {} to {}".format(
-            channel, voltage))
+        # Sleep for a bit
+        time.sleep(0.01)
+
+        # logger.info("Setting voltage channel {} to {}".format(
+        #     channel, voltage))
 
     def get_voltage(self, channel):
         """Reads the voltage on the given channel
