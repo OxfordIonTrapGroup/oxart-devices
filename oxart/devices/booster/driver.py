@@ -88,7 +88,7 @@ class Booster:
         if (threshold < 0) or (threshold > 38):
             raise ValueError("Output forward power interlock threshold must "
                              "lie between 0dBm and +38dBm")
-        self._cmd(channel, "INT:HPOW", "{:.2f}".format(threshold))
+        self._cmd(channel, "INT:POW", "{:.2f}".format(threshold))
 
     def get_output_interlock(self, channel):
         """
