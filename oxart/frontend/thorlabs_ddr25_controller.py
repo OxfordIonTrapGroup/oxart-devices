@@ -27,7 +27,7 @@ def main():
     args = get_argparser().parse_args()
     init_logger(args)
 
-    dev = K10CR1(args.device, auto_home = not args.no_auto_home)
+    dev = DDR25(args.device, auto_home = not args.no_auto_home)
 
     simple_server_loop({"ddr25": dev}, bind_address_from_args(args), args.port)
 
