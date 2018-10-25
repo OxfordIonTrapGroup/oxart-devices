@@ -78,6 +78,23 @@ class MsgMotMoveStop(Message):
     param2 = 1
 ID_MSG_MOVE_STOPPED = 0x0466
 
+class MsgSetChanEnableState(Message):
+    _id = 0x0210
+    def __init__(self, channel=1, enable=True):
+        self.param1 = channel
+        self.param2 = 1 if enable else 2
+
+class MsgMotResumeEndOfMoveMsgs(Message):
+    _id = 0x046c
+
+class MsgMotReqDcStatus(Message):
+    _id = 0x0490
+ID_MSG_DCSTATUSUPDATE = 0x0491
+
+
+class MsgMotAckDcStatusUpdate(Message):
+    _id = 0x0492
+
 
 class APTDevice:
     def __init__(self, port):
@@ -100,6 +117,9 @@ class APTDevice:
     def identify(self):
         self._send_message(MsgModIdentify())
 
+    def set_channel_enable(self, enable=True):
+        self._send_message(MsgSetChanEnableState(channel=1,enable=enable))
+
     def set_home_params(self, velocity=0, offset=0):
         self._send_message(MsgSetHomeParams(velocity=velocity, offset=offset))
 
@@ -107,23 +127,50 @@ class APTDevice:
         msg = MsgMotSetVelParams(vel_min=vel_min, vel_max=vel_max, acc=acc)
         self._send_message(msg)
 
+    def get_status(self):
+        self._send_message(MsgMotReqDcStatus())
+        msg = self._wait_for_message(ID_MSG_DCSTATUSUPDATE)
+        chan, position, velocity, _, status = struct.unpack("=HIHHI", msg.data)
+        return chan, position, velocity, status
+
     def _wait_for_message(self, msg_id):
          while True:
             msg = self._read_message()
             if msg._id == msg_id:
-                break
+                return msg
+
+    def _wait_until_stopped(self, poll_time=0.1):
+        count = 0
+        while True:
+            # sleep at start of loop to allow it to get moving
+            # 40ms appears to be very near the minimum
+            time.sleep(poll_time)
+            _, _, _, status = self.get_status()
+            if not (status & 0x200 or status & 0x10 or status & 0x20):
+                # require 3 consecutive readings at rest
+                count += 2
+                if count > 1:
+                    break
+            else:
+                count = 0
 
     def home(self):
         self._send_message(MsgMotMoveHome())
-        self._wait_for_message(ID_MSG_MOVE_HOMED)
+        # it appears that the appropriate response is never sent
+        # self._wait_for_message(ID_MSG_MOVE_HOMED)
+        self._wait_until_stopped()
 
     def move(self, position):
         self._send_message(MsgMotMoveAbsolute(position))
-        self._wait_for_message(ID_MSG_MOVE_COMPLETED)
+        # it appears that the appropriate response is never sent
+        # self._wait_for_message(ID_MSG_MOVE_COMPLETED)
+        self._wait_until_stopped(poll_time=0.06)
 
     def move_relative(self, position_change):
         self._send_message(MsgMotMoveRelative(position_change))
-        self._wait_for_message(ID_MSG_MOVE_COMPLETED)
+        # it appears that the appropriate response is never sent
+        # self._wait_for_message(ID_MSG_MOVE_COMPLETED)
+        self._wait_until_stopped()
 
     def set_power_params(self, hold_power=0, move_power=0):
         assert hold_power >= 0 and hold_power <= 1
@@ -135,18 +182,18 @@ class APTDevice:
 
     def stop(self):
         self._send_message(MsgMotMoveStop())
-        self._wait_for_message(ID_MSG_MOVE_STOPPED)
+        # self._wait_for_message(ID_MSG_MOVE_STOPPED)
+        self._wait_until_stopped()
 
 
-class K10CR1(APTDevice):
-    steps_per_degree = 136533
+class APTRotation(APTDevice):
     def __init__(self, port, auto_home=True):
         super().__init__(port)
 
+        self.set_channel_enable(True)
         self.stop()
-
-        self.set_velocity_params(acc=15020, vel_max=73300775)
-        self.set_home_params(velocity=73300775, offset=546133)
+        self.set_velocity_params(acc=self.max_acc, vel_max=self.max_vel)
+        self.set_home_params(velocity=self.homing_vel, offset=self.offset)
         self.set_power_params(0.05, 0.3)
 
         if auto_home:
@@ -178,3 +225,31 @@ class K10CR1(APTDevice):
 
     def ping(self):
         return True
+
+
+class K10CR1(APTRotation):
+    steps_per_degree = 136533
+    max_acc = 15020
+    max_vel = 73300775
+    homing_vel = 7300775
+    offset = 546133
+
+
+class DDR25(APTRotation):
+    steps_per_degree = 4000
+    vel_scale = 26843.5
+    acc_scale = 2.74878
+    max_vel = 48318300
+    max_acc = 28799
+    homing_vel = int(48318300/10)
+    offset = 0
+
+
+class DDR05(APTRotation):
+    counts_per_degree = 5555.55
+    vel_scale = 37282.2
+    acc_scale = 3.81775
+    max_vel = int(1800*37282.2)
+    max_acc = int(10477*3.81775)
+    homing_vel = int(180*37282.5)
+    offset = 0
