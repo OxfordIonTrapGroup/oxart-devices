@@ -43,27 +43,21 @@ class TrapController:
         updated in hardware.
         """
 
-        old_physical_voltages = self._dc_physical_voltages
-
         # Calculate the new physical values, through matrix multiplication
         self._dc_physical_voltages = self._dc_translation_matrix.dot(
             self._dc_logical_voltages)
 
-        # print(self._dc_logical_channel_names)
-        # print(self._dc_logical_voltages)
-        # print(self._dc_physical_channel_names)
-        # print(self._dc_physical_voltages)
+        print(self._dc_logical_channel_names)
+        print(self._dc_logical_voltages)
+        print(self._dc_physical_channel_names)
+        print(self._dc_physical_voltages)
 
         # If we are asked to update the voltages, do it
         if update_hw:
-            difference = np.abs(
-                self._dc_physical_voltages - old_physical_voltages)
             # For each channel, set the voltage
             for i, voltage in enumerate(self._dc_physical_voltages):
-                # Check if the voltage has changed
-                if difference[i] > 1E-6:
-                    self._dc_hw_devices_lut[i].set_voltage(
-                        self._dc_hw_channels_lut[i], voltage)
+                self._dc_hw_devices_lut[i].set_voltage(
+                    self._dc_hw_channels_lut[i], voltage)
 
 
     def set_dc_voltage(self, logical_electrode, value, update_hw=True):
