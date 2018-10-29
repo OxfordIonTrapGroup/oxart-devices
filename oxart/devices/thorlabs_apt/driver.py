@@ -147,8 +147,8 @@ class APTDevice:
             time.sleep(poll_time)
             _, _, _, status = self.get_status()
             if not (status & 0x200 or status & 0x10 or status & 0x20):
-                # require 3 consecutive readings at rest
-                count += 2
+                # require 2 consecutive readings at rest
+                count += 1
                 if count > 1:
                     break
             else:
