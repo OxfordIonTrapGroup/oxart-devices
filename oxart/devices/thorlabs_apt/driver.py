@@ -223,6 +223,18 @@ class APTRotation(APTDevice):
 
         self._last_angle_mu = angle_mu
 
+    def get_angle(self):
+        """Get current angle in degrees"""
+        angle_mu = self._get_angle_mu()
+        angle = float(angle_mu)/self.steps_per_degree
+        angle = angle % 360
+        return angle
+
+    def _get_angle_mu(self):
+        """Get current angle in steps"""
+        _, angle_mu, _, _ = self.get_status()
+        return angle_mu
+
     def ping(self):
         return True
 
