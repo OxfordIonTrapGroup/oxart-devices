@@ -246,7 +246,7 @@ class DDR25(APTRotation):
 
 
 class DDR05(APTRotation):
-    counts_per_degree = 5555.55
+    steps_per_degree = 5555.55
     vel_scale = 37282.2
     acc_scale = 3.81775
     max_vel = int(1800*37282.2)
