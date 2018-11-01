@@ -225,10 +225,19 @@ class APTRotation(APTDevice):
 
     def get_angle(self):
         """Get current angle in degrees"""
+        self._wait_until_stopped()
         angle_mu = self._get_angle_mu()
         angle = float(angle_mu)/self.steps_per_degree
         angle = angle % 360
         return angle
+
+    def check_angle_mu(self):
+        """Check currently set angle against stored value"""
+        self._wait_until_stopped()
+        angle_mu = self._get_angle_mu()
+        if self._last_angle_mu != angle_mu:
+            raise ValueError("Last angle set does not match current angle",
+                self._last_angle_mu, angle_mu)
 
     def _get_angle_mu(self):
         """Get current angle in steps"""
