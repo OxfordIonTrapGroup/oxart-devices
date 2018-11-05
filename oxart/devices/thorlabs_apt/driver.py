@@ -155,16 +155,18 @@ class APTDevice:
                 count = 0
 
     def home(self):
+        logger.debug("Homing...")
         self._send_message(MsgMotMoveHome())
         # it appears that the appropriate response is never sent
         # self._wait_for_message(ID_MSG_MOVE_HOMED)
         self._wait_until_stopped()
+        logger.debug("Homed")
 
     def move(self, position):
         self._send_message(MsgMotMoveAbsolute(position))
         # it appears that the appropriate response is never sent
         # self._wait_for_message(ID_MSG_MOVE_COMPLETED)
-        self._wait_until_stopped(poll_time=0.06)
+        self._wait_until_stopped()
 
     def move_relative(self, position_change):
         self._send_message(MsgMotMoveRelative(position_change))
@@ -197,50 +199,57 @@ class APTRotation(APTDevice):
         self.set_power_params(0.05, 0.3)
 
         if auto_home:
-            logger.info("Homing ...")
             self.home()
-            logger.info("Done")
 
+    def home(self):
+        super().home()
         self._last_angle_mu = None
 
-    def set_angle(self, angle):
-        """Set angle in degrees"""
+    def set_angle(self, angle, check_position=True, auto_retry=0, **kwargs):
+        """
+        Set angle in degrees.
+
+        Optional parameters:
+        check_position - verify that position is set correctly
+        auto_retry - number of retries to achieve correct position, default 0
+        """
         angle = angle % 360
         angle_mu = int(angle * self.steps_per_degree)
-
-        # There does not seem to be any way of instructing the motor driver to
-        # intelligently choose rotation direction, so we use relative mode (when
-        # we can) with the direction chosen to minimize rotation distance.
-        if self._last_angle_mu:
-            # We know our last position, so we can do a relative move
-            delta = angle_mu - self._last_angle_mu
-            for offset in [360*self.steps_per_degree, -360*self.steps_per_degree]:
-                if abs(delta+offset) < abs(delta):
-                    delta += offset
-            self.move_relative(delta)
-        else:
-            self.move(angle_mu)
-
+        self.move(angle_mu)
         self._last_angle_mu = angle_mu
+
+        if check_position:
+            try:
+                self.check_angle_mu(wait=False, **kwargs)
+            except ValueError as e:
+                if auto_retry > 0:
+                    self.set_angle(angle, check_position=check_position,
+                        auto_retry=auto_retry-1, **kwargs)
+                else:
+                    raise
 
     def get_angle(self):
         """Get current angle in degrees"""
-        self._wait_until_stopped()
         angle_mu = self._get_angle_mu()
         angle = float(angle_mu)/self.steps_per_degree
         angle = angle % 360
         return angle
 
-    def check_angle_mu(self):
+    def check_angle_mu(self, acceptable_error=40, **kwargs):
         """Check currently set angle against stored value"""
-        self._wait_until_stopped()
-        angle_mu = self._get_angle_mu()
-        if self._last_angle_mu != angle_mu:
+        angle_mu = self._get_angle_mu(**kwargs)
+        angle_mu = angle_mu % int(360*self.steps_per_degree)
+        if abs(self._last_angle_mu - angle_mu) > acceptable_error:
             raise ValueError("Last angle set does not match current angle",
                 self._last_angle_mu, angle_mu)
+        else:
+            # if we're off by an acceptable amount, store the actual value
+            self._last_angle_mu = angle_mu
 
-    def _get_angle_mu(self):
+    def _get_angle_mu(self, wait=True):
         """Get current angle in steps"""
+        if wait:
+            self._wait_until_stopped()
         _, angle_mu, _, _ = self.get_status()
         return angle_mu
 
@@ -254,6 +263,23 @@ class K10CR1(APTRotation):
     max_vel = 73300775
     homing_vel = 7300775
     offset = 546133
+    def set_angle(self, angle):
+        """Set angle in degrees"""
+        # These drivers are slow, so need to intelligently choose rotation
+        # direction if we can to minimize rotation distance.
+        angle = angle % 360
+        angle_mu = int(angle * self.steps_per_degree)
+
+        if self._last_angle_mu:
+            # We know our last position, so we can do a relative move
+            delta = angle_mu - self._last_angle_mu
+            for offset in [360*self.steps_per_degree, -360*self.steps_per_degree]:
+                if abs(delta+offset) < abs(delta):
+                    delta += offset
+            self.move_relative(delta)
+        else:
+            self.move(angle_mu)
+        self._last_angle_mu = angle_mu
 
 
 class DDR25(APTRotation):
