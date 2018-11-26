@@ -3,7 +3,6 @@
 import argparse
 import logging
 
-from oxart.devices.streams import address_args, get_stream
 from oxart.devices.tti_ql355.driver import QL355
 
 from artiq.protocols.pc_rpc import simple_server_loop
@@ -19,14 +18,14 @@ def get_argparser():
                                      " power supplies")
     simple_network_args(parser, 4006)
     verbosity_args(parser)
-    address_args(parser)
+    parser.add_argument("-d", "--device", help="device's hardware address")
     return parser
 
 
 def main():
     args = get_argparser().parse_args()
     init_logger(args)
-    dev = QL355(get_stream(args, baudrate=19200, port=9221, timeout=0.1))
+    dev = QL355(args.device)
 
     # Q: Why not use try/finally for port closure?
     # A: We don't want to try to close the serial if sys.exit() is called,
