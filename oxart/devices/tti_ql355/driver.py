@@ -1,6 +1,8 @@
 import logging
 from enum import Enum
 
+from oxart.devices.streams import get_stream
+
 logger = logging.getLogger(__name__)
 
 PsuType = Enum("PsuType", ["QL355P", "QL355TP"])
@@ -12,10 +14,14 @@ class QL355:
 
     Note that this driver does not set the output range of the PSU
     automatically.
+
+    Default TCP/IP port is port=9221
     """
 
-    def __init__(self, stream):
-        self.stream = stream
+    def __init__(self, device):
+        self.stream = get_stream(device,
+                                 baudrate=19200,
+                                 timeout=0.1)
         self._purge()
         assert self.ping()
 

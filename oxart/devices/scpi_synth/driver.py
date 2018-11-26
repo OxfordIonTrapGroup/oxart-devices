@@ -1,7 +1,10 @@
+from oxart.devices.streams import get_stream
+
+
 class Synth:
     """ Generic driver for SCPI-compliant frequency synthesisers """
-    def __init__(self, stream):
-        self.stream = stream
+    def __init__(self, device):
+        self.stream = get_stream(device)
         assert self.ping()
 
     def identify(self):

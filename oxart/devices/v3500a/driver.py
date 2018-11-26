@@ -5,9 +5,8 @@ import serial
 
 class V3500A:
 
-    def __init__(self, addr):
-        self.bus = serial.Serial(addr)
-        self.bus.baudrate = 9600
+    def __init__(self, device):
+        self.bus = serial.serial_for_url(device, baudrate=9600)
         assert self.ping()
 
     def ping(self):
