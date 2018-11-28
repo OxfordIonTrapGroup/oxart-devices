@@ -11,11 +11,11 @@ def _validate_channel(channel):
 
 class Booster:
     """ Booster 8-channel RF PA """
-    def __init__(self, ip_addr):
+    def __init__(self, device):
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((ip_addr, 5000))
-        self.ip_addr = ip_addr
+        self.sock.connect((device, 5000))
+        self.ip_addr = device
         assert self.ping()
 
     def identify(self):

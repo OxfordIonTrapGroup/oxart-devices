@@ -1,5 +1,7 @@
 """ Driver for Prologix GPIB adapters. """
 
+import serial
+
 
 class GPIB:
     """ Simple pySerial-compatible wrapper for GPIB devices connected to a
@@ -10,13 +12,13 @@ class GPIB:
     commands for the GPIB controller itself instead of being passed on to a
     GPIB device.
     """
-    def __init__(self, stream, gpib_addr=0):
+    def __init__(self, device, gpib_addr=0):
         """"
         :param stream: pySerial-compatible interface to the GPIB
           controller. Ethernet <-> GPIB adapters use port 1234
         :param gpib_addr: initial GPIB addr to read/write from/to
         """
-        self.stream = stream
+        self.stream = serial.serial_for_url(device)
 
         self.stream.write("++savecfg 0\n".encode())
         self.stream.write("++auto 0\n".encode())

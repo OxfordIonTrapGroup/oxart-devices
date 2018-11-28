@@ -2,11 +2,13 @@
 
 import numpy as np
 
+from oxart.streams import get_stream
+
 
 class E4405B:
 
-    def __init__(self, stream):
-        self.stream = stream
+    def __init__(self, device):
+        self.stream = get_stream(device)
         assert self.ping()
 
     def identify(self):
