@@ -91,9 +91,12 @@ class MsgMotReqDcStatus(Message):
     _id = 0x0490
 ID_MSG_DCSTATUSUPDATE = 0x0491
 
-
 class MsgMotAckDcStatusUpdate(Message):
     _id = 0x0492
+
+class MsgHwReqInfo(Message):
+    _id = 0x0005
+ID_MSG_HW_GET_INFO = 0x0006
 
 
 class APTDevice:
@@ -181,6 +184,15 @@ class APTDevice:
         move_factor = int(move_power * 100)
         msg = MsgMotSetPowerParams(rest_factor=hold_factor, move_factor=move_factor)
         self._send_message(msg)
+
+    def get_hw_info(self):
+        """Don't know why we're doing this, but requested by Thorlabs support"""
+        self._send_message(MsgHwReqInfo())
+        msg = self._wait_for_message(ID_MSG_HW_GET_INFO)
+        data = struct.unpack("=l8sH4B48s12xHHH", msg.data)
+        serial_no, model_no, type_ = data[:3]
+        fw_version = data[3:7]
+        notes, hw_version, modstate, nchs = data[7:]
 
     def stop(self):
         self._send_message(MsgMotMoveStop())
