@@ -8,94 +8,81 @@ from enum import IntEnum
 
 logger = logging.getLogger(__name__)
 
-class Message:
-    _id = 0
-    param1 = 0
-    param2 = 0
-    source = 0x1
-    dest = 0x50
-    data = None
 
-    def encode(self):
-        if self.data:
-            msg = struct.pack("HHBB", self._id, len(self.data), 0x80 | self.dest, self.source)
-            msg = msg + self.data
-        else:
-            msg = struct.pack("HBBBB", self._id, self.param1, self.param2, self.dest, self.source)
-        return msg
+class MGMSG(IntEnum):
+    HW_DISCONNECT = 0x0002
+    HW_REQ_INFO = 0x0005
+    HW_GET_INFO = 0x0006
+    HW_START_UPDATEMSGS = 0x0011
+    HW_STOP_UPDATEMSGS = 0x0012
+    HUB_REQ_BAYUSED = 0x0065
+    HUB_GET_BAYUSED = 0x0066
+    HW_RESPONSE = 0x0080
+    HW_RICHRESPONSE = 0x0081
+    MOD_SET_CHANENABLESTATE = 0x0210
+    MOD_REQ_CHANENABLESTATE = 0x0211
+    MOD_GET_CHANENABLESTATE = 0x0212
+    MOD_IDENTIFY = 0x0223
+    MOT_SET_ENCCOUNTER = 0x0409
+    MOT_REQ_ENCCOUNTER = 0x040A
+    MOT_GET_ENCCOUNTER = 0x040B
+    MOT_SET_POSCOUNTER = 0x0410
+    MOT_REQ_POSCOUNTER = 0x0411
+    MOT_GET_POSCOUNTER = 0x0412
+    MOT_SET_VELPARAMS = 0x0413
+    MOT_REQ_VELPARAMS = 0x0414
+    MOT_GET_VELPARAMS = 0x0415
+    MOT_SET_JOGPARAMS = 0x0416
+    MOT_REQ_JOGPARAMS = 0x0417
+    MOT_GET_JOGPARAMS = 0x0418
+    MOT_SET_LIMSWITCHPARAMS = 0x0423
+    MOT_REQ_LIMSWITCHPARAMS = 0x0424
+    MOT_GET_LIMSWITCHPARAMS = 0x0425
+    MOT_SET_POWER_PARAMS = 0x0426
+    MOT_REQ_POWER_PARAMS = 0x0427
+    MOT_GET_POWER_PARAMS = 0x0428
+    MOT_REQ_STATUSBITS = 0x0429
+    MOT_GET_STATUSBITS = 0x042A
+    MOT_SET_GENMOVEPARAMS = 0x043A
+    MOT_REQ_GENMOVEPARAMS = 0x043B
+    MOT_GET_GENMOVEPARAMS = 0x043C
+    MOT_SET_HOMEPARAMS = 0x0440
+    MOT_REQ_HOMEPARAMS = 0x0441
+    MOT_GET_HOMEPARAMS = 0x0442
+    MOT_MOVE_HOME = 0x0443
+    MOT_MOVE_HOMED = 0x0444
+    MOT_SET_MOVERELPARAMS = 0x0445
+    MOT_REQ_MOVERELPARAMS = 0x0446
+    MOT_GET_MOVERELPARAMS = 0x0447
+    MOT_MOVE_RELATIVE = 0x0448
+    MOT_SET_MOVEABSPARAMS = 0x0450
+    MOT_REQ_MOVEABSPARAMS = 0x0451
+    MOT_GET_MOVEABSPARAMS = 0x0452
+    MOT_MOVE_ABSOLUTE = 0x0453
+    MOT_MOVE_VELOCITY = 0x0457
+    MOT_MOVE_COMPLETED = 0x0464
+    MOT_MOVE_STOP = 0x0465
+    MOT_MOVE_STOPPED = 0x0466
+    MOT_MOVE_JOG = 0x046A
+    MOT_SUSPEND_ENDOFMOVEMSGS = 0x046B
+    MOT_RESUME_ENDOFMOVEMSGS = 0x046C
+    MOT_REQ_DCSTATUSUPDATE = 0x0490
+    MOT_GET_DCSTATUSUPDATE = 0x0491
+    MOT_ACK_DCSTATUSUPDATE = 0x0492
+    MOT_SET_DCPIDPARAMS = 0x04A0
+    MOT_REQ_DCPIDPARAMS = 0x04A1
+    MOT_GET_DCPIDPARAMS = 0x04A2
+    MOT_SET_POTPARAMS = 0x04B0
+    MOT_REQ_POTPARAMS = 0x04B1
+    MOT_GET_POTPARAMS = 0x04B2
+    MOT_SET_AVMODES = 0x04B3
+    MOT_REQ_AVMODES = 0x04B4
+    MOT_GET_AVMODES = 0x04B5
+    MOT_SET_BUTTONPARAMS = 0x04B6
+    MOT_REQ_BUTTONPARAMS = 0x04B7
+    MOT_GET_BUTTONPARAMS = 0x04B8
+    MOT_SET_EEPROMPARAMS = 0x04B9
 
-    def decode(self, msg):
-        self._id, self.param1, self.param2, self.dest, self.source = struct.unpack("HBBBB", msg)
-        self.data_len = None
-        if self.dest & 0x80:
-            # data packet to follow
-            self.data_len = self.param1 + (self.param2 << 8)
-
-
-class MsgModIdentify(Message):
-    _id = 0x0223
-    def __init__(self, channel=0):
-        self.param1 = channel
-
-class MsgMotMoveHome(Message):
-    _id = 0x0443
-    def __init__(self, channel=0):
-        self.param1 = channel
-ID_MSG_MOVE_HOMED = 0x444
-
-class MsgSetHomeParams(Message):
-    _id = 0x0440
-    def __init__(self, channel=0, direction=2, limit=1, velocity=0, offset=0):
-        self.data = struct.pack("<HHHii", channel, direction, limit, velocity, offset)
-
-class MsgMotMoveAbsolute(Message):
-    _id = 0x0453
-    def __init__(self, position=0, channel=0):
-        self.data = struct.pack("<Hi", channel, position)
-
-class MsgMotMoveRelative(MsgMotMoveAbsolute):
-    _id = 0x0448
-
-ID_MSG_MOVE_COMPLETED = 0x464
-class MsgMotMoveCompleted(Message):
-    _id = ID_MSG_MOVE_COMPLETED
-
-class MsgMotSetVelParams(Message):
-    _id = 0x0413
-    def __init__(self, channel=0, vel_min=0, vel_max=0, acc=0):
-        self.data = struct.pack("<Hiii", channel, vel_min, acc, vel_max)
-
-class MsgMotSetPowerParams(Message):
-    _id = 0x0426
-    def __init__(self, channel=0, rest_factor=10, move_factor=30):
-        """rest factor and move factor are the percentage of full drive power
-        to use for holding and changing position respectively"""
-        self.data = struct.pack("<HHH", channel, rest_factor, move_factor)
-
-class MsgMotMoveStop(Message):
-    _id = 0x0465
-    param2 = 1
-ID_MSG_MOVE_STOPPED = 0x0466
-
-class MsgSetChanEnableState(Message):
-    _id = 0x0210
-    def __init__(self, channel=1, enable=True):
-        self.param1 = channel
-        self.param2 = 1 if enable else 2
-
-class MsgMotResumeEndOfMoveMsgs(Message):
-    _id = 0x046C
-
-class MsgMotReqDcStatus(Message):
-    _id = 0x0490
-ID_MSG_DCSTATUSUPDATE = 0x0491
-
-class MsgMotAckDcStatus(Message):
-    _id = 0x0492
-
-class MsgMotReqDcStatusBits(Message):
-    _id = 0x0429
-ID_MSG_DCSTATUSBITS = 0x042A
 
 class Status(IntEnum):
     HW_LIM_FORWARD = 0x01
@@ -110,68 +97,193 @@ class Status(IntEnum):
     SETTLED = 0x2000
     POSITION_ERROR = 0x1000000
     ENABLED = 0x80000000
+    MOVING = (MOVING_HOME | MOVING_FORWARD | MOVING_REVERSE
+              | JOGGING_FORWARD | JOGGING_REVERSE)
 
-class MsgHwReqInfo(Message):
-    _id = 0x0005
-ID_MSG_HW_GET_INFO = 0x0006
+
+class Direction(IntEnum):
+    FORWARD = 1
+    REVERSE = 2
+
+
+class LimitSwitch(IntEnum):
+    REVERSE = 1
+    FORWARD = 4
+
+
+class MsgError(Exception):
+    pass
+
+
+class Message:
+    def __init__(self, _id, param1=0, param2=0, dest=0x50, src=0x01,
+                 data=None):
+        if data is not None:
+            dest |= 0x80
+        self._id = _id
+        self.param1 = param1
+        self.param2 = param2
+        self.dest = dest
+        self.src = src
+        self.data = data
+
+    def __str__(self):
+        return ("<Message {} p1=0x{:02x} p2=0x{:02x} "
+                "dest=0x{:02x} src=0x{:02x}>".format(
+                    self._id, self.param1, self.param2,
+                    self.dest, self.src))
+
+    @staticmethod
+    def unpack(data):
+        _id, param1, param2, dest, src = struct.unpack("<HBBBB", data[:6])
+        data = data[6:]
+        if dest & 0x80:
+                if data and len(data) != param1 | (param2 << 8):
+                    raise ValueError("If data are provided, param1 and param2"
+                                     " should contain the data length")
+        else:
+                data = None
+        return Message(MGMSG(_id), param1, param2, dest, src, data)
+
+    def pack(self):
+        if self.has_data:
+            return struct.pack("<HHBB", self._id.value, len(self.data),
+                           self.dest | 0x80, self.src) + self.data
+        else:
+            return struct.pack("<HBBBB", self._id.value,
+                           self.param1, self.param2, self.dest, self.src)
+
+    @property
+    def has_data(self):
+        return self.dest & 0x80
+
+    @property
+    def data_size(self):
+        if self.has_data:
+            return self.param1 | (self.param2 << 8)
+        else:
+            raise ValueError
 
 
 class _APTDevice:
     def __init__(self, port):
         self.h = serial.Serial(port, 115200, write_timeout=0.1)
-        self._update_counter = 0
+        self._status_update_counter = 0
 
     def _send_message(self, message):
-        msg = message.encode()
+        msg = message.pack()
         # print("tx: {}".format(msg.hex()))
         self.h.write(msg)
 
     def _read_message(self):
-        raw = self.h.read(6)
+        header = self.h.read(6)
         # print("rx: {}".format(raw.hex()))
-        msg = Message()
-        msg.decode(raw)
-        if msg.data_len:
-            msg.data = self.h.read(msg.data_len)
+        data = b""
+        if header[4] & 0x80:
+            (length, ) = struct.unpack("<H", header[2:4])
+            data = self.h.read(length)
+        msg = Message.unpack(header + data)
         return msg
 
-    def _wait_for_message(self, msg_id):
-         while True:
+    def _send_request(self, msgreq_id, wait_for, param1=0, param2=0, data=None):
+        self._send_message(Message(msgreq_id, param1, param2, data=data))
+        while True:
             msg = self._read_message()
-            if msg._id in [ID_MSG_MOVE_COMPLETED,
-                           ID_MSG_MOVE_STOPPED,
-                           ID_MSG_MOVE_HOMED]:
-                self._update_counter += 1
-                if self._update_counter > 25:
-                    self._update_counter = 0
-                    self.ack_status_update()
-            if msg._id == msg_id:
+            self._triage_message(msg)
+
+            if msg._id in wait_for:
                 return msg
 
+    def _triage_message(self, msg):
+        """Triage an incoming message in case of errors or action required"""
+        msg_id = msg._id
+        data = msg.data
+
+        if msg_id == MGMSG.HW_DISCONNECT:
+            raise MsgError("Error: Please disconnect")
+        elif msg_id == MGMSG.HW_RESPONSE:
+            raise MsgError("Hardware error, please disconnect")
+        elif msg_id == MGMSG.HW_RICHRESPONSE:
+            (code, ) = struct.unpack("<H", data[2:4])
+            raise MsgError("Hardware error {}: {}"
+                           .format(code,
+                                   data[4:].decode(encoding="ascii")))
+        elif msg_id in [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED,
+                MGMSG.MOT_MOVE_HOMED, MGMSG.MOT_GET_DCSTATUSUPDATE]:
+            self._status_update_counter += 1
+            if self._status_update_counter > 25:
+                logger.debug("Acking status updates")
+                self._status_update_counter = 0
+                self.ack_status_update()
+
     def identify(self):
-        self._send_message(MsgModIdentify())
+        self._send_message(Message(MGMSG.MOD_IDENTIFY))
 
-    def set_channel_enable(self, enable=True):
-        self._send_message(MsgSetChanEnableState(channel=1,enable=enable))
+    def set_channel_enable(self, enable=True, channel=0):
+        active = 1 if enable else 2
+        self._send_message(Message(MGMSG.MOD_SET_CHANENABLESTATE,
+            param1=channel, param2=active))
 
-    def set_home_params(self, velocity=0, offset=0):
-        self._send_message(MsgSetHomeParams(velocity=velocity, offset=offset))
+    def set_home_params(self, velocity=0, offset=0, channel=0):
+        direction = Direction.REVERSE
+        limit = LimitSwitch.REVERSE
+        payload = struct.pack("<HHHii", channel, direction, limit, velocity, offset)
+        self._send_message(Message(MGMSG.MOT_SET_HOMEPARAMS, data=payload))
 
-    def set_velocity_params(self, vel_min=0, vel_max=0, acc=0):
-        msg = MsgMotSetVelParams(vel_min=vel_min, vel_max=vel_max, acc=acc)
-        self._send_message(msg)
+    def set_velocity_params(self, vel_min=0, vel_max=0, acc=0, channel=0):
+        payload = struct.pack("<Hiii", channel, vel_min, acc, vel_max)
+        self._send_message(Message(MGMSG.MOT_SET_VELPARAMS, data=payload))
 
     def get_status(self):
-        self._send_message(MsgMotReqDcStatus())
-        msg = self._wait_for_message(ID_MSG_DCSTATUSUPDATE)
+        msg = self._send_request(
+            MGMSG.MOT_REQ_DCSTATUSUPDATE,
+            wait_for=[MGMSG.MOT_GET_DCSTATUSUPDATE])
         chan, position, velocity, _, status = struct.unpack("=HIHHI", msg.data)
         return chan, position, velocity, status
 
     def get_status_bits(self):
-        self._send_message(MsgMotReqDcStatusBits())
-        msg = self._wait_for_message(ID_MSG_DCSTATUSBITS)
+        msg = self._send_request(
+            MGMSG.MOT_REQ_STATUSBITS,
+            wait_for=[MGMSG.MOT_GET_STATUSBITS])
         _, status = struct.unpack("=HI", msg.data)
         return status
+
+    def suspend_end_of_move_messages(self):
+        self._send_message(Message(MGMSG.MOT_SUSPEND_ENDOFMOVEMSGS))
+
+    def resume_end_of_move_messages(self):
+        self._send_message(Message(MGMSG.MOT_RESUME_ENDOFMOVEMSGS))
+
+    def ack_status_update(self):
+        self._send_message(Message(MGMSG.MOT_ACK_DCSTATUSUPDATE))
+
+    def home(self, channel=0):
+        logger.debug("Homing...")
+        self._send_request(
+            MGMSG.MOT_MOVE_HOME, param1=channel,
+            wait_for=[MGMSG.MOT_MOVE_HOMED, MGMSG.MOT_MOVE_STOPPED])
+        logger.debug("Homed")
+
+    def move(self, position, channel=0):
+        payload = struct.pack("<Hi", channel, position)
+        self._send_request(
+            MGMSG.MOT_MOVE_ABSOLUTE, data=payload,
+            wait_for=[MGMSG.MOT_MOVE_COMPLETED])
+
+    def move_relative(self, position_change, channel=0):
+        payload = struct.pack("<Hi", channel, position_change)
+        self._send_request(
+            MGMSG.MOT_MOVE_RELATIVE, data=payload,
+            wait_for=[MGMSG.MOT_MOVE_COMPLETED])
+
+    def stop(self):
+        self._send_request(
+            MGMSG.MOT_MOVE_STOP,
+            wait_for=[MGMSG.MOT_MOVE_STOPPED])
+
+    def is_moving(self):
+        status = self.get_status_bits()
+        return (status & Status.MOVING) != 0
 
     def _wait_until_stopped(self, poll_time=0.1):
         count = 0
@@ -187,47 +299,6 @@ class _APTDevice:
                     break
             else:
                 count = 0
-
-    def is_moving(self):
-        moving = (Status.MOVING_HOME
-                  + Status.MOVING_FORWARD
-                  + Status.MOVING_REVERSE
-                  + Status.JOGGING_FORWARD
-                  + Status.JOGGING_REVERSE)
-        status = self.get_status_bits()
-        return (status & moving) != 0
-
-    def resume_end_of_move_messages(self):
-        self._send_message(MsgMotResumeEndOfMoveMsgs())
-
-    def ack_status_update(self):
-        self._send_message(MsgMotAckDcStatus())
-
-    def home(self):
-        logger.debug("Homing...")
-        self._send_message(MsgMotMoveHome())
-        self._wait_for_message(ID_MSG_MOVE_HOMED)
-        logger.debug("Homed")
-
-    def move(self, position):
-        self._send_message(MsgMotMoveAbsolute(position))
-        self._wait_for_message(ID_MSG_MOVE_COMPLETED)
-
-    def move_relative(self, position_change):
-        self._send_message(MsgMotMoveRelative(position_change))
-        self._wait_for_message(ID_MSG_MOVE_COMPLETED)
-
-    def set_power_params(self, hold_power=0, move_power=0):
-        assert hold_power >= 0 and hold_power <= 1
-        assert move_power >= 0 and move_power <= 1
-        hold_factor = int(hold_power * 100)
-        move_factor = int(move_power * 100)
-        msg = MsgMotSetPowerParams(rest_factor=hold_factor, move_factor=move_factor)
-        self._send_message(msg)
-
-    def stop(self):
-        self._send_message(MsgMotMoveStop())
-        self._wait_for_message(ID_MSG_MOVE_STOPPED)
 
     def close(self):
         self.h.close()
@@ -253,13 +324,12 @@ class _APTRotation(_APTDevice):
         self.set_channel_enable(True)
         self.set_velocity_params(acc=self.max_acc, vel_max=self.max_vel)
         self.set_home_params(velocity=self.homing_vel, offset=self.offset)
-        self.set_power_params(0.05, 0.3)
 
     def home(self):
         super().home()
         self._last_angle_mu = None
 
-    def set_angle(self, angle, check_position=True, auto_retry=0, **kwargs):
+    def set_angle(self, angle, check_position=False, auto_retry=0, **kwargs):
         """
         Set angle in degrees.
 
@@ -319,6 +389,19 @@ class K10CR1(_APTRotation):
     max_vel = 73300775
     homing_vel = 7300775
     offset = 546133
+    def setup(self):
+        super().setup()
+        self.set_power_params(0.05, 0.3)
+
+    def set_power_params(self, hold_power=0, move_power=0):
+        assert hold_power >= 0 and hold_power <= 1
+        assert move_power >= 0 and move_power <= 1
+        hold_factor = int(hold_power * 100)
+        move_factor = int(move_power * 100)
+        channel = 0
+        payload = struct.pack("<HHH", channel, rest_factor, move_factor)
+        self._send_message(Message(MGMSG.MOT_SET_POWER_PARAMS, data=payload))
+
     def set_angle(self, angle):
         """Set angle in degrees"""
         # These drivers are slow, so need to intelligently choose rotation
@@ -341,13 +424,14 @@ class K10CR1(_APTRotation):
 class _KBD101(_APTRotation):
     """This will not work if instantiated directly"""
     def setup(self):
-        self.req_hw_info()
         super().setup()
+        self.req_hw_info()
 
     def req_hw_info(self):
         """This method must be called to receive move completed messages"""
-        self._send_message(MsgHwReqInfo())
-        msg = self._wait_for_message(ID_MSG_HW_GET_INFO)
+        msg = self._send_request(
+            MGMSG.HW_REQ_INFO,
+            wait_for=[MGMSG.HW_GET_INFO])
         data = struct.unpack("=l8sH4B48s12sHHH", msg.data)
 
         serial_no = data[0]
