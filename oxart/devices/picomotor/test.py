@@ -1,11 +1,15 @@
 import driver
 import time
 
-motor = driver.Picomotor("10.255.6.226")
+motor = driver.PicomotorController("10.255.6.226")
 
 motor.send_command('*IDN?')
 print(motor.receive())
 
-motor.send_command('MV', 1, '-')
-time.sleep(0.1)
-motor.send_command('ST', 1)
+motor.send_command('MV', 2, '-')
+time.sleep(0.01)
+motor.send_command('ST', 2)
+
+time.sleep(0.01)
+motor.send_command('MV', 5, '-')
+motor.print_error_messages()
