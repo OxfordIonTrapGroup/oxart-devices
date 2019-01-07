@@ -101,13 +101,14 @@ class PicomotorController:
             }
 
         self._motor_detect_and_save_velocities()
+        self.sock.recv(16) # receiving nonsense first message
 
     def send_command(self, command, axis = None, argument = None):
         c = command
 
         assert (command in self.commands), "Invalid Command"
         if self.commands[command][0]:
-            #assert self._is_valid_axis(axis),"Invalid Axis"
+            assert self._is_valid_axis(axis),"Invalid Axis"
             c = str(axis) + c
         if self.commands[command][1]:
             assert self._is_valid_argument(command,argument),"Invalid Argument"
@@ -116,8 +117,7 @@ class PicomotorController:
         self.sock.send(str.encode(c+"\n"))
 
     def receive(self):
-        with self.sock.makefile() as stream:
-            return stream.readline().strip()
+        return self.sock.recv(64).strip().decode()
 
     def _is_valid_axis(self, ch):
         return ch in [1,2,3,4]
@@ -140,6 +140,10 @@ class PicomotorController:
 
     # functions
 
+    def _wait_until_done(self, axis):
+        while not self.motion_done(axis):
+            time.sleep(0.1)
+
     def abort_motion(self):
         self.send_command('AB')
 
@@ -150,15 +154,38 @@ class PicomotorController:
         self.send_command('DH?', axis)
         return int(self.receive())
 
-    def motion_done_query(self, axis):
+    def set_velocity(self, axis, vel):
+        self.send_command('VA', axis, vel)
+
+    def get_velocity(self, axis):
+        self.send_command('VA?', axis)
+        return int(self.receive())
+
+    def set_acceleration(self, axis, acc):
+        self.send_command('AC', axis, acc)
+
+    def get_acceleration(self, axis):
+        self.send_command('AC?', axis)
+        return int(self.receive())
+
+    def motion_done(self, axis):
         self.send_command('MD?', axis)
-        return bool(self.receive())
+        return bool(int(self.receive()))
 
     def move_absolute(self, axis, position):
         self.send_command('PA', axis, position)
+        self._wait_until_done(axis)
 
     def move_relative(self, axis, distance):
         self.send_command('PR', axis, distance)
+        self._wait_until_done(axis)
+
+    def move_indefinitely(self, axis, direction):
+        self.send_command('MV', axis, direction)
+
+    def get_position(self, axis):
+        self.send_command('TP?', axis)
+        return int(self.receive())
 
     def stop_motion(self, axis):
         self.send_command('ST', axis)
@@ -186,3 +213,49 @@ class PicomotorController:
 
     def get_device_ip(self):
         return self.ip_addr
+
+    def get_identity(self):
+        self.send_command('*IDN?')
+        return self.receive()
+
+class PicoAxis:
+    # device is an instance of the PicomotorController
+    def __init__(self, device, channel):
+        self.ch = channel
+        self.dev = device
+
+    def set_home(self, home):
+        self.dev.set_home(self.ch, home)
+
+    def get_home(self):
+        return self.dev.get_home(self.ch)
+
+    def set_velocity(self, vel):
+        self.dev.set_velocity(self.ch, vel)
+
+    def get_velocity(self):
+        return self.dev.get_velocity(self.ch)
+
+    def set_acceleration(self, acc):
+        self.dev.set_acceleration(self.ch, acc)
+
+    def get_acceleration(self):
+        return self.dev.get_acceleration(self.ch)
+
+    def motion_done(self):
+        return self.dev.motion_done(self.ch)
+
+    def move_absolute(self, position):
+        self.dev.move_absolute(self.ch, position)
+
+    def move_relative(self, distance):
+        self.dev.move_relative(self.ch, distance)
+
+    def move_indefinitely(self, direction):
+        self.dev.move_indefinitely(self.ch, direction)
+
+    def get_position(self):
+        return self.dev.get_position(self.ch)
+
+    def stop_motion(self):
+        self.dev.stop_motion(self.ch)

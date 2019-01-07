@@ -1,15 +1,7 @@
-import driver
+import picomirror
 import time
 
-motor = driver.PicomotorController("10.255.6.226")
+mirror = picomirror.PicoMirror("10.255.6.226", 1, 2)
 
-motor.send_command('*IDN?')
-print(motor.receive())
-
-motor.send_command('MV', 2, '-')
-time.sleep(0.01)
-motor.send_command('ST', 2)
-
-time.sleep(0.01)
-motor.send_command('MV', 5, '-')
-motor.print_error_messages()
+mirror.set_velocities(1000, 1000)
+mirror.move_absolute(0, 0)
