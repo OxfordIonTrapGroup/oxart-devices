@@ -1,5 +1,8 @@
 import socket
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 class PicomotorController:
     """ Picomotor Controller Driver """
@@ -102,6 +105,7 @@ class PicomotorController:
 
         self._motor_detect_and_save_velocities()
         self.sock.recv(16) # receiving nonsense first message
+        logger.info("Connected to Picomotor Controller")
 
     def send_command(self, command, axis = None, argument = None):
         c = command
@@ -114,10 +118,13 @@ class PicomotorController:
             assert self._is_valid_argument(command,argument),"Invalid Argument"
             c = c + str(argument)
 
+        logger.info("Sending command: {}".format(c))
         self.sock.send(str.encode(c+"\n"))
 
     def receive(self):
-        return self.sock.recv(64).strip().decode()
+        m = self.sock.recv(64).strip().decode()
+        logger.info("Receiving: {}".format(m))
+        return m
 
     def _is_valid_axis(self, ch):
         return ch in [1,2,3,4]
