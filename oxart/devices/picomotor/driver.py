@@ -147,7 +147,7 @@ class PicomotorController:
 
     # functions
 
-    def _wait_until_done(self, axis):
+    def wait_until_done(self, axis):
         while not self.motion_done(axis):
             time.sleep(0.1)
 
@@ -181,11 +181,11 @@ class PicomotorController:
 
     def move_absolute(self, axis, position):
         self.send_command('PA', axis, position)
-        self._wait_until_done(axis)
+        self.wait_until_done(axis)
 
     def move_relative(self, axis, distance):
         self.send_command('PR', axis, distance)
-        self._wait_until_done(axis)
+        self.wait_until_done(axis)
 
     def move_indefinitely(self, axis, direction):
         self.send_command('MV', axis, direction)
@@ -225,44 +225,3 @@ class PicomotorController:
         self.send_command('*IDN?')
         return self.receive()
 
-class PicoAxis:
-    # device is an instance of the PicomotorController
-    def __init__(self, device, channel):
-        self.ch = channel
-        self.dev = device
-
-    def set_home(self, home):
-        self.dev.set_home(self.ch, home)
-
-    def get_home(self):
-        return self.dev.get_home(self.ch)
-
-    def set_velocity(self, vel):
-        self.dev.set_velocity(self.ch, vel)
-
-    def get_velocity(self):
-        return self.dev.get_velocity(self.ch)
-
-    def set_acceleration(self, acc):
-        self.dev.set_acceleration(self.ch, acc)
-
-    def get_acceleration(self):
-        return self.dev.get_acceleration(self.ch)
-
-    def motion_done(self):
-        return self.dev.motion_done(self.ch)
-
-    def move_absolute(self, position):
-        self.dev.move_absolute(self.ch, position)
-
-    def move_relative(self, distance):
-        self.dev.move_relative(self.ch, distance)
-
-    def move_indefinitely(self, direction):
-        self.dev.move_indefinitely(self.ch, direction)
-
-    def get_position(self):
-        return self.dev.get_position(self.ch)
-
-    def stop_motion(self):
-        self.dev.stop_motion(self.ch)
