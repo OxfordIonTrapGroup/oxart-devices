@@ -225,3 +225,9 @@ class PicomotorController:
         self.send_command('*IDN?')
         return self.receive()
 
+    def close(self):
+        self.sock.close()
+
+    def ping(self):
+        self.get_identity()
+        return True
