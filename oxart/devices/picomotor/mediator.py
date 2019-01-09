@@ -1,3 +1,5 @@
+from artiq.language.core import *
+
 class PicoMirror:
      """
     Wraps multiple picomotor controllers and channels to allow addressing a
@@ -11,7 +13,6 @@ class PicoMirror:
         self.devs = (dmgr.get(motor_horizontal[0]),
                      dmgr.get(motor_vertical[0]))
         self.chnls = (motor_horizontal[1], motor_vertical[1])
-        print("Picomotor-controlled mirror initialised.")
 
     def move_absolute(self, pos):
         # pos is a (x,y) pair
