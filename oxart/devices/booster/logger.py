@@ -10,6 +10,8 @@ def parse_status_table(lines):
     An example line of the table is:
     IN8V0 [mA]\t0.039\t0.018\t0.013\t0.021\t0.008\t0.109\t0.008\t0.010
     """
+    # print(lines)
+
     status = {}
     for line in lines:
         # The description can contain spaces, so we special case this
@@ -103,21 +105,27 @@ def main():
     h.write("start\r\n".encode());
 
     for status in get_messages(h):
+        # print(status)
+
         def write_channels(name, values):
             fields = {}
             for i, v in enumerate(values):
                 fields["ch{}".format(i)] = v
             write_point(args, client, name, fields)
 
-        write_channels("temp", [(x+y)/2 for x,y in zip(status["LTEMP"],status["RTEMP"])])
-        write_channels("i_30V", status["I30V [A]"])
-        write_channels("i_6V", status["I6V0 [A]"])
-        write_channels("i_n8V", status["IN8V0 [mA]"])
-        write_channels("on", status["ON"])
-        write_channels("son", status["SON"])
-        write_channels("ovc", status["OVC"])
-        write_channels("pwr_tx", status["TXPWR [dB]"])
-        write_channels("pwr_rfl", status["RFLPWR [dB]"])
+        try:
+            write_channels("temp", [(x+y)/2 for x,y in zip(status["LTEMP"],status["RTEMP"])])
+            write_channels("i_30V", status["I30V [A]"])
+            write_channels("i_6V", status["I6V0 [A]"])
+            write_channels("i_n8V", status["IN8V0 [mA]"])
+            write_channels("on", status["ON"])
+            write_channels("son", status["SON"])
+            write_channels("ovc", status["OVC"])
+            write_channels("pwr_tx", status["TXPWR [dB]"])
+            write_channels("pwr_rfl", status["RFLPWR [dB]"])
+        except KeyError as e:
+            print("Missing key: {}".format(e))
+
         try:
             write_channels("v_mp", status["5V0MP [V]"])
         except KeyError:
