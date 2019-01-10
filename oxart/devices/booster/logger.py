@@ -1,6 +1,7 @@
 import serial
 import argparse
 from influxdb import InfluxDBClient
+from influxdb.exceptions import InfluxDBClientError
 from requests.exceptions import ConnectionError
 
 
@@ -125,6 +126,8 @@ def main():
             write_channels("pwr_rfl", status["RFLPWR [dB]"])
         except KeyError as e:
             print("Missing key: {}".format(e))
+        except InfluxDBClientError as e:
+            print("Data error: {}".format(e))
 
         try:
             write_channels("v_mp", status["5V0MP [V]"])
