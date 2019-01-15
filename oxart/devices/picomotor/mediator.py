@@ -1,7 +1,7 @@
 from artiq.language.core import *
 
 class PicoMirror:
-     """
+    """
     Wraps multiple picomotor controllers and channels to allow addressing a
     mirror by instance. The arguments are:
         'motor_horizontal',
@@ -11,7 +11,7 @@ class PicoMirror:
     """
     def __init__(self, dmgr, motor_horizontal, motor_vertical):
         self.devs = (dmgr.get(motor_horizontal[0]),
-                     dmgr.get(motor_vertical[0]))
+                                            dmgr.get(motor_vertical[0]))
         self.chnls = (motor_horizontal[1], motor_vertical[1])
 
     def move_absolute(self, pos):
