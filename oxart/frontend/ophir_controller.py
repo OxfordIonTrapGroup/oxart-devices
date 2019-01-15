@@ -5,8 +5,8 @@ import sys
 
 from oxart.devices.ophir.driver import OphirPowerMeter
 from artiq.protocols.pc_rpc import simple_server_loop
-from artiq.tools import (verbosity_args, simple_network_args, init_logger,
-                                                    bind_address_from_args)
+from artiq.tools import simple_network_args, init_logger, bind_address_from_args
+from oxart.tools import add_common_args
 
 def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller for the "
@@ -15,7 +15,7 @@ def get_argparser():
     parser.add_argument("-d", "--device", default=None,
                         help="Device serial number. This is the unit no., "
                         "not that of the sensor")
-    verbosity_args(parser)
+    add_common_args(parser)
     return parser
 
 

@@ -5,7 +5,8 @@ import sys
 
 from oxart.devices.scpi_device.awg import SCPIAWG
 from artiq.protocols.pc_rpc import simple_server_loop
-from artiq.tools import verbosity_args, simple_network_args, init_logger
+from artiq.tools import simple_network_args, init_logger
+from oxart.tools import add_common_args
 
 
 def get_argparser():
@@ -15,7 +16,7 @@ def get_argparser():
     parser.add_argument("-s", "--serialnumber", default=None,
                         help="Serial number of device to check identity")
     simple_network_args(parser, 4004)
-    verbosity_args(parser)
+    add_common_args(parser)
     return parser
 
 

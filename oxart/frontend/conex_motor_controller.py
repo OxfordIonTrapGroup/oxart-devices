@@ -5,8 +5,8 @@ import sys
 
 from oxart.devices.conex_motor.driver import Conex
 from artiq.protocols.pc_rpc import simple_server_loop
-from artiq.tools import verbosity_args, simple_network_args
-from artiq.tools import init_logger, bind_address_from_args
+from artiq.tools import simple_network_args, init_logger, bind_address_from_args
+from oxart.tools import add_common_args
 
 
 def get_argparser():
@@ -23,7 +23,7 @@ def get_argparser():
     parser.add_argument("--position-limit", default=None, type=float,
                         help="Maximum extension of micrometer (limit loaded \
                         into hardware")
-    verbosity_args(parser)
+    add_common_args(parser)
     return parser
 
 

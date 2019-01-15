@@ -5,7 +5,8 @@ import logging
 
 from oxart.devices.scpi_dmm.driver import ScpiDmm
 from artiq.protocols.pc_rpc import simple_server_loop
-from artiq.tools import verbosity_args, simple_network_args, init_logger
+from artiq.tools import simple_network_args, init_logger
+from oxart.tools import add_common_args
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ def get_argparser():
     parser.add_argument("-d", "--device", help="device's hardware address")
 
     simple_network_args(parser, 4300)
-    verbosity_args(parser)
+    add_common_args(parser)
 
     return parser
 

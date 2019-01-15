@@ -5,14 +5,15 @@ import time
 import zmq
 
 from artiq.protocols.pc_rpc import simple_server_loop
-from artiq.tools import verbosity_args, simple_network_args, init_logger
+from artiq.tools import simple_network_args, init_logger
+from oxart.tools import add_common_args
 from andorEmccd import AndorEmccd
 
 
 def get_argparser():
     parser = argparse.ArgumentParser()
     simple_network_args(parser, 4000)
-    verbosity_args(parser)
+    add_common_args(parser)
     parser.add_argument("--temp", default=-80, type=int)
     parser.add_argument("--broadcast-images", action="store_true")
     parser.add_argument("--zmq-bind", default="*")

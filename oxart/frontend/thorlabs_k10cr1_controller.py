@@ -5,8 +5,8 @@ import sys
 
 from oxart.devices.thorlabs_apt.driver import K10CR1
 from artiq.protocols.pc_rpc import simple_server_loop
-from artiq.tools import (verbosity_args, simple_network_args, init_logger,
-                                                    bind_address_from_args)
+from artiq.tools import simple_network_args, init_logger, bind_address_from_args
+from oxart.tools import add_common_args
 
 def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller for the "
@@ -19,7 +19,7 @@ def get_argparser():
                         help="Do not home (reset to mechanical zero) on \
                         start (this needs to be done each time the hardware is \
                         power cycled")
-    verbosity_args(parser)
+    add_common_args(parser)
     return parser
 
 
