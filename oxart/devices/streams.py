@@ -11,7 +11,7 @@ def get_stream(device, baudrate=115200, port=None, timeout=None):
     For GPIB controllers, the syntax is "gpib://<controller_device>-<port>"
     Where "<controller_device>" should be substituted for the hardware address
     of the GPIB controller and "<port>" is the GPIB port of the device. e.g.
-    "gpib:://socket://10.255.6.0:1234-0"
+    "gpib://socket://10.255.6.0:1234-0"
 
     :param baudrate: baudrate to use for serial connections (default:115200)
     :param timeout: timeout to use for read and write operations. Setting to
