@@ -62,6 +62,32 @@ class HolzworthSynthRaw():
         rx = self.dll.usbCommWrite(self.serialnum,command)
         assert(rx.decode() =='Frequency Set')
 
+    def get_pow(self,limits=0):
+        """Returns the current set power of the Holzworth synth when called without arguments or limits=0
+        , and returns the maximum and minimum allowed frequency when called with limits=1 and limits =-1 respectively"""
+        limits_dict = {0:'',1:':MAX',-1:':MIN'}
+        command = ctypes.c_char_p((':PWR'+limits_dict[limits]+'?').encode())
+
+        rx = self.dll.usbCommWrite(self.serialnum,command)
+
+        pow_string = rx.decode()
+        assert(pow_string!='Invalid Command')
+
+        power = float(pow_string.strip(' dBm'))
+        return round(power,3) #rounding as the synth reads to 3 d.p. precision
+
+    def set_pow(self,power):
+        """Sets the output power of the Holzworth synth"""
+
+        if (power<-100) or (power>15):
+            raise Exception("Power out of range")
+
+        pow_string = str(round(power,2))
+
+        command = ctypes.c_char_p((':PWR:'+pow_string+'dBm').encode())
+        rx = self.dll.usbCommWrite(self.serialnum,command)
+        assert(rx.decode() =='Power Set')
+
     def identity(self):
         """Retrieves the Manufacturer, Device Name, Board Number, Firmware Version, Instrument Serial Number"""
         command = ctypes.c_char_p((':IDN?').encode())
