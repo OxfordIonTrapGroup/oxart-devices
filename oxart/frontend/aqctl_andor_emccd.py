@@ -4,6 +4,7 @@ import sys
 import time
 import zmq
 import logging
+import types
 
 from artiq.protocols.pc_rpc import simple_server_loop
 from artiq.tools import simple_network_args, init_logger
@@ -35,6 +36,9 @@ def main():
     init_logger(args)
 
     def ping(self):
+        # This raise an exception if the camera has been turned off, unplugged,
+        # crashed, etc
+        self.get_temperature()
         return True
 
     logger.info("Initialising cameras...")
@@ -42,7 +46,7 @@ def main():
     logger.info("Done. Cameras serials: {}".format( ", ".join(str(sn) for sn in list(cams.keys()))))
 
     for cam in cams.values():
-        cam.ping = ping
+        cam.ping = types.MethodType( ping, cam)
 
     if args.broadcast_images:
         socket = create_zmq_server(args.zmq_bind, args.zmq_port)
