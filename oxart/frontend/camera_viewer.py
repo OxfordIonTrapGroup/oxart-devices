@@ -13,8 +13,10 @@ async def recv_and_process(ctx, imv, args):
     sock = ctx.socket(zmq.SUB)
     sock.set_hwm(1)
     sock.connect("tcp://{}:{}".format(args.server, args.port))
-    sock.setsockopt_string(zmq.SUBSCRIBE, '')
+    sock.setsockopt_string(zmq.SUBSCRIBE, args.serial)
     while True:
+        # Receive camera serial number, which we have filtered on
+        sn = await sock.recv_string()
         im = await sock.recv_pyobj()
         imv.setImage(im, autoRange=False)
 
@@ -23,6 +25,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--server", "-s", type=str, required=True)
     parser.add_argument("--port", "-p", type=int, default=5555)
+    parser.add_argument("--serial", type=str, default="",
+        help="Camera serial number to display images from. If not provided images from\
+        all connected cameras will be displayed")
     args = parser.parse_args()
 
     app = QApplication(sys.argv)

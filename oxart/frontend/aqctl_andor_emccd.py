@@ -3,12 +3,15 @@ import argparse
 import sys
 import time
 import zmq
+import logging
 
 from artiq.protocols.pc_rpc import simple_server_loop
 from artiq.tools import simple_network_args, init_logger
 from oxart.tools import add_common_args
-from andorEmccd import AndorEmccd
+import andorEmccd
 
+
+logger = logging.getLogger(__name__)
 
 def get_argparser():
     parser = argparse.ArgumentParser()
@@ -31,24 +34,37 @@ def main():
     args = get_argparser().parse_args()
     init_logger(args)
 
-
     def ping(self):
         return True
 
-    AndorEmccd.ping = ping
-    dev = AndorEmccd()
+    logger.info("Initialising cameras...")
+    cams = andorEmccd.initialise_all_cameras()
+    logger.info("Done. Cameras serials: {}".format( ", ".join(str(sn) for sn in list(cams.keys()))))
+
+    for cam in cams.values():
+        cam.ping = ping
 
     if args.broadcast_images:
         socket = create_zmq_server(args.zmq_bind, args.zmq_port)
-        def frame_callback(im):
-            socket.send_pyobj(im)
-        dev.register_callback(frame_callback)
+        for sn, cam in cams.items():
+            def frame_callback(im, sn=sn):
+                # We send a multi-part message with first part the serial number
+                # this allows the subscriber to filter out unwanted images
+                socket.send_string(str(sn), flags=zmq.SNDMORE)
+                socket.send_pyobj(im)
+            cam.register_callback(frame_callback)
 
     try:
-        dev.set_temperature(args.temp)
-        simple_server_loop({"camera": dev}, args.bind, args.port)
+        for cam in cams.values():
+            cam.set_temperature(args.temp)
+        # Target names must be strings
+        simple_server_loop({str(k):v for k,v in cams.items()}, args.bind, args.port)
+    except KeyboardInterrupt:
+        pass
     finally:
-        dev.close()
+        logger.info("Shutting down cameras ...")
+        for cam in cams.values():
+            cam.close()
 
 if __name__ == "__main__":
     main()
