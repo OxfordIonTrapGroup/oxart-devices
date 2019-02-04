@@ -43,6 +43,8 @@ def main():
 
     logger.info("Initialising cameras...")
     cams = andorEmccd.initialise_all_cameras()
+    if not cams:
+        raise ValueError("No cameras found")
     logger.info("Done. Cameras serials: {}".format( ", ".join(str(sn) for sn in list(cams.keys()))))
 
     for cam in cams.values():
