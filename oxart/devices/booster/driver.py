@@ -95,7 +95,7 @@ class Booster:
         Returns the output forward power interlock threshold for a channel in
         dBm.
         """
-        return float(self._cmd(channel, "INT:HPOW?"))
+        return float(self._cmd(channel, "INT:POW?"))
 
     def get_interlock_status(self, channel):
         """
