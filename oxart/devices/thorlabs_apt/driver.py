@@ -128,7 +128,7 @@ class Message:
         self.data = data
 
     def __str__(self):
-        return ("<Message {} p1=0x{:02x} p2=0x{:02x} "
+        return ("<Message 0x{:04x} p1=0x{:02x} p2=0x{:02x} "
                 "dest=0x{:02x} src=0x{:02x}>".format(
                     self._id, self.param1, self.param2,
                     self.dest, self.src))
@@ -138,11 +138,11 @@ class Message:
         _id, param1, param2, dest, src = struct.unpack("<HBBBB", data[:6])
         data = data[6:]
         if dest & 0x80:
-                if data and len(data) != param1 | (param2 << 8):
-                    raise ValueError("If data are provided, param1 and param2"
-                                     " should contain the data length")
+            if data and len(data) != param1 | (param2 << 8):
+                raise ValueError("If data are provided, param1 and param2"
+                                 " should contain the data length")
         else:
-                data = None
+            data = None
         return Message(MGMSG(_id), param1, param2, dest, src, data)
 
     def pack(self):
@@ -172,17 +172,19 @@ class _APTDevice:
 
     def _send_message(self, message):
         msg = message.pack()
-        # print("tx: {}".format(msg.hex()))
+        logger.debug("Sending: {}".format(message))
+        logger.debug("tx: {}".format(msg.hex()))
         self.h.write(msg)
 
     def _read_message(self):
         header = self.h.read(6)
-        # print("rx: {}".format(raw.hex()))
         data = b""
         if header[4] & 0x80:
             (length, ) = struct.unpack("<H", header[2:4])
             data = self.h.read(length)
         msg = Message.unpack(header + data)
+        logger.debug("rx: {}{}".format(header.hex(), data.hex()))
+        logger.debug("Received: {}".format(msg))
         return msg
 
     def _send_request(self, msgreq_id, wait_for, param1=0, param2=0, data=None):
@@ -333,7 +335,7 @@ class _APTRotation(_APTDevice):
         super().home()
         self._last_angle_mu = None
 
-    def set_angle(self, angle, check_position=False, auto_retry=0, **kwargs):
+    def set_angle(self, angle, check_position=False, auto_retry=0, acceptable_error=0):
         """
         Set angle in degrees.
 
@@ -348,11 +350,11 @@ class _APTRotation(_APTDevice):
 
         if check_position:
             try:
-                self.check_angle_mu(wait=False, **kwargs)
+                self.check_angle_mu(acceptable_error=acceptable_error)
             except ValueError as e:
                 if auto_retry > 0:
                     self.set_angle(angle, check_position=check_position,
-                        auto_retry=auto_retry-1, **kwargs)
+                        auto_retry=auto_retry-1, acceptable_error=acceptable_error)
                 else:
                     raise
 
