@@ -238,7 +238,7 @@ class _APTDevice:
         msg = self._send_request(
             MGMSG.MOT_REQ_DCSTATUSUPDATE,
             wait_for=[MGMSG.MOT_GET_DCSTATUSUPDATE])
-        chan, position, velocity, _, status = struct.unpack("=HIHHI", msg.data)
+        chan, position, velocity, _, status = struct.unpack("=HiHHI", msg.data)
         return chan, position, velocity, status
 
     def get_status_bits(self):
@@ -280,6 +280,10 @@ class _APTDevice:
         self._send_request(
             MGMSG.MOT_MOVE_STOP,
             wait_for=[MGMSG.MOT_MOVE_STOPPED])
+
+    def get_position(self):
+        _, position, *_ = self.get_status()
+        return position
 
     def is_moving(self):
         status = self.get_status_bits()
@@ -354,33 +358,24 @@ class _APTRotation(_APTDevice):
 
     def get_angle(self):
         """Get current angle in degrees"""
-        angle_mu = self._get_angle_mu()
+        angle_mu = self.get_position()
         angle = float(angle_mu)/self.steps_per_degree
         angle = angle % 360
         return angle
 
-    def check_angle_mu(self, acceptable_error=40, **kwargs):
+    def check_angle_mu(self, acceptable_error=0):
         """Check currently set angle against stored value"""
         if self._last_angle_mu == None:
             # nothing to check against
             return
 
-        angle_mu = self._get_angle_mu(**kwargs)
-        angle_mu = angle_mu % int(360*self.steps_per_degree)
+        angle_mu = self.get_position()
         if abs(self._last_angle_mu - angle_mu) > acceptable_error:
             raise ValueError("Last angle set does not match current angle",
                 self._last_angle_mu, angle_mu)
         else:
             # if we're off by an acceptable amount, store the actual value
             self._last_angle_mu = angle_mu
-
-    def _get_angle_mu(self, wait=True):
-        """Get current angle in steps"""
-        if wait:
-            self._wait_until_stopped()
-        _, angle_mu, _, _ = self.get_status()
-        return angle_mu
-
 
 
 class K10CR1(_APTRotation):
