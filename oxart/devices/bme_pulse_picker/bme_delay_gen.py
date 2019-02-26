@@ -44,6 +44,22 @@ def _check_status(code):
         msg = "Unknown error code: {}".format(code)
     raise DelayGenException(msg)
 
+@unique
+class StatusFlag(Enum):
+    # Those bits can be found in the "Command register (read)" in BME_G0X.RTF
+    channel_a_active = (1 << 0) #D0  channel A is active
+    channel_b_active = (1 << 1) #D1  channel B is active
+    channel_c_active = (1 << 2) #D2  channel C is active
+    channel_d_active = (1 << 3) #D3  channel D is active
+    channel_e_active = (1 << 4) #D4  channel E is active
+    channel_f_active = (1 << 5) #D5  channel F is active
+    trigger1_active = (1 << 6)  #D6  primary trigger is active
+    trigger2_active = (1 << 7)  #D7  secondary trigger is active
+    force_trigger_active = (1 << 8) #D8  force trigger is active
+    terminal_count_reached = (1 << 9) #D9  terminal count of preset register has been reached
+    external_clock_no_transitions_detected = (1 << 10) #D10 external clock fed via the trigger input connector is used, but no level transitions have been detected for the number of periods of the internal clock as prescribed by Multipurpose register, byte no. 6
+    all_wait_times_elapsed = (1 << 11) #D11 all wait times for the trigger system have elapsed
+    load_command_active = (1 << 17) #D17 Load command is active
 
 class Driver:
     """
@@ -87,6 +103,8 @@ class Driver:
             self.set_trigger_parameters = get_fn("Set_TriggerParameters", [
                 c_bool, c_double, c_double, c_ulong, c_ulong, c_bool, c_bool,
                 c_bool, c_bool, c_bool, c_bool, c_bool, c_bool, c_long])
+            self.set_resetwhendone = get_fn("Set_ResetWhenDone", [c_bool, c_long])
+            self.read_dg_status = get_fn("Read_DG_Status", [c_long], returns_status = False)
 
             # These are model-specific.
             self.set_g08_delay = get_fn("Set_G08_Delay", [c_ulong, c_double,
@@ -221,7 +239,7 @@ class BME_SG08p:
         channels being disabled.
         """
 
-        self._lib.deactivate_dg(self._device_idx)
+        self._deactivate_and_wait()
 
         # Set the default hardware configuration. This is application-specific
         # and should be made configurable for a proper, comprehensive driver.
@@ -257,7 +275,7 @@ class BME_SG08p:
         self._lib.activate_dg(self._device_idx)
 
     def set_clock_source(self, source):
-        self._lib.deactivate_dg(self._device_idx)
+        self._deactivate_and_wait()
         self._set_clock_params(source)
         self._lib.activate_dg(self._device_idx)
 
@@ -282,7 +300,7 @@ class BME_SG08p:
             self._device_idx)
 
     def set_trigger(self, use_external_gate, inhibit_us):
-        self._lib.deactivate_dg(self._device_idx)
+        self._deactivate_and_wait()
         self._set_trigger_params(use_external_gate, inhibit_us)
         self._lib.activate_dg(self._device_idx)
 
@@ -327,7 +345,7 @@ class BME_SG08p:
         if mode_ef in AND:
             flags |= 0x200000
 
-        self._lib.deactivate_dg(self._device_idx)
+        self._deactivate_and_wait()
         self._lib.set_gate_function(flags, self._device_idx)
         self._lib.activate_dg(self._device_idx)
 
@@ -337,10 +355,29 @@ class BME_SG08p:
                 "for each of the {} channels, not {}".format(
                 self.CHANNEL_COUNT, len(params)))
 
-        self._lib.deactivate_dg(self._device_idx)
+        self._deactivate_and_wait()
         for i, p in enumerate(params):
             self._set_delay_channel(i, p)
         self._lib.activate_dg(self._device_idx)
+
+    def _deactivate_and_wait(self):
+        self._lib.set_resetwhendone(False, self._device_idx)
+        while StatusFlag.all_wait_times_elapsed not in self.get_status():
+            pass        
+        self._lib.deactivate_dg(self._device_idx)
+
+    def read_status(self):
+        return self._lib.read_dg_status(self._device_idx)
+
+    def get_status(self):
+        status_word = self.read_status()
+
+        result = set()
+        for flag in StatusFlag:
+            if status_word & flag.value:
+                result.add(flag)
+
+        return result
 
     def _set_delay_channel(self, idx, params):
         CHANNEL_A_IDX = 2
