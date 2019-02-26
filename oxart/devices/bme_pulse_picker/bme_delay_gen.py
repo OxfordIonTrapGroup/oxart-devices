@@ -44,22 +44,29 @@ def _check_status(code):
         msg = "Unknown error code: {}".format(code)
     raise DelayGenException(msg)
 
+
 @unique
 class StatusFlag(Enum):
-    # Those bits can be found in the "Command register (read)" in BME_G0X.RTF
-    channel_a_active = (1 << 0) #D0  channel A is active
-    channel_b_active = (1 << 1) #D1  channel B is active
-    channel_c_active = (1 << 2) #D2  channel C is active
-    channel_d_active = (1 << 3) #D3  channel D is active
-    channel_e_active = (1 << 4) #D4  channel E is active
-    channel_f_active = (1 << 5) #D5  channel F is active
-    trigger1_active = (1 << 6)  #D6  primary trigger is active
-    trigger2_active = (1 << 7)  #D7  secondary trigger is active
-    force_trigger_active = (1 << 8) #D8  force trigger is active
-    terminal_count_reached = (1 << 9) #D9  terminal count of preset register has been reached
-    external_clock_no_transitions_detected = (1 << 10) #D10 external clock fed via the trigger input connector is used, but no level transitions have been detected for the number of periods of the internal clock as prescribed by Multipurpose register, byte no. 6
-    all_wait_times_elapsed = (1 << 11) #D11 all wait times for the trigger system have elapsed
-    load_command_active = (1 << 17) #D17 Load command is active
+    """
+    Hardware status register flags.
+
+    The definitions can be found in the "Programming BME_SG08P3" chapter of the BME_G0X
+    manual, in the "Command register (read)" section.
+    """
+    channel_a_active = (1 << 0)  #: channel A is active
+    channel_b_active = (1 << 1)  #: channel B is active
+    channel_c_active = (1 << 2)  #: channel C is active
+    channel_d_active = (1 << 3)  #: channel D is active
+    channel_e_active = (1 << 4)  #: channel E is active
+    channel_f_active = (1 << 5)  #: channel F is active
+    primary_trigger_active = (1 << 6)  #: primary trigger is active
+    secondary_trigger_active = (1 << 7)  #: secondary trigger is active
+    force_trigger_active = (1 << 8)  #: force trigger is active
+    terminal_count_reached = (1 << 9)  #: terminal count of preset register has been reached
+    external_clock_no_transitions_detected = (1 << 10)  #: external clock fed via the trigger input connector is used, but no level transitions have been detected for the number of periods of the internal clock as prescribed by Multipurpose register, byte no. 6
+    all_wait_times_elapsed = (1 << 11)  #: all wait times for the trigger system have elapsed
+    load_command_active = (1 << 17)  #: Load command is active
+
 
 class Driver:
     """
@@ -104,7 +111,8 @@ class Driver:
                 c_bool, c_double, c_double, c_ulong, c_ulong, c_bool, c_bool,
                 c_bool, c_bool, c_bool, c_bool, c_bool, c_bool, c_long])
             self.set_resetwhendone = get_fn("Set_ResetWhenDone", [c_bool, c_long])
-            self.read_dg_status = get_fn("Read_DG_Status", [c_long], returns_status = False)
+            self.read_dg_status = get_fn("Read_DG_Status", [c_long],
+                returns_status=False)
 
             # These are model-specific.
             self.set_g08_delay = get_fn("Set_G08_Delay", [c_ulong, c_double,
@@ -239,7 +247,7 @@ class BME_SG08p:
         channels being disabled.
         """
 
-        self._deactivate_and_wait()
+        self._deactivate_safely()
 
         # Set the default hardware configuration. This is application-specific
         # and should be made configurable for a proper, comprehensive driver.
@@ -275,7 +283,7 @@ class BME_SG08p:
         self._lib.activate_dg(self._device_idx)
 
     def set_clock_source(self, source):
-        self._deactivate_and_wait()
+        self._deactivate_safely()
         self._set_clock_params(source)
         self._lib.activate_dg(self._device_idx)
 
@@ -300,7 +308,7 @@ class BME_SG08p:
             self._device_idx)
 
     def set_trigger(self, use_external_gate, inhibit_us):
-        self._deactivate_and_wait()
+        self._deactivate_safely()
         self._set_trigger_params(use_external_gate, inhibit_us)
         self._lib.activate_dg(self._device_idx)
 
@@ -345,7 +353,7 @@ class BME_SG08p:
         if mode_ef in AND:
             flags |= 0x200000
 
-        self._deactivate_and_wait()
+        self._deactivate_safely()
         self._lib.set_gate_function(flags, self._device_idx)
         self._lib.activate_dg(self._device_idx)
 
@@ -355,22 +363,36 @@ class BME_SG08p:
                 "for each of the {} channels, not {}".format(
                 self.CHANNEL_COUNT, len(params)))
 
-        self._deactivate_and_wait()
+        self._deactivate_safely()
         for i, p in enumerate(params):
             self._set_delay_channel(i, p)
         self._lib.activate_dg(self._device_idx)
 
-    def _deactivate_and_wait(self):
+    def _deactivate_safely(self):
+        """
+        Deactivate the delay generator without interrupting any currently running
+        sequences.
+        """
+        # The below procedure is in line with what the BME_G0X help recommends in the
+        # "Modifying Parameters Synchronuously" [sic] section.
+        #
+        # While waiting here does seem to fix the issue where the delay generator stops
+        # outputting pulses on frequent updates, it is not entirely clear how/why this
+        # works – the "reset when done" flag is never set set to true again explicitly.
+        # The documentation (Set_ResetWhenDone in the BME_G0X help file) does mention
+        # that a Deactivate/Activate resets the outputs as well, but why would that
+        # cause more than one pulse to be triggerable if it doesn't also set the
+        # reset-when-done flag again?
         self._lib.set_resetwhendone(False, self._device_idx)
-        while StatusFlag.all_wait_times_elapsed not in self.get_status():
-            pass        
+        while StatusFlag.all_wait_times_elapsed not in self.read_status_flags():
+            pass
         self._lib.deactivate_dg(self._device_idx)
 
-    def read_status(self):
+    def _read_status_word(self):
         return self._lib.read_dg_status(self._device_idx)
 
-    def get_status(self):
-        status_word = self.read_status()
+    def read_status_flags(self):
+        status_word = self._read_status_word()
 
         result = set()
         for flag in StatusFlag:
