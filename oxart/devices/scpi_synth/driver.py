@@ -31,6 +31,9 @@ class Synth:
         self.stream.write("POW?\n".encode())
         return float(self.stream.readline().decode())
 
+    def set_amplitude(self, volts):
+        self.stream.write("VOLT {}\n".format(volts).encode())
+
     def set_rf_on(self, enabled):
         self.stream.write("OUTP {:d}\n".format(int(enabled)).encode())
 
