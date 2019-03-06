@@ -123,7 +123,7 @@ class QL355:
         """ Returns True if we are connected to a PSU, otherwise returns False.
         """
         ident = self.identify().split(',')
-        if ident[0] != "THURLBY-THANDAR":
+        if ident[0] not in ["THURLBY-THANDAR", "THURLBY THANDAR"]:
             return False
         if ident[1].strip() not in ["QL355P", "QL355TP"]:
             return False

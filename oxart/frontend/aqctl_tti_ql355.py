@@ -6,7 +6,7 @@ import logging
 from oxart.devices.tti_ql355.driver import QL355
 
 from artiq.protocols.pc_rpc import simple_server_loop
-from artiq.tools import verbosity_args, simple_network_args
+from artiq.tools import add_common_args, simple_network_args
 from artiq.tools import init_logger, bind_address_from_args
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ def get_argparser():
                                      "TTI QL355P (TP) single (triple) channel"
                                      " power supplies")
     simple_network_args(parser, 4006)
-    verbosity_args(parser)
+    add_common_args(parser)
     parser.add_argument("-d", "--device", help="device's hardware address")
     return parser
 
