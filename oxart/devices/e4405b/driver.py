@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from oxart.streams import get_stream
+from oxart.devices.streams import get_stream
 
 
 class E4405B:
