@@ -1,6 +1,9 @@
 import sys
 if sys.platform == 'win32':
-    import win32com.client
+    try:
+        import win32com.client
+    except:
+        raise ImportError("win32com not found; consider 'pip install pywin32'")
 else:
     raise RuntimeError("Platforms other than windows not supported")
 import time
