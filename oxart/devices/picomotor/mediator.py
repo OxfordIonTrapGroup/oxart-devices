@@ -48,7 +48,7 @@ class PicoMirror:
 
     def set_home(self, home = (0,0)):
         for i in [0, 1]:
-            self.devs[i].set_home(self.chnls[i], home)
+            self.devs[i].set_home(self.chnls[i], home[i])
 
     def get_home(self):
         return (self.devs[0].get_home(self.chnls[0]),
