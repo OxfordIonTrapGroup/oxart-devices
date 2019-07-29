@@ -18,6 +18,7 @@ class Booster:
         self.ip_addr = device
         assert self.ping()
 
+
     def identify(self):
         """ Returns a device identification string """
         self.sock.send("*IDN?\r\n".encode())
@@ -37,7 +38,7 @@ class Booster:
     def ping(self):
         """ Returns True if we are connected to a Booster """
         idn = self.identify().lower().split(',')
-        return idn[0:2] == ["wut", "rfpa booster"]
+        return (idn[0:2] == ["wut", "rfpa booster"] or idn[0][0:4] == "rfpa")
 
     def _cmd(self, cmd, channel, arg=None):
         _validate_channel(channel)
