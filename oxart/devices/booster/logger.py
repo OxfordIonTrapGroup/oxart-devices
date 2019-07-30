@@ -6,7 +6,7 @@ from requests.exceptions import ConnectionError
 
 
 def parse_status_table(lines):
-    """Parse the status table into a dictionary with parameter names as keys, 
+    """Parse the status table into a dictionary with parameter names as keys,
     with values being vectors of parameter values over the channels.
     An example line of the table is:
     IN8V0 [mA]\t0.039\t0.018\t0.013\t0.021\t0.008\t0.109\t0.008\t0.010
@@ -26,7 +26,7 @@ def parse_status_table(lines):
         # Skip the channel number template
         if len(desc) == 0:
             continue
-        chs = [p for p in ch_parts if len(p)>0 ]
+        chs = [p for p in ch_parts if len(p) > 0]
 
         try:
             vals = [float(x) for x in chs]
@@ -34,7 +34,6 @@ def parse_status_table(lines):
             vals = chs
         status[desc] = vals
     return status
-
 
 
 def get_messages(h):
@@ -48,7 +47,7 @@ def get_messages(h):
 
         if in_block:
             if contains_marker:
-                # If the marked block is long enough to contain a valid table ...
+                # If the marked block is long enough to contain a valid table..
                 if len(lines) > 20:
                     in_block = False
                     status = parse_status_table(lines)
@@ -64,18 +63,18 @@ def get_messages(h):
             in_block = True
 
 
-
 def get_argparser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--device", required=True, 
-        help="Device serial port address")
-    parser.add_argument("--name", required=True, 
-        help="logical Booster name, defines measurement name")
+    parser.add_argument("--device", required=True,
+                        help="Device serial port address")
+    parser.add_argument("--name", required=True,
+                        help="logical Booster name, defines measurement name")
     parser.add_argument("--influx-server", default="10.255.6.4",
-        help="Influx server address")
-    parser.add_argument("--database", default="junk", 
-        help="Influx database name")
+                        help="Influx server address")
+    parser.add_argument("--database", default="junk",
+                        help="Influx database name")
     return parser
+
 
 def write_point(args, client, name, fields, tags={}):
     point = {
@@ -103,7 +102,7 @@ def main():
     h = serial.Serial(args.device)
 
     # Ensure the logging task is running
-    h.write("start\r\n".encode());
+    h.write("start\r\n".encode())
 
     for status in get_messages(h):
         # print(status)
@@ -115,7 +114,8 @@ def main():
             write_point(args, client, name, fields)
 
         try:
-            write_channels("temp", [(x+y)/2 for x,y in zip(status["LTEMP"],status["RTEMP"])])
+            write_channels("temp", [(x+y)/2 for x, y in zip(status["LTEMP"],
+                                                            status["RTEMP"])])
             write_channels("i_30V", status["I30V [A]"])
             write_channels("i_6V", status["I6V0 [A]"])
             write_channels("i_n8V", status["IN8V0 [mA]"])
