@@ -134,12 +134,12 @@ class Booster:
         """ Resets the interlock for a given channel. """
         self._cmd("INT:CLEAR", channel)
 
-    # def get_interlock_status(self, channel):
-    #     """
-    #     Returns True if any of the interlocks on a channel have tripped, or
-    #     False if the channel is operating normally
-    #     """
-    #     return self._query_bool("INT:STAT?", channel)
+    def get_interlock_tripped(self, channel):
+        """
+        Returns True if any of the interlocks on a channel have tripped, or
+        False if the channel is operating normally
+        """
+        return self._query_bool("INT:STAT?", channel)
 
     # def get_overload_status(self, channel):
     #     """
