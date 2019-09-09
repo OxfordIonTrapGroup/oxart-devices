@@ -12,7 +12,6 @@ class Booster:
         """ Returns a device identification string """
         self.dev.write(b"*IDN?\n")
         idn = self.dev.readline().decode().strip()
-        self.dev.readline()
         return idn
 
     def get_version(self):
@@ -47,9 +46,6 @@ class Booster:
 
         print("CMD: " + cmd + "...")
         self.dev.write(cmd.encode())
-
-        if '?' not in cmd:  # to do: remove when fw does not suck
-            return
 
         response = self.dev.readline().decode().lower().strip()
         print("resp: " + response)
