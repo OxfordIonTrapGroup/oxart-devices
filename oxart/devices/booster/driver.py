@@ -1,4 +1,15 @@
 import serial
+import collections
+import dateutil.parser
+
+Version = collections.namedtuple(
+    "Version", ["fw_rev", "fw_hash", "fw_build_date", "device_id", "hw_rev"])
+
+Status = collections.namedtuple(
+    "Status", ["detected", "enabled", "interlock", "output_power_mu",
+               "reflected_power_mu", "I29V", "I6V", "V5VMP", "temp",
+               "output_power", "reflected_power", "input_power",
+               "fan_speed"])
 
 
 class Booster:
@@ -8,53 +19,56 @@ class Booster:
         self.dev.flushInput()
         assert self.ping()
 
-    def identify(self):
-        """ Returns a device identification string """
-        self.dev.write(b"*IDN?\n")
-        idn = self.dev.readline().decode().strip()
-        return idn
-
     def get_version(self):
-        """ Returns tuple of the revision number as a float, and the build date as
-        a string
-        """
-        # to do
-        # idn = self.identify().lower().split(',')
-        # hw_rev = float(idn[2])
-        # fw_build = idn[3].strip()
-        # return hw_rev, fw_build
-        return None
+        """ Returns the device version information as a named tuple """
+        self.dev.write(b"*IDN?\n")
+        idn = self.dev.readline().decode().strip().lower().split(',')
+
+        idn[0] = idn[0].split(" ")
+
+        if (idn[0][0] != "rfpa"
+           or not idn[1].startswith(" built ")
+           or not idn[2].startswith(" id ")
+           or not idn[3].startswith(" hw rev ")):
+            raise Exception(
+                "Unrecognised device identity string: {}".format(idn))
+
+        return Version(fw_rev=idn[0][1],
+                       fw_hash=idn[0][2],
+                       fw_build_date=dateutil.parser.parse(idn[1][7:]),
+                       device_id=idn[2][4:],
+                       hw_rev=idn[3][1:])
 
     def ping(self):
         """ Returns True if we are connected to a Booster """
-        idn = self.identify().lower().split(' ')
-        return idn[0] == "rfpa"
+        try:
+            self.get_version()
+        except Exception:
+            return False
+        return True
 
     def _cmd(self, cmd, channel, arg=None):
-        if self.dev.in_waiting:
-            # self.dev.flushInput()  # to do: remove when fw doesn't suck
-            print(self.dev.readline())
-            raise ValueError("CRAP IN BUFFER, OH DEAR!!")
 
-        # if channel not in range(8):
-        #     raise ValueError("invalid channel number {}".format(channel))
+        if channel is not None and channel not in range(8):
+            raise ValueError("invalid channel number {}".format(channel))
 
-        if arg is None:
+        if channel is None and arg is None:
+            cmd = (cmd+'\n')
+        elif arg is None:
             cmd = "{} {}\n".format(cmd, channel)
         else:
             cmd = "{} {}, {}\n".format(cmd, channel, arg)
-
-        print("CMD: " + cmd + "...")
         self.dev.write(cmd.encode())
 
         response = self.dev.readline().decode().lower().strip()
-        print("resp: " + response)
 
-        # if ('?' not in cmd and response != "okay") or \
-        # ('?' in cmd and 'error' in response):
-        # raise Exception("Unrecognised response to '{}': '{}'".format(
-        # full_cmd, response))
-        return response
+        if '?' in cmd and "error" not in response:
+            return response
+        elif response == "ok":
+            return
+
+        raise Exception(
+            "Unrecognised response to '{}': '{}'".format(cmd, response))
 
     def _query_bool(self, cmd, channel, arg=None):
         resp = self._cmd(cmd, channel, arg)
@@ -75,12 +89,12 @@ class Booster:
                 "Unrecognised response to {}: '{}'".format(cmd, resp))
 
     def set_enabled(self, channel, enabled=True):
-        """ Enables/disables a channel. """
+        """ Enables/disables a channel """
         cmd = "CHAN:ENAB" if enabled else "CHAN:DISAB"
         self._cmd(cmd, channel)
 
     def get_enabled(self, channel):
-        """ Query whether a channel is enabled """
+        """ Returns True is the channel is enabled """
         return self._query_bool("CHAN:ENAB?", channel)
 
     def get_detected(self, channel):
@@ -90,6 +104,51 @@ class Booster:
         """
         return self._query_bool("CHAN:DET?", channel)
 
+    def get_status(self, channel):
+        """ Returns a named tuple containing information about the status
+        of a given channel.
+
+        Fields are:
+        detected: True if the channel is detected
+        enabled: True if the channel was enabled
+        interlock: True if the interlock has tripped for this channel
+        output_power_mu: output (forward) power detector raw ADC value
+        reflected_power_mu: output reverse power detector raw ADC value
+        output_power: output (forward) power (dBm)
+        reflected_power: output reverse power (dBm)
+        input_power: input power (dBm)
+        I29V: current consumption on the main 29V rail (A)
+        I6V: current consumption on the 6V (preamp) rail (A)
+        V5VMP: voltage on the 5VMP rail
+        temp: channel temperature (C)
+        fan_speed: chassis fan speed (%)
+        """
+        resp = self._cmd("CHAN:DIAG?", channel).split(',')
+        print(resp, len(resp))
+        if len(resp) != 14:
+            raise Exception("Unrecognised response to 'CHAN:DIAG?'")
+
+        def _bool(value_str):
+            if value_str == "1":
+                return True
+            elif value_str == "0":
+                return False
+            raise Exception("Unrecognised response to 'CHAN:DIAG?'")
+
+        return Status(detected=_bool(resp[0]),
+                      enabled=_bool(resp[1]),
+                      interlock=_bool(resp[2]),
+                      output_power_mu=int(resp[4]),
+                      reflected_power_mu=int(resp[5]),
+                      I29V=float(resp[6]),
+                      I6V=float(resp[7]),
+                      V5VMP=float(resp[8]),
+                      temp=float(resp[9]),
+                      output_power=float(resp[10]),
+                      reflected_power=float(resp[11]),
+                      input_power=float(resp[12]),
+                      fan_speed=float(resp[13]))
+
     def get_current(self, channel):
         """ Returns the FET bias current (A) for a given channel. """
         return self._query_float("MEAS:CURR?", channel)
@@ -98,21 +157,25 @@ class Booster:
         """ Returns the temperature (C) for a given channel. """
         return self._query_float("MEAS:TEMP?", channel)
 
-    def get_power(self, channel):
+    def get_output_power(self, channel):
         """ Returns the output (forwards) power for a channel in dBm """
         return self._query_float("MEAS:OUT?", channel)
 
-    def get_reflected(self, channel):
+    def get_input_power(self, channel):
+        """ Returns the input power for a channel in dBm """
+        return self._query_float("MEAS:IN?", channel)
+
+    def get_reflected_power(self, channel):
         """ Returns the reflected power for a channel in dBm """
         return self._query_float("MEAS:REV?", channel)
 
-    def get_fan(self):
-        """ Returns the fan speed as a number between 0 and 1"""
-        return self._query_float("MEAS:FAN?", "")
+    def get_fan_speed(self):
+        """ Returns the fan speed as a number between 0 and 100"""
+        return self._query_float("MEAS:FAN?", None)
 
     def set_interlock(self, channel, threshold):
-        """
-        Sets the output forward power interlock threshold (dBm) for a channel.
+        """ Sets the output forward power interlock threshold (dBm) for a
+        given channel channel.
 
         This setting is stored in non-volatile memory and retained across power
         cycles.
@@ -131,26 +194,29 @@ class Booster:
         return self._query_float("INT:POW?", channel)
 
     def clear_interlock(self, channel):
-        """ Resets the interlock for a given channel. """
+        """ Resets the forward and reverse power interlocks for a given
+        channel. """
         self._cmd("INT:CLEAR", channel)
 
-    def get_interlock_tripped(self, channel):
-        """
-        Returns True if any of the interlocks on a channel have tripped, or
-        False if the channel is operating normally
-        """
+    def get_interlock_status(self, channel):
+        """ Returns true if the output forwards or reverse power interlock
+        has tripped for a given channel. """
         return self._query_bool("INT:STAT?", channel)
 
-    # def get_overload_status(self, channel):
-    #     """
-    #     Returns True if the power interlock for a channel is okay, False if
-    #     it has tripped.
-    #     """
-    #     return self._query_bool("INT:OVER?", channel)
+    def get_forward_power_interlock_status(self, channel):
+        """ Returns true if the output forwards power interlock has tripped for
+        a given channel. """
+        return self._query_bool("INT:FOR?", channel)
 
-    # def get_diagnostics(self, channel):
-    #     """ Channe """
-    #     return self._cmd("INT:DIAG?", channel)
+    def get_reverse_power_interlock_status(self, channel):
+        """ Returns true if the output forwards power interlock has tripped for
+        a given channel. """
+        return self._query_bool("INT:REV?", channel)
+
+    def get_error_status(self, channel):
+        """ Returns True if a device error (over temperature etc) has occurred
+        on a given channel """
+        return self._query_bool("INT:ERR?", channel)
 
     def close(self):
         self.dev.close()
