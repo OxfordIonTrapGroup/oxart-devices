@@ -31,7 +31,7 @@ class Brooks4850:
             read = self.read_flow()
         except IOError:  # serial errors inherit from this inbuilt
             return False
-        if read != None:
+        if read is not None:
             return True
         else:
             return False
@@ -43,7 +43,7 @@ class Brooks4850:
 
         data = struct.pack("B", command)
 
-        if payload != None:
+        if payload is not None:
             data += payload
 
             checksum = 0
@@ -114,7 +114,8 @@ class Brooks4850:
         return max_flow, gas_id, gas_density
 
     def set_zero_offset(self):
-        ### NOTE THIS ISN'T WORKING CORRECTLY YET, I THINK - BUT NEEDS TESTING WHEN FLOWING
+        # NOTE THIS ISN'T WORKING CORRECTLY YET, I THINK - BUT NEEDS TESTING
+        # WHEN FLOWING
         """Zero the flow controller reading to the current value"""
         self._send_command(CMD_WRITE_VAR_CHAR, struct.pack(">BB", 3, 1))
         command, payload = self._read_response(1)
@@ -165,7 +166,6 @@ class Brooks4850:
         else:
             raise RuntimeError("Error updating set point source")
 
-
     def read_setpoint(self):
         """Read the current flow rate setpoint in sccm"""
         self._send_command(CMD_READ_VAR_INT16, struct.pack("B", 20))
@@ -182,8 +182,8 @@ class Brooks4850:
             raise ValueError("Setpoint {} is out of range (0,{})!".format(
                                  setpoint, self.max_flow))
         setpoint_raw = int(65535*setpoint/self.max_flow)
-        self._send_command(CMD_WRITE_VAR_INT16,\
-            struct.pack(">BH", 20, setpoint_raw))
+        self._send_command(CMD_WRITE_VAR_INT16,
+                           struct.pack(">BH", 20, setpoint_raw))
 
         self._read_response(1)
         return setpoint
