@@ -9,7 +9,7 @@ Status = collections.namedtuple(
     "Status", ["detected", "enabled", "interlock", "output_power_mu",
                "reflected_power_mu", "I29V", "I6V", "V5VMP", "temp",
                "output_power", "reflected_power", "input_power",
-               "fan_speed"])
+               "fan_speed", "error_status", "hw_id", "i2c_error_count"])
 
 
 class Booster:
@@ -18,34 +18,6 @@ class Booster:
         self.dev = serial.serial_for_url("socket://{}:5000".format(device))
         self.dev.flushInput()
         assert self.ping()
-
-    def get_version(self):
-        """ Returns the device version information as a named tuple """
-        self.dev.write(b"*IDN?\n")
-        idn = self.dev.readline().decode().strip().lower().split(',')
-
-        idn[0] = idn[0].split(" ")
-
-        if (idn[0][0] != "rfpa"
-           or not idn[1].startswith(" built ")
-           or not idn[2].startswith(" id ")
-           or not idn[3].startswith(" hw rev ")):
-            raise Exception(
-                "Unrecognised device identity string: {}".format(idn))
-
-        return Version(fw_rev=idn[0][1],
-                       fw_hash=idn[0][2],
-                       fw_build_date=dateutil.parser.parse(idn[1][7:]),
-                       device_id=idn[2][4:],
-                       hw_rev=idn[3][1:])
-
-    def ping(self):
-        """ Returns True if we are connected to a Booster """
-        try:
-            self.get_version()
-        except Exception:
-            return False
-        return True
 
     def _cmd(self, cmd, channel, arg=None):
 
@@ -88,6 +60,34 @@ class Booster:
             raise Exception(
                 "Unrecognised response to {}: '{}'".format(cmd, resp))
 
+    def get_version(self):
+        """ Returns the device version information as a named tuple """
+        self.dev.write(b"*IDN?\n")
+        idn = self.dev.readline().decode().strip().lower().split(',')
+
+        idn[0] = idn[0].split(" ")
+
+        if (idn[0][0] != "rfpa"
+           or not idn[1].startswith(" built ")
+           or not idn[2].startswith(" id ")
+           or not idn[3].startswith(" hw rev ")):
+            raise Exception(
+                "Unrecognised device identity string: {}".format(idn))
+
+        return Version(fw_rev=idn[0][1],
+                       fw_hash=idn[0][2],
+                       fw_build_date=dateutil.parser.parse(idn[1][7:]),
+                       device_id=idn[2][4:],
+                       hw_rev=idn[3][1:])
+
+    def ping(self):
+        """ Returns True if we are connected to a Booster """
+        try:
+            self.get_version()
+        except Exception:
+            return False
+        return True
+
     def set_enabled(self, channel, enabled=True):
         """ Enables/disables a channel """
         cmd = "CHAN:ENAB" if enabled else "CHAN:DISAB"
@@ -122,10 +122,16 @@ class Booster:
         V5VMP: voltage on the 5VMP rail
         temp: channel temperature (C)
         fan_speed: chassis fan speed (%)
+        error_status: 1 if an error (e.g over temperature) has occurred,
+          otherwise 0. The error status can only be reset by power-cycling
+          Booster.
+        hw_id: unique ID number for the channel
+        i2c_error_count: number of I2C bus errors that have been detected for
+          this channel.
         """
         resp = self._cmd("CHAN:DIAG?", channel).split(',')
-        print(resp, len(resp))
-        if len(resp) != 14:
+
+        if len(resp) != 22:
             raise Exception("Unrecognised response to 'CHAN:DIAG?'")
 
         def _bool(value_str):
@@ -147,7 +153,11 @@ class Booster:
                       output_power=float(resp[10]),
                       reflected_power=float(resp[11]),
                       input_power=float(resp[12]),
-                      fan_speed=float(resp[13]))
+                      fan_speed=float(resp[13]),
+                      error_status=_bool(resp[14]),
+                      hw_id="{:x}:{:x}:{:x}:{:x}:{:x}:{:x}".format(
+                          *[int(part) for part in resp[15:21]]),
+                      i2c_error_count=int(resp[21]))
 
     def get_current(self, channel):
         """ Returns the FET bias current (A) for a given channel. """
@@ -199,17 +209,17 @@ class Booster:
         self._cmd("INT:CLEAR", channel)
 
     def get_interlock_status(self, channel):
-        """ Returns true if the output forwards or reverse power interlock
+        """ Returns True if the output forwards or reverse power interlock
         has tripped for a given channel. """
         return self._query_bool("INT:STAT?", channel)
 
     def get_forward_power_interlock_status(self, channel):
-        """ Returns true if the output forwards power interlock has tripped for
+        """ Returns True if the output forwards power interlock has tripped for
         a given channel. """
         return self._query_bool("INT:FOR?", channel)
 
     def get_reverse_power_interlock_status(self, channel):
-        """ Returns true if the output forwards power interlock has tripped for
+        """ Returns True if the output forwards power interlock has tripped for
         a given channel. """
         return self._query_bool("INT:REV?", channel)
 
