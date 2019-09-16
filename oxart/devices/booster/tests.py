@@ -122,8 +122,8 @@ class TestBooster(unittest.TestCase):
             print("in", dev.get_input_power(chan))
             print("rev", dev.get_reflected_power(chan))
 
-            self.assertEqual(status.interlock, self.get_interlock_status(chan))
-            self.assertEqual(status.error, self.get_error_status(chan))
+            self.assertEqual(status.interlock, self.get_interlock_tripped(chan))
+            self.assertEqual(status.error, self.get_error_occurred(chan))
             self.assertApproxEq(status.I29V, dev.get_current(chan), 2e-3)
             self.assertApproxEq(status.temp, dev.get_temperature(chan), 0.3)
             self.assertApproxEq(status.fan_speed, dev.get_fan_speed(), 2)
@@ -162,12 +162,12 @@ class TestBooster(unittest.TestCase):
             self.dev.set_interlock(hitl_channel, thershold + gain + 1.5)
             self.dev.clear_interlock(hitl_channel)
             time.sleep(0.1)
-            self.assertFalse(self.dev.get_interlock_status(hitl_channel))
+            self.assertFalse(self.dev.get_interlock_tripped(hitl_channel))
 
             for offset in np.arange(-0.5, 0.5, 0.1):
                 self.synth.set_power(thershold - gain + offset)
                 self.dev.set_interlock(hitl_channel, Pin + gain + 1.5)
-                if self.dev.get_interlock_status(hitl_channel):
+                if self.dev.get_interlock_tripped(hitl_channel):
                     break
             else:
                 self.assertTrue(0)  # more idiomatic way of doing this?

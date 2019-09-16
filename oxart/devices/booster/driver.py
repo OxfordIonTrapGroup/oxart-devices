@@ -208,22 +208,22 @@ class Booster:
         channel. """
         self._cmd("INT:CLEAR", channel)
 
-    def get_interlock_status(self, channel):
+    def get_interlock_tripped(self, channel):
         """ Returns True if the output forwards or reverse power interlock
         has tripped for a given channel. """
         return self._query_bool("INT:STAT?", channel)
 
-    def get_forward_power_interlock_status(self, channel):
+    def get_forward_power_interlock_tripped(self, channel):
         """ Returns True if the output forwards power interlock has tripped for
         a given channel. """
         return self._query_bool("INT:FOR?", channel)
 
-    def get_reverse_power_interlock_status(self, channel):
+    def get_reverse_power_interlock_tripped(self, channel):
         """ Returns True if the output forwards power interlock has tripped for
         a given channel. """
         return self._query_bool("INT:REV?", channel)
 
-    def get_error_status(self, channel):
+    def get_error_occurred(self, channel):
         """ Returns True if a device error (over temperature etc) has occurred
         on a given channel """
         return self._query_bool("INT:ERR?", channel)
