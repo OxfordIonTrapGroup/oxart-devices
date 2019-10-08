@@ -9,7 +9,7 @@ Status = collections.namedtuple(
     "Status", ["detected", "enabled", "interlock", "output_power_mu",
                "reflected_power_mu", "I29V", "I6V", "V5VMP", "temp",
                "output_power", "reflected_power", "input_power",
-               "fan_speed", "error_occured", "hw_id", "i2c_error_count"])
+               "fan_speed", "error_occurred", "hw_id", "i2c_error_count"])
 
 
 class Booster:
@@ -122,7 +122,7 @@ class Booster:
         V5VMP: voltage on the 5VMP rail
         temp: channel temperature (C)
         fan_speed: chassis fan speed (%)
-        error_occured: True if an error (e.g over temperature) has occurred,
+        error_occurred: True if an error (e.g over temperature) has occurred,
           otherwise False. Error conditions can only be cleared by
           power-cycling Booster.
         hw_id: unique ID number for the channel
@@ -154,7 +154,7 @@ class Booster:
                       reflected_power=float(resp[11]),
                       input_power=float(resp[12]),
                       fan_speed=float(resp[13]),
-                      error_occured=_bool(resp[14]),
+                      error_occurred=_bool(resp[14]),
                       hw_id="{:x}:{:x}:{:x}:{:x}:{:x}:{:x}".format(
                           *[int(part) for part in resp[15:21]]),
                       i2c_error_count=int(resp[21]))
