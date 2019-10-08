@@ -118,21 +118,15 @@ def main():
                                                             status["RTEMP"])])
             write_channels("i_30V", status["I30V [A]"])
             write_channels("i_6V", status["I6V0 [A]"])
-            write_channels("i_n8V", status["IN8V0 [mA]"])
+            write_channels("5V0MP", status["5V0MP [V]"])
             write_channels("on", status["ON"])
             write_channels("son", status["SON"])
-            write_channels("ovc", status["OVC"])
-            write_channels("pwr_tx", status["TXPWR [dB]"])
-            write_channels("pwr_rfl", status["RFLPWR [dB]"])
+            write_channels("pwr_tx", status["TXPWR [dBm]"])
+            write_channels("pwr_rfl", status["RFLPWR [dBm]"])
         except KeyError as e:
             print("Missing key: {}".format(e))
         except InfluxDBClientError as e:
             print("Data error: {}".format(e))
-
-        try:
-            write_channels("v_mp", status["5V0MP [V]"])
-        except KeyError:
-            pass
 
 
 if __name__ == "__main__":
