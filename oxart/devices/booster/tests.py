@@ -15,11 +15,6 @@ parser = argparse.ArgumentParser(description="Booster hardware in the loop "
                                  "to a synth and RF power meter. Assumes there"
                                  " is a 30dB attenuator between Booster and "
                                  "the power meter.")
-parser.add_argument("--read_only",
-                    help="If set, no tests are run which would change the sate"
-                    " of any hardware. This mode allows testing multiple SCPI "
-                    "connections simultaneously.",
-                    default=False)
 parser.add_argument("--booster", help="IP address of the Booster to test")
 parser.add_argument("--synth", help="Address of the synth to use for tests")
 parser.add_argument("--meter", help="IP address of the power meter RPC server")
@@ -37,11 +32,6 @@ parser.add_argument("--chan",
                     default=0)
 args = None
 
-# python -m oxart.devices.booster.tests --booster "10.255.6.79" --synth
-# "socket://10.255.6.123:5025" --meter "10.255.6.125" --p_min -15.00 --p_max
-# -5.00
-# fuzz twice at once (read only) and with VCP!
-
 
 class TestBooster(unittest.TestCase):
 
@@ -54,7 +44,7 @@ class TestBooster(unittest.TestCase):
         # we allow a wider margin for the channel under test (cut) because
         # of thermal hysteresis (as it gets hotter, the bias current decreases
         # a little)
-        cls.I29V_tol = 0.5e-3
+        cls.I29V_tol = 2.5e-3
         cls.I29V_cut_tol = 3e-3
         cls.I6V_tol = 2e-3
         cls.I6V_cut_tol = 3e-3
@@ -64,18 +54,26 @@ class TestBooster(unittest.TestCase):
         for channel in range(8):
             cls.dev.set_enabled(channel)
 
-        if not args.read_only:
-            cls.cut = args.chan
-            cls.synth = Synth(args.synth)
-            cls.synth.set_freq(200e6)
-            cls.synth.set_rf_on(False)
+        cls.cut = args.chan
+        cls.synth = Synth(args.synth)
+        cls.synth.set_freq(200e6)
+        cls.synth.set_rf_on(False)
 
-            cls.meter = Client(args.meter, 4300)
-            cls.meter.set_freq(200)
-        else:
-            cls.cut = None
+        cls.meter = Client(args.meter, 4300)
+        cls.meter.set_freq(200)
 
         time.sleep(cls.t_settle)
+
+        cls.I29V = np.zeros(8)
+        cls.I6V = np.zeros(8)
+        np.set_printoptions(precision=1)
+        for channel in range(8):
+                status = cls.dev.get_status(channel)
+                cls.I29V[channel] = status.I29V
+                cls.I6V[channel] = status.I6V
+        print(cls.I29V*1e3)
+        print(cls.I6V*1e3)
+        assert 0
 
         # get a baseline measurement of the currents on each channel
         num_measurements = 100
@@ -120,9 +118,6 @@ class TestBooster(unittest.TestCase):
                                      np.min(cls.I6V*1e3),
                                      np.max(cls.I6V*1e3),
                                      np.std(cls.I6V*1e3)))
-
-        if args.read_only:
-            return
 
         # get baseline measurement of amplifier gain and detector accuracy
         cls.dev.set_interlock(args.chan, 37)
@@ -266,7 +261,7 @@ class TestBooster(unittest.TestCase):
             self.assertApproxEq(status.output_power,
                                 dev.get_output_power(chan), 0.25)
             self.assertApproxEq(status.input_power,
-                                dev.get_input_power(), 0.25)
+                                dev.get_input_power(chan), 0.25)
             self.assertApproxEq(status.reflected_power,
                                 dev.get_reflected_power(chan), 0.25)
 
