@@ -32,6 +32,9 @@ parser.add_argument("--chan",
                     default=0)
 args = None
 
+# python -m oxart.devices.booster.tests --booster "10.255.6.79" --synth
+# "socket://10.255.6.123:5025" --meter "10.255.6.125" --p_min -15.00 --p_max
+# -5.00
 
 class TestBooster(unittest.TestCase):
 
@@ -44,8 +47,8 @@ class TestBooster(unittest.TestCase):
         # we allow a wider margin for the channel under test (cut) because
         # of thermal hysteresis (as it gets hotter, the bias current decreases
         # a little)
-        cls.I29V_tol = 2.5e-3
-        cls.I29V_cut_tol = 3e-3
+        cls.I29V_tol = 3.5e-3
+        cls.I29V_cut_tol = 3.5e-3
         cls.I6V_tol = 2e-3
         cls.I6V_cut_tol = 3e-3
 
@@ -63,17 +66,6 @@ class TestBooster(unittest.TestCase):
         cls.meter.set_freq(200)
 
         time.sleep(cls.t_settle)
-
-        cls.I29V = np.zeros(8)
-        cls.I6V = np.zeros(8)
-        np.set_printoptions(precision=1)
-        for channel in range(8):
-                status = cls.dev.get_status(channel)
-                cls.I29V[channel] = status.I29V
-                cls.I6V[channel] = status.I6V
-        print(cls.I29V*1e3)
-        print(cls.I6V*1e3)
-        assert 0
 
         # get a baseline measurement of the currents on each channel
         num_measurements = 100
