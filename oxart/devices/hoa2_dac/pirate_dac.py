@@ -1,5 +1,9 @@
 # Require pyBusPirateLite
 # https://github.com/juhasch/pyBusPirateLite.git
+#
+# NB as of 11/11/2019, the above requires python 3.6, use
+# commit 50b1177d426d1741fa29b361f07e2f6d77848f78 for 3.5
+
 
 import time
 from pyBusPirateLite.SPI import *
@@ -20,7 +24,7 @@ class PirateDac:
 
 
     def pulse_ldac(self):
-        self.spi.pins = PIN_POWER | PIN_CS 
+        self.spi.pins = PIN_POWER | PIN_CS
         time.sleep(0.1e-3)
         self.spi.pins = PIN_POWER | PIN_CS | PIN_AUX
 
