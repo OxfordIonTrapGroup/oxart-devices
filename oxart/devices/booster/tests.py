@@ -5,7 +5,7 @@ import time
 import random
 import sys
 
-from artiq.protocols.pc_rpc import Client
+from sipyco.pc_rpc import Client
 
 from oxart.devices.scpi_synth.driver import Synth
 from oxart.devices.booster.driver import Booster

@@ -4,7 +4,7 @@ import re
 import sys
 import asyncio
 
-import artiq.protocols.pyon as pyon
+import sipyco.pyon as pyon
 
 
 logger = logging.getLogger(__name__)

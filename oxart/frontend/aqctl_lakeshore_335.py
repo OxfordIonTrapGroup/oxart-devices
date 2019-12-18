@@ -4,8 +4,8 @@ import argparse
 import logging
 
 from oxart.devices.lakeshore_335.driver import LakeShore335
-from artiq.protocols.pc_rpc import simple_server_loop
-from artiq.tools import simple_network_args, init_logger
+from sipyco.pc_rpc import simple_server_loop
+from sipyco.common_args import simple_network_args, init_logger_from_args
 from oxart.tools import add_common_args
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ def get_argparser():
 
 def main():
     args = get_argparser().parse_args()
-    init_logger(args)
+    init_logger_from_args(args)
 
     dev = LakeShore335(args.device)
 

@@ -5,9 +5,9 @@ import logging
 
 from oxart.devices.tti_ql355.driver import QL355
 
-from artiq.protocols.pc_rpc import simple_server_loop
-from artiq.tools import add_common_args, simple_network_args
-from artiq.tools import init_logger, bind_address_from_args
+from sipyco.pc_rpc import simple_server_loop
+from sipyco.common_args import add_common_args, simple_network_args
+from sipyco.common_args import init_logger_from_args, bind_address_from_args
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ def get_argparser():
 
 def main():
     args = get_argparser().parse_args()
-    init_logger(args)
+    init_logger_from_args(args)
     dev = QL355(args.device)
 
     # Q: Why not use try/finally for port closure?

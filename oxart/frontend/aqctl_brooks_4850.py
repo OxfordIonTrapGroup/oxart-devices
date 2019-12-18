@@ -1,8 +1,8 @@
 import argparse
 
 from oxart.devices.brooks_4850.driver import Brooks4850
-from artiq.protocols.pc_rpc import simple_server_loop
-from artiq.tools import *
+from sipyco.pc_rpc import simple_server_loop
+from sipyco.common_args import *
 
 
 def get_argparser():
@@ -16,7 +16,7 @@ def get_argparser():
 
 def main():
     args = get_argparser().parse_args()
-    init_logger(args)
+    init_logger_from_args(args)
     dev = Brooks4850(args.device)
 
     try:

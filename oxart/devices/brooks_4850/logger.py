@@ -4,8 +4,8 @@ from datetime import datetime
 import time
 import influxdb
 
-from artiq.tools import add_common_args, init_logger
-from artiq.protocols.pc_rpc import Client
+from sipyco.common_args import add_common_args, init_logger_from_args
+from sipyco.pc_rpc import Client
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ def get_argparser():
 
 def main():
     args = get_argparser().parse_args()
-    init_logger(args)
+    init_logger_from_args(args)
 
     while True:
         try:

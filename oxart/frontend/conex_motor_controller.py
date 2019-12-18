@@ -4,8 +4,8 @@ import argparse
 import sys
 
 from oxart.devices.conex_motor.driver import Conex
-from artiq.protocols.pc_rpc import simple_server_loop
-from artiq.tools import simple_network_args, init_logger, bind_address_from_args
+from sipyco.pc_rpc import simple_server_loop
+from sipyco.common_args import simple_network_args, init_logger_from_args, bind_address_from_args
 from oxart.tools import add_common_args
 
 
@@ -29,7 +29,7 @@ def get_argparser():
 
 def main():
     args = get_argparser().parse_args()
-    init_logger(args)
+    init_logger_from_args(args)
 
     if args.device is None:
         print("You need to specify a -d/--device "

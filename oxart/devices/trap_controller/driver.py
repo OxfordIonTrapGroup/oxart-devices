@@ -3,7 +3,7 @@ import serial
 import logging
 import asyncio
 import numpy as np
-from artiq.protocols import pyon
+from sipyco import pyon
 from artiq.language.core import *
 
 logger = logging.getLogger(__name__)
