@@ -1,40 +1,57 @@
-""" Driver for 6671A power supplies """
-
 from oxart.devices.streams import get_stream
 
 
 class Agilent6671A:
-
+    """Driver for Agilent 6671A power supplies"""
     def __init__(self, device):
         self.stream = get_stream(device)
         assert self.ping()
 
-    def _get_float(self, cmd):
-        self.stream.write((cmd+"\n").encode())
-        return float(self.stream.readline().decode())
-
-    def _get_bool(self, cmd):
-        self.stream.write((cmd+"\n").encode())
-        return bool(self.stream.readline().decode())
-
-    def _get_int(self, cmd):
-        self.stream.write((cmd+"\n").encode())
-        return int(self.stream.readline().decode())
-
-    def get_current(self):
-        """ Returns the measured output current. """
-        return self._get_float("MEAS:CURR?")
-
     def get_voltage(self):
-        """ Returns the measured output voltage. """
+        """Return the measured output voltage."""
         return self._get_float("MEAS:VOLT?")
 
+    def get_current(self):
+        """Return the measured output current."""
+        return self._get_float("MEAS:CURR?")
+
     def get_output(self):
-        """ Returns True if the output is on, else False """
+        """Return True if the output is on, else False."""
         return self._get_bool("OUTP?")
 
-    def clear_output_protection(self):
-        """ Resets the OV (over voltage), OC (over current), OT (over
+    def get_voltage_limit(self):
+        """Return the voltage limit for channel in volts."""
+        return self._get_float(":VOLT?")
+
+    def get_current_limit(self):
+        """Return the current limit for channel in amps."""
+        return self._get_float(":CURR?")
+
+    def set_voltage_limit(self, voltage_limit):
+        """Set the voltage limit for channel in volts."""
+        self.stream.write(":VOLT {:f}".format(voltage_limit))
+
+    def set_current_limit(self, current_limit):
+        """Set the current limit for channel in amps"""
+        self.stream.write(":CURR {:f}".format(current_limit))
+
+    def set_output_enable(self, enable):
+        """Enable/disable a channel."""
+        self.stream.write("OUTP {}".format(int(bool(enable))).encode())
+
+    def set_overvoltage_limit(self, overvoltage_limit):
+        """Set the overvoltage protection (OVP) level of the power supply.
+
+        If the output voltage exceeds the OVP level, then the power supply
+        output is disabled and the "questionable condition" status register OV
+        bit is set (see "Chapter 4 - Status Reporting"). An overvoltage
+        condition can be cleared with the OUTP:PROT:CLE command after the
+        condition that caused the OVP to trip has been removed.
+        """
+        self.stream.write("VOLT:PROT {:f}".format(overvoltage_limit))
+
+    def clear_all_interlocks(self):
+        """Reset the OV (over voltage), OC (over current), OT (over
         temperature) and RI (remote inhibit) protection interlocks.
 
         After this command, the output is restored to the state it was in
@@ -43,7 +60,7 @@ class Agilent6671A:
         self.stream.write("OUTP:PROT:CLE\n".encode())
 
     def get_error_status(self):
-        """ Returns an integer with the PSU "questionable" status register.
+        """Return an integer with the PSU "questionable" status register.
 
         0 indicates normal operation
 
@@ -56,6 +73,10 @@ class Agilent6671A:
         """
         return self._get_int("STAT:QUES?")
 
+    def reset(self):
+        """Reset device to factory settings."""
+        self.stream.write("*RST")
+
     def identify(self):
         self.stream.write("*IDN?\n".encode())
         return self.stream.readline().decode()
@@ -67,3 +88,15 @@ class Agilent6671A:
 
     def close(self):
         self.stream.close()
+
+    def _get_float(self, cmd):
+        self.stream.write((cmd+"\n").encode())
+        return float(self.stream.readline().decode())
+
+    def _get_bool(self, cmd):
+        self.stream.write((cmd+"\n").encode())
+        return bool(self.stream.readline().decode())
+
+    def _get_int(self, cmd):
+        self.stream.write((cmd+"\n").encode())
+        return int(self.stream.readline().decode())
