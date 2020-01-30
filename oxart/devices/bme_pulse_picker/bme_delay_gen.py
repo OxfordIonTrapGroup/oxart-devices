@@ -152,7 +152,6 @@ class Driver:
         elif device_count > 1:
             raise DelayGenException("More than one PCI delay generator "
                 "detected; currently not supported.")
-
         return BME_SG08p(self, DG_IDX)
 
 
@@ -237,7 +236,6 @@ class BME_SG08p:
             raise DelayGenException("Detected delay generator is not set to "
                 "master mode")
         self._lib.initialize_dg(slot_id, product_id, self._device_idx)
-
         self.reset()
 
     def reset(self):
@@ -248,15 +246,12 @@ class BME_SG08p:
         """
 
         self._deactivate_safely()
-
         # Set the default hardware configuration. This is application-specific
         # and should be made configurable for a proper, comprehensive driver.
 
         self._set_clock_params(ClockSource.internal)
-
         # Default to external gating and no inhibit time.
         self._set_trigger_params(True, 0.0)
-
         self._lib.set_g08_trigger_parameters(
             True, # 50Ω-terminate gate input
             1.0, # Gate input level, in V
@@ -383,9 +378,13 @@ class BME_SG08p:
         # that a Deactivate/Activate resets the outputs as well, but why would that
         # cause more than one pulse to be triggerable if it doesn't also set the
         # reset-when-done flag again?
+        # 2020 update to Windows 10 driver. The all_wait_times_elapsed status flag
+        # seems not be set initially. Maybe they fixed it in the driver.
         self._lib.set_resetwhendone(False, self._device_idx)
-        while StatusFlag.all_wait_times_elapsed not in self.read_status_flags():
-            pass
+        # self.read_status_flags()
+        # while StatusFlag.all_wait_times_elapsed not in self.read_status_flags():
+        #     pass
+
         self._lib.deactivate_dg(self._device_idx)
 
     def _read_status_word(self):
@@ -396,6 +395,7 @@ class BME_SG08p:
 
         result = set()
         for flag in StatusFlag:
+            # print("{}: {}".format(flag, status_word&flag.value))
             if status_word & flag.value:
                 result.add(flag)
 
