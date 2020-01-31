@@ -3,9 +3,15 @@ from oxart.devices.streams import get_stream
 
 class Agilent6671A:
     """Driver for Agilent 6671A power supplies"""
-    def __init__(self, device):
-        self.stream = get_stream(device)
-        assert self.ping()
+
+    def __init__(self, device, timeout=10):
+        # If the Agilent 6671A is connected via a GPIB adapter, the adapter
+        # will be pinged as part of the call to get_stream. If no
+        # AssertionError is raised, the adapter is responding
+        self.stream = get_stream(device, timeout=timeout)
+
+        # Adapter can be reached, so now ping device itself
+        assert self.ping(), "Agilent 6671A not responding to ping"
 
     def get_voltage(self):
         """Return the measured output voltage."""

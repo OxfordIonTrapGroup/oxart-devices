@@ -3,33 +3,35 @@
 import argparse
 import logging
 
-from oxart.devices.agilent_6671a.driver import Agilent6671A
+import sipyco.common_args as sca
 from sipyco.pc_rpc import simple_server_loop
-from sipyco.common_args import simple_network_args, init_logger_from_args
-from oxart.tools import add_common_args
-
-logger = logging.getLogger(__name__)
+from oxart.devices.agilent_6671a.driver import Agilent6671A
 
 
 def get_argparser():
-    parser = argparse.ArgumentParser(description="ARTIQ controller for "
-                                     "Agilent 6671A power supplies")
-    parser.add_argument("-d", "--device", help="device's hardware address")
-
-    simple_network_args(parser, 4300)
-    add_common_args(parser)
+    parser = argparse.ArgumentParser(
+        description="ARTIQ controller for Agilent 6671A PSU")
+    parser.add_argument("-d", "--device",
+                        default="gpib://socket://10.255.6.10:1234-0",
+                        help="hardware address of device")
+    sca.simple_network_args(parser, 4310)
+    sca.verbosity_args(parser)
 
     return parser
 
 
 def main():
     args = get_argparser().parse_args()
-    init_logger_from_args(args)
-
+    sca.init_logger_from_args(args)
+    logging.info("Trying to establish connection "
+                 "to Agilent 6671A PSU at {}...".format(args.device))
     dev = Agilent6671A(args.device)
+    logging.info("Established connection.")
 
     try:
-        simple_server_loop({"psu": dev}, args.bind, args.port)
+        logging.info("Starting server at port {}...".format(args.port))
+        simple_server_loop({"Agilent6671A": dev},
+                           sca.bind_address_from_args(args), args.port)
     finally:
         dev.close()
 
