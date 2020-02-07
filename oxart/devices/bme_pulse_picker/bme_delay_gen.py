@@ -245,11 +245,7 @@ class BME_SG08p:
         channels being disabled.
         """
 
-        # do not call _deactivate_safely() here because the StatusFlag 
-        # all_wait_times_elapsed should not set yet
-        self._lib.set_resetwhendone(False, self._device_idx)
-        self._lib.deactivate_dg(self._device_idx)
-        self._lib.set_resetwhendone(True, self._device_idx)
+        self._deactivate_safely()
         
         # Set the default hardware configuration. This is application-specific
         # and should be made configurable for a proper, comprehensive driver.
@@ -380,10 +376,10 @@ class BME_SG08p:
         # seems not be set initially. Therefore, don't call this method after 
         # initialisation.
         self._lib.set_resetwhendone(False, self._device_idx)
-        while StatusFlag.all_wait_times_elapsed not in self.read_status_flags():
-            pass
+        # while StatusFlag.all_wait_times_elapsed not in self.read_status_flags():
+        #     pass
         self._lib.deactivate_dg(self._device_idx)
-        self._lib.set_resetwhendone(True, self._device_idx)
+        # self._lib.set_resetwhendone(True, self._device_idx)
 
     def _read_status_word(self):
         return self._lib.read_dg_status(self._device_idx)
