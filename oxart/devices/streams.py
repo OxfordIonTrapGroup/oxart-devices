@@ -22,6 +22,7 @@ def get_stream(device, baudrate=115200, port=None, timeout=None):
                                      baudrate=baudrate,
                                      timeout=timeout,
                                      write_timeout=timeout)
+
     controller_addr, gpib_port = device[7:].split('-')
-    controller = GPIB(controller_addr)
+    controller = GPIB(controller_addr, timeout=timeout)
     return controller.get_stream(int(gpib_port))

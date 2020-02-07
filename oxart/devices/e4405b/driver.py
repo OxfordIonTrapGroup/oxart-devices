@@ -99,7 +99,7 @@ class E4405B:
     def get_sweep_scale(self):
         """ Returns either "lin" or "log". """
         self.stream.write("SWEEP:SPACING?\n".encode())
-        return self.stream.readline().decode().lower()
+        return self.stream.readline().decode().lower().strip()
 
     def get_trace(self):
         """ Returns the current trace in the amplitude units.  """
