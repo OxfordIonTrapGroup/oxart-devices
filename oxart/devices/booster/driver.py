@@ -16,6 +16,7 @@ class Booster:
     """ Booster 8-channel RF PA """
     def __init__(self, device):
         self.dev = serial.serial_for_url("socket://{}:5000".format(device))
+        self.dev.timeout = 1
         self.dev.flushInput()
         assert self.ping()
 
@@ -32,7 +33,16 @@ class Booster:
             cmd = "{} {}, {}\n".format(cmd, channel, arg)
         self.dev.write(cmd.encode())
 
-        response = self.dev.readline().decode().lower().strip()
+        response = self.dev.readline().decode()
+        if response == '':
+            self.dev.write(b'\n')
+            response = self.dev.readline().decode()
+            self.dev.readline()  # blank response from extra write
+            if response == '':
+                raise serial.SerialTimeoutException(
+                    "Timeout while waiting for response to '{}'"
+                    .format(cmd.strip()))
+        response = response.lower().strip()
 
         if '?' in cmd and "error" not in response:
             return response
@@ -108,6 +118,8 @@ class Booster:
         """ Returns a named tuple containing information about the status
         of a given channel.
 
+        NB powers below the detector sensitivity are recorded as nan
+
         Fields are:
         detected: True if the channel is detected
         enabled: True if the channel was enabled
@@ -132,14 +144,16 @@ class Booster:
         resp = self._cmd("CHAN:DIAG?", channel).split(',')
 
         if len(resp) != 22:
-            raise Exception("Unrecognised response to 'CHAN:DIAG?'")
+            raise Exception("Unrecognised response to 'CHAN:DIAG?': {}".format(
+                resp))
 
         def _bool(value_str):
             if value_str == "1":
                 return True
             elif value_str == "0":
                 return False
-            raise Exception("Unrecognised response to 'CHAN:DIAG?'")
+            raise Exception("Unrecognised response to 'CHAN:DIAG?': {}".format(
+                resp))
 
         return Status(detected=_bool(resp[0]),
                       enabled=_bool(resp[1]),
