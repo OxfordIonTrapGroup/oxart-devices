@@ -5,9 +5,12 @@ import time
 import numpy as np
 import logging
 from enum import IntEnum
+import sipyco.pyon as pyon
 
 logger = logging.getLogger(__name__)
 
+# See https://www.thorlabs.com/Software/Motion%20Control/APT_Communications_Protocol.pdf
+NUM_SLOTS_MAX = 10
 
 class MGMSG(IntEnum):
     HW_DISCONNECT = 0x0002
@@ -15,13 +18,23 @@ class MGMSG(IntEnum):
     HW_GET_INFO = 0x0006
     HW_START_UPDATEMSGS = 0x0011
     HW_STOP_UPDATEMSGS = 0x0012
-    HUB_REQ_BAYUSED = 0x0065
-    HUB_GET_BAYUSED = 0x0066
     HW_RESPONSE = 0x0080
     HW_RICHRESPONSE = 0x0081
+    RACK_REQ_BAYUSED = 0x0060
+    RACK_GET_BAYUSED = 0x0061
+    RACK_REQ_STATUSBITS = 0x0226
+    RACK_GET_STATUSBITS = 0x0227
+    RACK_SET_DIGOUTPUTS = 0x0228
+    RACK_REQ_DIGOUTPUTS = 0x0229
+    RACK_GET_DIGOUTPUTS = 0x0230
+    HUB_REQ_BAYUSED = 0x0065
+    HUB_GET_BAYUSED = 0x0066
     MOD_SET_CHANENABLESTATE = 0x0210
     MOD_REQ_CHANENABLESTATE = 0x0211
     MOD_GET_CHANENABLESTATE = 0x0212
+    MOD_SET_DIGOUTPUTS = 0x0213
+    MOD_REQ_DIGOUTPUTS = 0x0214
+    MOD_GET_DIGOUTPUTS = 0x0215
     MOD_IDENTIFY = 0x0223
     MOT_SET_ENCCOUNTER = 0x0409
     MOT_REQ_ENCCOUNTER = 0x040A
@@ -82,7 +95,56 @@ class MGMSG(IntEnum):
     MOT_REQ_BUTTONPARAMS = 0x04B7
     MOT_GET_BUTTONPARAMS = 0x04B8
     MOT_SET_EEPROMPARAMS = 0x04B9
+    PZ_SET_POSCONTROLMODE = 0x0640
+    PZ_REQ_POSCONTROLMODE = 0x0641
+    PZ_GET_POSCONTROLMODE = 0x0642
+    PZ_SET_OUTPUTVOLTS = 0x0643
+    PZ_REQ_OUTPUTVOLTS = 0x0644
+    PZ_GET_OUTPUTVOLTS = 0x0645
+    PZ_SET_OUTPUTPOS = 0x0646
+    PZ_REQ_OUTPUTPOS = 0x0647
+    PZ_GET_OUTPUTPOS = 0x0648
+    PZ_SET_INPUTVOLTSSRC = 0x0652
+    PZ_REQ_INPUTVOLTSSRC = 0x0653
+    PZ_GET_INPUTVOLTSSRC = 0x0654
+    PZ_SET_PICONSTS = 0x0655
+    PZ_REQ_PICONSTS = 0x0656
+    PZ_GET_PICONSTS = 0x0657
+    PZ_REQ_PZSTATUSBITS = 0x065B
+    PZ_GET_PZSTATUSBITS = 0x065C
+    PZ_GET_PZSTATUSUPDATE = 0x0661
+    PZ_ACK_PZSTATUSUPDATE = 0x0662
+    PZ_SET_OUTPUTLUT = 0x0700
+    PZ_REQ_OUTPUTLUT = 0x0701
+    PZ_GET_OUTPUTLUT = 0x0702
+    PZ_SET_OUTPUTLUTPARAMS = 0x0703
+    PZ_REQ_OUTPUTLUTPARAMS = 0x0704
+    PZ_GET_OUTPUTLUTPARAMS = 0x0705
+    PZ_START_LUTOUTPUT = 0x0706
+    PZ_STOP_LUTOUTPUT = 0x0707
+    PZ_SET_ZERO = 0x0658
+    PZ_SET_OUTPUTMAXVOLTS = 0x0680
+    PZ_REQ_OUTPUTMAXVOLTS = 0x0681
+    PZ_GET_OUTPUTMAXVOLTS = 0x0682
+    PZ_SET_SLEWRATES = 0x0683 
+    PZ_REQ_SLEWRATES = 0x0684
+    PZ_GET_SLEWRATES = 0x0685
+    RESTOREFACTORYSETTINGS = 0x0686
 
+class SRC_DEST(IntEnum):
+    HOST_CONTROLLER = 0x01
+    RACK_CONTROLLER = 0x11
+    RACK_BAY_0 = 0x21
+    RACK_BAY_1 = 0x22
+    RACK_BAY_2 = 0x23
+    RACK_BAY_3 = 0x24
+    RACK_BAY_4 = 0x25
+    RACK_BAY_5 = 0x26
+    RACK_BAY_6 = 0x27
+    RACK_BAY_7 = 0x28
+    RACK_BAY_8 = 0x29
+    RACK_BAY_9 = 0x2A
+    GENERIC_USB_HW = 0x50
 
 class Status(IntEnum):
     HW_LIM_FORWARD = 0x01
@@ -114,9 +176,8 @@ class LimitSwitch(IntEnum):
 class MsgError(Exception):
     pass
 
-
 class Message:
-    def __init__(self, _id, param1=0, param2=0, dest=0x50, src=0x01,
+    def __init__(self, _id, param1=0, param2=0, dest=SRC_DEST.GENERIC_USB_HW.value, src=SRC_DEST.HOST_CONTROLLER.value,
                  data=None):
         if data is not None:
             dest |= 0x80
@@ -163,7 +224,6 @@ class Message:
             return self.param1 | (self.param2 << 8)
         else:
             raise ValueError
-
 
 class _APTDevice:
     def __init__(self, port):
@@ -460,3 +520,258 @@ class DDR05(_KBD101):
     max_acc = int(10477*3.81775)
     homing_vel = int(180*37282.5)
     offset = 0
+
+
+class _APTCardSlotDevice:
+    def __init__(self, port):
+        self.h = serial.Serial(port, 115200, write_timeout=0.1)
+        self._status_update_counter = 0
+
+        # Detect occupied bays
+        self.bays = []
+        for bay_idx in range(NUM_SLOTS_MAX):
+            msg = self._send_request(
+                MGMSG.RACK_REQ_BAYUSED, 
+                param1 = bay_idx, 
+                wait_for = [MGMSG.RACK_GET_BAYUSED])
+            bay_is_occupied = (msg.param2 == 0x01)
+            logger.info("{} is {}".format(
+                bay_idx, 
+                "occupied" if bay_is_occupied else "not occupied"))
+            if bay_is_occupied:
+                self.bays.append(SRC_DEST["RACK_BAY_{}".format(bay_idx)])
+
+    def _send_message(self, message):
+        msg = message.pack()
+        logger.debug("Sending: {}".format(message))
+        logger.debug("tx: {}".format(msg.hex()))
+        self.h.write(msg)
+
+    def _read_message(self):
+        header = self.h.read(6)
+        data = b""
+        if header[4] & 0x80:
+            (length, ) = struct.unpack("<H", header[2:4])
+            data = self.h.read(length)
+        msg = Message.unpack(header + data)
+        logger.debug("rx: {}{}".format(header.hex(), data.hex()))
+        logger.debug("Received: {}".format(msg))
+        return msg
+
+    def _send_request(self, msgreq_id, wait_for, 
+        param1 = 0, param2 = 0, 
+        dest = SRC_DEST["RACK_CONTROLLER"].value, 
+        data=None):
+        self._send_message(Message(msgreq_id, param1, param2, dest, data=data))
+        while True:
+            msg = self._read_message()
+            self._triage_message(msg)
+
+            if msg._id in wait_for:
+                return msg
+
+    def _triage_message(self, msg):
+        """Triage an incoming message in case of errors or action required"""
+        msg_id = msg._id
+        data = msg.data
+
+        if msg_id == MGMSG.HW_DISCONNECT:
+            raise MsgError("Error: Please disconnect")
+        elif msg_id == MGMSG.HW_RESPONSE:
+            raise MsgError("Hardware error, please disconnect")
+        elif msg_id == MGMSG.HW_RICHRESPONSE:
+            (code, ) = struct.unpack("<H", data[2:4])
+            raise MsgError("Hardware error {}: {}"
+                           .format(code,
+                                   data[4:].decode(encoding="ascii")))
+        elif msg_id == MGMSG.PZ_GET_PZSTATUSUPDATE:
+            self._status_update_counter += 1
+            if self._status_update_counter > 25:
+                logger.debug("Acking status updates")
+                self._status_update_counter = 0
+                self.ack_status_update()
+
+    def identify(self, channel=0):
+        self._send_message(Message(MGMSG.MOD_IDENTIFY, param1=channel))
+
+    def set_channel_enable(self, bay_id, enable=True, channel=0):
+        """ The bay_id specifies the "channel", ignore the channel arg """
+        active = 1 if enable else 2
+        self._send_message(Message(MGMSG.MOD_SET_CHANENABLESTATE,
+            param1=channel, param2=active, dest = self.bays[bay_id-1]))
+
+    def get_channel_enable(self, bay_id, channel=0):
+        """ The bay_id specifies the "channel", ignore the channel arg """
+        msg = self._send_request(
+            MGMSG.MOD_REQ_CHANENABLESTATE, 
+            wait_for = [MGMSG.MOD_GET_CHANENABLESTATE], 
+            dest = self.bays[bay_id-1],
+            param1 = channel)
+        if (msg.param2 == 0x01):
+            return True
+        if (msg.param2 == 0x02):
+            return False
+
+    def get_status_bits(self, bay_id):
+        msg = self._send_request(
+            MGMSG.PZ_REQ_PZSTATUSBITS,
+            wait_for=[MGMSG.PZ_GET_PZSTATUSBITS],
+            dest=self.bays[bay_id-1])
+        _, status = struct.unpack("=HI", msg.data)
+        return status
+
+    def ack_status_update(self):
+        self._send_message(Message(
+            MGMSG.PZ_ACK_PZSTATUSUPDATE, 
+            dest=SRC_DEST["RACK_CONTROLLER"].value))
+
+    def get_serial(self):
+        msg = self._send_request(
+            MGMSG.HW_REQ_INFO,
+            wait_for=[MGMSG.HW_GET_INFO],
+            dest=SRC_DEST["RACK_CONTROLLER"].value)
+        serial, model, hw_type, firmware, _, hw_version, mod, num_channels = \
+        struct.unpack("=L8sH4s60sHHH", msg.data)
+        return serial
+
+    def ping(self):        
+        try:
+            for i,_ in enumerate(self.bays):
+                self.get_status_bits(i+1)
+        except:
+            return False
+        return True
+
+    def close(self):
+        """Close the serial port."""
+        self.h.close()
+
+class BPC303(_APTCardSlotDevice):
+    def __init__(self, port):
+        super().__init__(port)
+        self.v_limit = 75
+        self.pos_limit = 100 # todo: figure out!
+        logger.info("Device vlimit is {}".format(self.v_limit))
+        self.fname = "piezo_{}.pyon".format(self.get_serial())
+        self.voltages = {"volt_{}".format(i): -1 for i in range(len(self.bays))}
+        self.positions = {"pos_{}".format(i): -1 for i in range(len(self.bays))}
+        self._load_setpoints()
+        self.setup()
+
+    def setup(self):
+        for b in range(len(self.bays)):
+            self.set_voltage_limit(b+1, self.v_limit)
+            self.set_channel_enable(b+1)
+
+    def set_voltage(self, bay_id, voltage, channel=0):
+        """ 
+        Set a piezo to a given voltage.
+        In closed-loop control, this is ignored.
+        """
+        voltage = float(voltage)
+        self._check_voltage_in_limit(voltage)
+        payload = struct.pack("<Hh", channel, int(voltage*32767/self.v_limit))
+        self._send_message(Message(
+            MGMSG.PZ_SET_OUTPUTVOLTS,
+            dest=self.bays[bay_id-1],
+            data=payload))
+        self.voltages[bay_id-1] = voltage
+        self._save_setpoints()
+
+    def get_voltage(self, bay_id, channel=0):
+        msg = self._send_request(
+            MGMSG.PZ_REQ_OUTPUTVOLTS,
+            wait_for=[MGMSG.PZ_GET_OUTPUTVOLTS],
+            dest=self.bays[bay_id-1],
+            param1=channel)
+        chan, v = struct.unpack("=Hh", msg.data)
+        return v/32767*self.v_limit
+
+    def set_position(self, bay_id, position, channel=0):
+        """ 
+        Set a piezo to a given position.
+        In open-loop mode, this is ignored.
+        """
+        payload = struct.pack("<HH", channel, positon)
+        self._send_message(Message(
+            MGMSG.PZ_SET_OUTPUTPOS,
+            dest=self.bays[bay_id-1],
+            data=payload))
+        self.positions[bay_id-1] = position        
+
+    def get_position(self, bay_id, channel=0):
+        msg = self._send_request(
+            MGMSG.PZ_REQ_OUTPUTPOS,
+            wait_for=[MGMSG.PZ_GET_OUTPUTPOS],
+            dest=self.bays[bay_id-1],
+            param1=channel)
+        chan, pos = struct.unpack("=HH", msg.data)
+        return pos/32767.0*self.pos_limit
+
+    def set_enable_feedback(self, bay_id, enable=True, smooth=False, channel=0):
+        """
+        When in closed‐loop mode, position is maintained by a feedback signal 
+        from the piezo actuator.
+        If set to Smooth, the transition from open to closed loop (or vice versa)
+        is achieved over a longer period in order to minimize voltage transients.
+        """
+        if enable:
+            mode = 0x02
+        else:
+            mode = 0x01
+        if smooth:
+            mode += 2
+
+        self._send_message(Message(
+            MGMSG.PZ_SET_POSCONTROLMODE,
+            dest=self.bays[bay_id-1],
+            param1=channel,
+            param2=mode))
+
+    def get_enable_feedback(self, bay_id, channel=0):
+        msg = self._send_request(
+            MGMSG.PZ_REQ_POSCONTROLMODE,
+            wait_for=[MGMSG.PZ_GET_POSCONTROLMODE],
+            dest=self.bays[bay_id-1],
+            param1=channel)
+        return not msg.param2 % 2
+
+    def set_voltage_limit(self, bay_id, voltage, channel=0):
+        if voltage > 150 or voltage < 0:   
+            raise ValueError(
+                "Voltage must be between 0V and 150V")
+        payload = struct.pack("<HHH", channel, int(10*voltage), 0)
+        self._send_message(Message(
+            MGMSG.PZ_SET_OUTPUTMAXVOLTS, 
+            dest=self.bays[bay_id-1],
+            data=payload))
+
+    def get_voltage_limit(self, bay_id):
+        msg = self._send_request(
+            MGMSG.PZ_REQ_OUTPUTMAXVOLTS,
+            wait_for = [MGMSG.PZ_GET_OUTPUTMAXVOLTS],
+            dest=self.bays[bay_id-1])
+        chan, voltage_limit, flags = struct.unpack("=HHH", msg.data)
+        return voltage_limit/10.0
+
+    #
+    # Safety functions
+    #
+
+    def _check_voltage_in_limit(self, voltage):
+        """Raises a ValueError if the voltage is not in limit for the current
+        controller settings"""
+        if voltage > self.v_limit or voltage < 0:
+            raise ValueError(
+                "Voltage must be between 0 and vlimit={}".format(self.v_limit))
+
+    #
+    # Save file operations to be implemented
+    #
+    def _load_setpoints(self):
+        """Load setpoints from a file"""
+        pass
+
+    def _save_setpoints(self):
+        """Write the setpoints out to file"""
+        pass
