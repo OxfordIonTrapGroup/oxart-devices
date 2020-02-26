@@ -283,6 +283,23 @@ class BPC303(_APTCardSlotDevice):
             dest=self.bays[bay_id-1])
         chan, voltage_limit, flags = struct.unpack("=HHH", msg.data)
         return voltage_limit/10.0
+
+    def get_pi_constants(self, bay_id, channel=0):
+        msg = self._send_request(
+            MGMSG.PZ_REQ_PICONSTS,
+            wait_for = [MGMSG.PZ_GET_PICONSTS],
+            param1=channel,
+            dest=self.bays[bay_id-1])
+        chan, prop_gain, int_gain = struct.unpack("=HHH", msg.data)
+        return prop_gain, int_gain
+
+    def set_pi_constants(self, bay_id, prop_gain, int_gain, channel=0):
+        payload = struct.pack("<HHH", channel, prop_gain, int_gain)
+        self._send_message(Message(
+            MGMSG.PZ_SET_PICONSTS,
+            dest=self.bays[bay_id-1],
+            data=payload))
+
     #
     ### Safety functions
     #
