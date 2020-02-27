@@ -1,9 +1,12 @@
 import argparse
+import math
 from influxdb import InfluxDBClient
 from influxdb.exceptions import InfluxDBClientError
 from requests.exceptions import ConnectionError
 
 from oxart.devices.booster.driver import Booster
+
+from serial import SerialTimeoutException
 
 
 def get_argparser():
@@ -20,6 +23,7 @@ def get_argparser():
 
 
 def write(client, booster_name, measurement, data):
+    data = [0.0 if math.isnan(pt) else pt for pt in data]
     point = {
         "measurement": booster_name,
         "tags": {
@@ -31,7 +35,6 @@ def write(client, booster_name, measurement, data):
         client.write_points([point])
     except ConnectionError:
         print("ConnectionError: Influxdb down?")
-    print(point)
 
 
 def main():
@@ -42,6 +45,15 @@ def main():
             database=args.database)
 
     dev = Booster(args.device)
+    # vcp = BoosterVCP('/dev/ttyACM0')
+
+    # print(vcp.get_version())
+    # print("ethernet status:")
+    # for line in vcp.get_eth_diag():
+    #     print("  ", line)
+    # print("logstash:")
+    # for line in vcp.get_logstash():
+    #     print("  ", line)
 
     cmds = {"temp": "temp",
             "i_30V": "I29V",
@@ -50,6 +62,7 @@ def main():
             "pwr_tx": "output_power",
             "pwr_rfl": "input_power"}
 
+    ind = 0
     while True:
         try:
             for key, value in cmds.items():
@@ -58,8 +71,19 @@ def main():
                     status = dev.get_status(channel)
                     data[channel] = getattr(status, value)
                 write(client, args.name, key, data)
-        except InfluxDBClientError as e:
-            print("Data error: {}".format(e))
+            ind += 1
+
+        except (InfluxDBClientError, SerialTimeoutException) as e:
+            print("exception after {} iterations: {}".format(ind, e))
+            # print(vcp.get_version())
+            # print("ethernet status:")
+            # for line in vcp.get_eth_diag():
+            #     print("  ", line)
+            # print("logstash:")
+            # for line in vcp.get_logstash():
+            #     print("  ", line)
+            # ind = 0
+            break
 
 
 if __name__ == "__main__":
