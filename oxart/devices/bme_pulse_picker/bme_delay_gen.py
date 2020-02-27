@@ -379,7 +379,7 @@ class BME_SG08p:
         # while StatusFlag.all_wait_times_elapsed not in self.read_status_flags():
         #     pass
         self._lib.deactivate_dg(self._device_idx)
-        # self._lib.set_resetwhendone(True, self._device_idx)
+        self._lib.set_resetwhendone(True, self._device_idx)
 
     def _read_status_word(self):
         return self._lib.read_dg_status(self._device_idx)

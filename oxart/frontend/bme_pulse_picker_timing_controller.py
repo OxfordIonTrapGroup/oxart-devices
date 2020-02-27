@@ -10,12 +10,11 @@ from sipyco.common_args import verbosity_args, simple_network_args, init_logger_
 
 
 def get_argparser():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="ARTIQ controller for BME delay generator PCI card")
+    simple_network_args(parser, 4007)
     parser.add_argument("-s", "--simulation", default=False, action="store_true",
                         help="Put the driver in simulation mode")
     parser.add_argument("--allow-long-pulses", default=False, action="store_true")
-
-    simple_network_args(parser, 4007)
     verbosity_args(parser)
     return parser
 
@@ -29,7 +28,10 @@ def main():
         delay_gen.set_clock_source(ClockSource.external_80_mhz)
 
     timing = PulsePickerTiming(delay_gen, args.allow_long_pulses)
-    simple_server_loop({"timing": timing}, args.bind, args.port)
+    try:
+        simple_server_loop({"timing": timing}, args.bind, args.port)
+    finally:
+        timing.disable()
 
 if __name__ == "__main__":
     main()
