@@ -376,8 +376,8 @@ class BME_SG08p:
         # seems not be set initially. Therefore, don't call this method after 
         # initialisation.
         self._lib.set_resetwhendone(False, self._device_idx)
-        # while StatusFlag.all_wait_times_elapsed not in self.read_status_flags():
-        #     pass
+        while not self._safe():
+            pass
         self._lib.deactivate_dg(self._device_idx)
         self._lib.set_resetwhendone(True, self._device_idx)
 
@@ -394,6 +394,12 @@ class BME_SG08p:
                 result.add(flag)
 
         return result
+
+    def _safe(self):
+        flags = self.read_status_flags()
+        active = StatusFlag.primary_trigger_active in flags
+        elapsed = StatusFlag.all_wait_times_elapsed in flags
+        return elapsed or not active
 
     def _set_delay_channel(self, idx, params):
         CHANNEL_A_IDX = 2
