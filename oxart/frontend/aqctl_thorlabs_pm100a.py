@@ -31,7 +31,7 @@ def main():
     logger.debug("Trying to establish connection to Thorlabs PM100A "
                  "power meter at {}...".format(args.device))
 
-    dev = ThorlabsPM100A(args.device.encode(), False, False)
+    dev = ThorlabsPM100A(args.device, False, False)
     logger.debug("Connection established.")
 
     try:
