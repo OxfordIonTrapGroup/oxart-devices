@@ -21,24 +21,24 @@ class TimingParams:
     def __init__(self, allow_long_pulses):
         self._allow_long_pulses = allow_long_pulses
 
-        self.offset_on_us = 0.0
+        self.offset_on_us = -0.0007
         """Timing offset to apply between nominally synchronous pulses to the
         ON switches; positive meaning channel B being later."""
 
-        self.offset_off_us = 0.0
+        self.offset_off_us = 0.00165
         """Timing offset to apply between nominally synchronous pulses to the
         OFF switches; positive meaning channel B being later."""
 
-        self.pre_open_us = 0.2
+        self.pre_open_us = 0.2069
         """Wait time between initial OFF pulse and ON pair."""
 
-        self.post_open_us = 0.2
+        self.post_open_us = 0.209
         """Wait time between ON pair and second OFF pair."""
 
-        self.open_us = 0.001
+        self.open_us = 0.01
         """Time between ON pair (i.e. optical pulse duration)."""
 
-        self.align_us = 0.0
+        self.align_us = 0.00
         """Extra shift of the ON pair on top of pre_open_us, for useful units
         when calibrating the timing relation to the laser pulse train."""
 

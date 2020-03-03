@@ -152,7 +152,6 @@ class Driver:
         elif device_count > 1:
             raise DelayGenException("More than one PCI delay generator "
                 "detected; currently not supported.")
-
         return BME_SG08p(self, DG_IDX)
 
 
@@ -237,7 +236,6 @@ class BME_SG08p:
             raise DelayGenException("Detected delay generator is not set to "
                 "master mode")
         self._lib.initialize_dg(slot_id, product_id, self._device_idx)
-
         self.reset()
 
     def reset(self):
@@ -248,15 +246,13 @@ class BME_SG08p:
         """
 
         self._deactivate_safely()
-
+        
         # Set the default hardware configuration. This is application-specific
         # and should be made configurable for a proper, comprehensive driver.
 
         self._set_clock_params(ClockSource.internal)
-
         # Default to external gating and no inhibit time.
         self._set_trigger_params(True, 0.0)
-
         self._lib.set_g08_trigger_parameters(
             True, # 50Ω-terminate gate input
             1.0, # Gate input level, in V
@@ -297,7 +293,7 @@ class BME_SG08p:
 
         int_divider = int(16 / self.CLOCK_FACTOR)
         ext_divider = int(8 / self.CLOCK_FACTOR)
-        self._lib.set_g08_clock_parameters(
+        return self._lib.set_g08_clock_parameters(
             True,         # Enable clock circuit
             int_divider,  # Internal oscillator divider (160 MHz base
                           # frequency)
@@ -313,7 +309,7 @@ class BME_SG08p:
         self._lib.activate_dg(self._device_idx)
 
     def _set_trigger_params(self, use_external_gate, inhibit_us):
-        self._lib.set_trigger_parameters(
+        return self._lib.set_trigger_parameters(
             True, # 50 Ω-terminate trigger input
             inhibit_us * self.CLOCK_FACTOR, # Inhibit time
             0.0, # Trigger level ([-2.5, 2.5] V)
@@ -376,17 +372,14 @@ class BME_SG08p:
         # The below procedure is in line with what the BME_G0X help recommends in the
         # "Modifying Parameters Synchronuously" [sic] section.
         #
-        # While waiting here does seem to fix the issue where the delay generator stops
-        # outputting pulses on frequent updates, it is not entirely clear how/why this
-        # works – the "reset when done" flag is never set set to true again explicitly.
-        # The documentation (Set_ResetWhenDone in the BME_G0X help file) does mention
-        # that a Deactivate/Activate resets the outputs as well, but why would that
-        # cause more than one pulse to be triggerable if it doesn't also set the
-        # reset-when-done flag again?
+        # 2020 update to Windows 10 driver: The all_wait_times_elapsed status flag
+        # seems not be set initially. Therefore, don't call this method after 
+        # initialisation.
         self._lib.set_resetwhendone(False, self._device_idx)
-        while StatusFlag.all_wait_times_elapsed not in self.read_status_flags():
+        while not self._safe():
             pass
         self._lib.deactivate_dg(self._device_idx)
+        self._lib.set_resetwhendone(True, self._device_idx)
 
     def _read_status_word(self):
         return self._lib.read_dg_status(self._device_idx)
@@ -396,14 +389,21 @@ class BME_SG08p:
 
         result = set()
         for flag in StatusFlag:
+            # print("{}: {}".format(flag, status_word&flag.value))
             if status_word & flag.value:
                 result.add(flag)
 
         return result
 
+    def _safe(self):
+        flags = self.read_status_flags()
+        active = StatusFlag.primary_trigger_active in flags
+        elapsed = StatusFlag.all_wait_times_elapsed in flags
+        return elapsed or not active
+
     def _set_delay_channel(self, idx, params):
         CHANNEL_A_IDX = 2
-        self._lib.set_g08_delay(
+        return self._lib.set_g08_delay(
             CHANNEL_A_IDX + idx, # Channel index
             params.delay_us * self.CLOCK_FACTOR, # Time to first edge, in μs
             params.width_us * self.CLOCK_FACTOR, # Pulse width (first to second edge), in μs
