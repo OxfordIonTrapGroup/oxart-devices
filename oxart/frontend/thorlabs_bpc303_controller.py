@@ -11,7 +11,7 @@ from oxart.tools import add_common_args
 def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller for the "
         "Thorlabs BPC303 3 channel closed-loop piezo controller")
-    simple_network_args(parser, 4003)
+    simple_network_args(parser, 5004)
     parser.add_argument("-d", "--device", default=None, required=True,
                         help="serial device. See documentation for how to "
                              "specify a USB Serial Number.")

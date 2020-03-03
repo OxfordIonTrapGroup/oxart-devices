@@ -4,7 +4,7 @@ import struct
 d = BPC303("/dev/bpc303_71134204")
 print("ping: ", d.ping())
 
-d.set_pi_constants(1, 100, 100)
+# d.set_pi_constants(1, 100, 100)
 
 for i in range(3):
 	print("channel {} enabled? ".format(i), d.get_enable(i+1))

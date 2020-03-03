@@ -180,7 +180,7 @@ class BPC303(_APTCardSlotDevice):
         """ Get last position set from this driver """
         self._check_valid_channel(channel_char)
         bay_idx = ord(channel_char) - ord('x')
-        return self.positions[bay_idx]
+        return self.positions["pos_{}".format(bay_idx)]
 
     def get_channel_output(self, channel_char):
         """ Get actual position """
@@ -269,7 +269,7 @@ class BPC303(_APTCardSlotDevice):
     def set_voltage_limit(self, bay_id, voltage, channel=0):
         if voltage > 150 or voltage < 0:   
             raise ValueError(
-                "Voltage must be between 0V and 150V")
+                "{}V not between 0V and 150V".format(voltage))
         payload = struct.pack("<HHH", channel, int(10*voltage), 0)
         self._send_message(Message(
             MGMSG.PZ_SET_OUTPUTMAXVOLTS, 
@@ -308,14 +308,14 @@ class BPC303(_APTCardSlotDevice):
         controller settings"""
         if voltage > PZ_MAX_VOLTAGE or voltage < 0:
             raise ValueError(
-                "Voltage must be between 0 and vlimit={}".format(PZ_MAX_VOLTAGE))
+                "{}V not between 0 and vlimit={}".format(voltage, PZ_MAX_VOLTAGE))
 
     def _check_position_in_limit(self, position):
         """Raises a ValueError if the position is not in limit for the current
         controller settings"""
         if position > PZ_TRAVEL_UM or position < 0:
             raise ValueError(
-                "Position must be between 0 and travel={}".format(PZ_TRAVEL_UM))
+                "Position {}μm not between 0μm and travel={}μm".format(position, PZ_TRAVEL_UM))
 
     def _check_valid_channel(self, channel):
         """Raises a ValueError if the channel is not valid"""
