@@ -154,7 +154,7 @@ class _TLPM:
         pInvokeResult = self.dll.TLPM_getRsrcName(
             self.dev_session, c_int(index), buff)
         self._testForError(pInvokeResult)
-        return c_char_p(buff.raw).value
+        return c_char_p(buff.raw).value.decode()
 
     def fetch_device_info(self, index):
         """
@@ -197,9 +197,9 @@ class _TLPM:
         self._testForError(pInvokeResult)
 
         info_dict = {
-            "model_name": c_char_p(model_name.raw).value,
-            "serial_number": c_char_p(serial_number.raw).value,
-            "manufacturer": c_char_p(manufacturer.raw).value,
+            "model_name": c_char_p(model_name.raw).value.decode(),
+            "serial_number": c_char_p(serial_number.raw).value.decode(),
+            "manufacturer": c_char_p(manufacturer.raw).value.decode(),
             "available": available.value
         }
 
@@ -383,16 +383,21 @@ class ThorlabsPM100A(_TLPM):
 
     def get_device_info(self):
         device_count = self.find_devices()
-        idx = 0
+        idx = -1
         for i in range(device_count):
             name = self.fetch_device_name(i)
             if name == self.device_name:
                 idx = i
 
-        info_dict = self.fetch_device_info(idx)
-        # Driver is connected to this device, so it is never available
-        del info_dict["available"]
+        if idx == -1:
+            return None
+        else:
+            info_dict = self.fetch_device_info(idx)
+            # Driver is connected to this device, so it is never available
+            del info_dict["available"]
+            return info_dict
 
-        return info_dict
+    def ping(self):
+        return True
 
 

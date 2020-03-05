@@ -5,9 +5,11 @@ import time
 import numpy as np
 import logging
 from enum import IntEnum
+import sipyco.pyon as pyon
 
 logger = logging.getLogger(__name__)
 
+# See https://www.thorlabs.com/Software/Motion%20Control/APT_Communications_Protocol.pdf
 
 class MGMSG(IntEnum):
     HW_DISCONNECT = 0x0002
@@ -15,13 +17,23 @@ class MGMSG(IntEnum):
     HW_GET_INFO = 0x0006
     HW_START_UPDATEMSGS = 0x0011
     HW_STOP_UPDATEMSGS = 0x0012
-    HUB_REQ_BAYUSED = 0x0065
-    HUB_GET_BAYUSED = 0x0066
     HW_RESPONSE = 0x0080
     HW_RICHRESPONSE = 0x0081
+    RACK_REQ_BAYUSED = 0x0060
+    RACK_GET_BAYUSED = 0x0061
+    RACK_REQ_STATUSBITS = 0x0226
+    RACK_GET_STATUSBITS = 0x0227
+    RACK_SET_DIGOUTPUTS = 0x0228
+    RACK_REQ_DIGOUTPUTS = 0x0229
+    RACK_GET_DIGOUTPUTS = 0x0230
+    HUB_REQ_BAYUSED = 0x0065
+    HUB_GET_BAYUSED = 0x0066
     MOD_SET_CHANENABLESTATE = 0x0210
     MOD_REQ_CHANENABLESTATE = 0x0211
     MOD_GET_CHANENABLESTATE = 0x0212
+    MOD_SET_DIGOUTPUTS = 0x0213
+    MOD_REQ_DIGOUTPUTS = 0x0214
+    MOD_GET_DIGOUTPUTS = 0x0215
     MOD_IDENTIFY = 0x0223
     MOT_SET_ENCCOUNTER = 0x0409
     MOT_REQ_ENCCOUNTER = 0x040A
@@ -82,7 +94,56 @@ class MGMSG(IntEnum):
     MOT_REQ_BUTTONPARAMS = 0x04B7
     MOT_GET_BUTTONPARAMS = 0x04B8
     MOT_SET_EEPROMPARAMS = 0x04B9
+    PZ_SET_POSCONTROLMODE = 0x0640
+    PZ_REQ_POSCONTROLMODE = 0x0641
+    PZ_GET_POSCONTROLMODE = 0x0642
+    PZ_SET_OUTPUTVOLTS = 0x0643
+    PZ_REQ_OUTPUTVOLTS = 0x0644
+    PZ_GET_OUTPUTVOLTS = 0x0645
+    PZ_SET_OUTPUTPOS = 0x0646
+    PZ_REQ_OUTPUTPOS = 0x0647
+    PZ_GET_OUTPUTPOS = 0x0648
+    PZ_SET_INPUTVOLTSSRC = 0x0652
+    PZ_REQ_INPUTVOLTSSRC = 0x0653
+    PZ_GET_INPUTVOLTSSRC = 0x0654
+    PZ_SET_PICONSTS = 0x0655
+    PZ_REQ_PICONSTS = 0x0656
+    PZ_GET_PICONSTS = 0x0657
+    PZ_REQ_PZSTATUSBITS = 0x065B
+    PZ_GET_PZSTATUSBITS = 0x065C
+    PZ_GET_PZSTATUSUPDATE = 0x0661
+    PZ_ACK_PZSTATUSUPDATE = 0x0662
+    PZ_SET_OUTPUTLUT = 0x0700
+    PZ_REQ_OUTPUTLUT = 0x0701
+    PZ_GET_OUTPUTLUT = 0x0702
+    PZ_SET_OUTPUTLUTPARAMS = 0x0703
+    PZ_REQ_OUTPUTLUTPARAMS = 0x0704
+    PZ_GET_OUTPUTLUTPARAMS = 0x0705
+    PZ_START_LUTOUTPUT = 0x0706
+    PZ_STOP_LUTOUTPUT = 0x0707
+    PZ_SET_ZERO = 0x0658
+    PZ_SET_OUTPUTMAXVOLTS = 0x0680
+    PZ_REQ_OUTPUTMAXVOLTS = 0x0681
+    PZ_GET_OUTPUTMAXVOLTS = 0x0682
+    PZ_SET_SLEWRATES = 0x0683 
+    PZ_REQ_SLEWRATES = 0x0684
+    PZ_GET_SLEWRATES = 0x0685
+    RESTOREFACTORYSETTINGS = 0x0686
 
+class SRC_DEST(IntEnum):
+    HOST_CONTROLLER = 0x01
+    RACK_CONTROLLER = 0x11
+    RACK_BAY_0 = 0x21
+    RACK_BAY_1 = 0x22
+    RACK_BAY_2 = 0x23
+    RACK_BAY_3 = 0x24
+    RACK_BAY_4 = 0x25
+    RACK_BAY_5 = 0x26
+    RACK_BAY_6 = 0x27
+    RACK_BAY_7 = 0x28
+    RACK_BAY_8 = 0x29
+    RACK_BAY_9 = 0x2A
+    GENERIC_USB_HW = 0x50
 
 class Status(IntEnum):
     HW_LIM_FORWARD = 0x01
@@ -114,9 +175,8 @@ class LimitSwitch(IntEnum):
 class MsgError(Exception):
     pass
 
-
 class Message:
-    def __init__(self, _id, param1=0, param2=0, dest=0x50, src=0x01,
+    def __init__(self, _id, param1=0, param2=0, dest=SRC_DEST.GENERIC_USB_HW.value, src=SRC_DEST.HOST_CONTROLLER.value,
                  data=None):
         if data is not None:
             dest |= 0x80
@@ -163,7 +223,6 @@ class Message:
             return self.param1 | (self.param2 << 8)
         else:
             raise ValueError
-
 
 class _APTDevice:
     def __init__(self, port):
@@ -460,3 +519,5 @@ class DDR05(_KBD101):
     max_acc = int(10477*3.81775)
     homing_vel = int(180*37282.5)
     offset = 0
+
+
