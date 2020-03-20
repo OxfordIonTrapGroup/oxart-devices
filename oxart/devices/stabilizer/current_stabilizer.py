@@ -1,14 +1,14 @@
 """ Driver for current stabilizer """
 
-import json
-import asyncio
 from collections import OrderedDict
-import logging
 import argparse
-import socket
+import asyncio
+import json
+import logging
 import math
-
 import numpy as np
+import socket
+import sys
 
 
 class StabilizerError(Exception):
