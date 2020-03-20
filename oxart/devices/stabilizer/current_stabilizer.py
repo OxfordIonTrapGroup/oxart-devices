@@ -120,7 +120,11 @@ async def exchange_json(connection, request):
     #logger.debug("send %s", s)
     writer.write(s.encode() + b"\n")
 
-    r = (await reader.readline()).decode()
+    try:
+        r = (await reader.readline()).decode()
+    except ConnectionResetError:
+        logger.exception("Connection to Stabilizer lost, exiting.")
+        sys.exit(1)
     #logger.debug("recv %s", r)
     ret = json.loads(r, object_pairs_hook=OrderedDict)
     if ret["code"] != 200:
