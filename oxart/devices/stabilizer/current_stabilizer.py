@@ -94,44 +94,22 @@ class GPIO_HDR_SPI:
         self.gpio_hdr_word = math.ceil(gpio_hdr_word * self.conversion_factor)
 
 
-"""
-class FeedfowardConfig:
-    async def connect(self, host, port=1237):
-        self.reader, self.writer = await asyncio.open_connection(host, port)
-
-    async def set(self, cos_amplitudes, sin_amplitudes, offset):
-        up = OrderedDict([("cos_amplitudes", cos_amps), 
-                ("sin_amplitudes", sin_amps), ("offset", offset)])
-        raw_msg = json.dumps(up, separators=(",", ":"))
-        s.sendall(raw_msg.encode() + b"\n")
-        data = s.recv(1024)
-        assert "\n" not in s
-        logger.debug("send %s", s)
-        self.writer.write(s.encode() + b"\n")
-        r = (await self.reader.readline()).decode()
-        logger.debug("recv %s", r)
-        ret = json.loads(r, object_pairs_hook=OrderedDict)
-        if ret["code"] != 200:
-            raise StabilizerError(ret)
-        return ret
-"""
-
-
 class Feedforward:
-    feedforward_range = 19  # mA
-    conversion_factor = feedforward_range / 2  # [-1,1] maps to [-range/2,range/2]
-
-    def __init__(self):
-        pass
+    def __init__(self, num_harmonics):
+        self.conversion_factor = 1 / 500  # [0, 500uA] maps to [0, 1]
+        self.num_harmonics = num_harmonics
+        self.sin_amps = [0 for n in range(self.num_harmonics)]
+        self.cos_amps = [0 for n in range(self.num_harmonics)]
+        self.ff_offset = 0
 
     def set_cosine_amplitudes(self, cos_amps):
-        self.cos_amps = [a / self.conversion_factor for a in cos_amps]
+        self.cos_amps = [a * self.conversion_factor for a in cos_amps]
 
     def set_sine_amplitudes(self, sin_amps):
-        self.sin_amps = [a / self.conversion_factor for a in sin_amps]
+        self.sin_amps = [a * self.conversion_factor for a in sin_amps]
 
     def set_offset(self, offset):
-        self.offset = offset / self.conversion_factor
+        self.offset = offset * self.conversion_factor
 
 
 async def exchange_json(connection, request):
@@ -179,14 +157,16 @@ class Stabilizer:
 
         # Feedforward parameters
         self.num_harmonics = 5
-        self.sin_amps = [0 for n in range(self.num_harmonics)]
-        self.cos_amps = [0 for n in range(self.num_harmonics)]
-        self.ff_offset = 0
 
     def ping(self):
         return True
 
-    async def set_feedback(self, frontend_offset = 250, proportional_gain = 1, integral_gain = 0, feedback_offset = 0, channel_offset = 0):
+    async def set_feedback(self,
+                           frontend_offset=250,
+                           proportional_gain=1,
+                           integral_gain=0,
+                           feedback_offset=0,
+                           channel_offset=0):
         d = CPU_DAC()
         d.set_out(feedback_offset)
         d.set_en(True)
@@ -199,12 +179,12 @@ class Stabilizer:
         assert self.channel in range(2)
         await set_feedback(self.fb_connection, self.channel, i, d, g)
 
-    async def set_feedforward(self, coefficients=None, offset=1):
+    async def set_feedforward(self, coefficients=None, offset=0):
         if coefficients is None:
             coefficients = np.zeros(self.num_harmonics)
         cos_amps = [coefficients[n].real for n in range(len(coefficients))]
         sin_amps = [-coefficients[n].imag for n in range(len(coefficients))]
-        ff = Feedforward()
+        ff = Feedforward(self.num_harmonics)
         ff.set_cosine_amplitudes(cos_amps)
         ff.set_sine_amplitudes(sin_amps)
         ff.set_offset(offset)
