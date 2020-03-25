@@ -35,11 +35,11 @@ class Agilent6671A:
 
     def set_voltage_limit(self, voltage_limit):
         """Set the voltage limit for channel in volts."""
-        self.stream.write(":VOLT {:f}".format(voltage_limit))
+        self.stream.write(":VOLT {:f}".format(voltage_limit).encode())
 
     def set_current_limit(self, current_limit):
         """Set the current limit for channel in amps"""
-        self.stream.write(":CURR {:f}".format(current_limit))
+        self.stream.write(":CURR {:f}".format(current_limit).encode())
 
     def set_output_enable(self, enable):
         """Enable/disable a channel."""
