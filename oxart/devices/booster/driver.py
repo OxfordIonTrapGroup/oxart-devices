@@ -1,6 +1,7 @@
-import serial
 import collections
 import dateutil.parser
+import math
+import serial
 
 Version = collections.namedtuple(
     "Version", ["fw_rev", "fw_hash", "fw_build_date", "device_id", "hw_rev"])
@@ -187,7 +188,11 @@ class Booster:
 
     def get_input_power(self, channel):
         """ Returns the input power for a channel in dBm """
-        return self._query_float("MEAS:IN?", channel)
+        val = self._query_float("MEAS:IN?", channel)
+        if math.isnan(val):
+            raise Exception(
+                "Input power detector not calibrated for channel {}".format(channel))
+        return val
 
     def get_reflected_power(self, channel):
         """ Returns the reflected power for a channel in dBm """
