@@ -1,6 +1,7 @@
-import serial
 import collections
 import dateutil.parser
+import math
+import serial
 
 Version = collections.namedtuple(
     "Version", ["fw_rev", "fw_hash", "fw_build_date", "device_id", "hw_rev"])
@@ -90,6 +91,14 @@ class Booster:
                        device_id=idn[2][4:],
                        hw_rev=idn[3][1:])
 
+    def get_version_dict(self):
+        """Return device version information, as a dictionary.
+
+        This is the same as :meth:`get_version`, but as a dictionary rather than a named
+        tuple to be compatible with PYON for use as an ARTIQ controller.
+        """
+        return self.get_version()._asdict()
+
     def ping(self):
         """ Returns True if we are connected to a Booster """
         try:
@@ -173,6 +182,15 @@ class Booster:
                           *[int(part) for part in resp[15:21]]),
                       i2c_error_count=int(resp[21]))
 
+    def get_status_dict(self, channel):
+        """Return status of a given channel, as a dictionary.
+
+        This is the same as :meth:`get_status`, but as a dictionary rather than a named
+        tuple to be compatible with PYON for use as an ARTIQ controller. See the former
+        for a description of the individual fields.
+        """
+        return self.get_status(channel)._asdict()
+
     def get_current(self, channel):
         """ Returns the FET bias current (A) for a given channel. """
         return self._query_float("MEAS:CURR?", channel)
@@ -187,7 +205,11 @@ class Booster:
 
     def get_input_power(self, channel):
         """ Returns the input power for a channel in dBm """
-        return self._query_float("MEAS:IN?", channel)
+        val = self._query_float("MEAS:IN?", channel)
+        if math.isnan(val):
+            raise Exception(
+                "Input power detector not calibrated for channel {}".format(channel))
+        return val
 
     def get_reflected_power(self, channel):
         """ Returns the reflected power for a channel in dBm """
