@@ -39,11 +39,11 @@ class SURF:
             "static_maw_settings": self.jl.eval(
                 "SURF." + user_trap + ".static_maw_settings"),
             "dynamic_free_maw_settings": self.jl.eval(
-                "SRUF." + user_trap + ".dynamic_free_maw_settings"),
+                "SURF." + user_trap + ".dynamic_free_maw_settings"),
             "dynamic_clamped_maw_settings": self.jl.eval(
-                "SRUF." + user_trap + ".dynamic_clamped_maw_settings"),
+                "SURF." + user_trap + ".dynamic_clamped_maw_settings"),
             "splitting_maw_settings": self.jl.eval(
-                "SRUF." + user_trap + ".splitting_maw_settings"),
+                "SURF." + user_trap + ".splitting_maw_settings"),
         }
 
     def mk_wells(self, z, width, dphidx, dphidy, dphidz,
@@ -84,7 +84,7 @@ class SURF:
         returns trajectory (Tuple of n_step wells structs)
         """
         return self.jl.eval(
-            "SRUF.ModelTrajectories.create_shuttle_trajectory")(
+            "SURF.ModelTrajectories.create_shuttle_trajectory")(
             wells_start, wells_end, n_step)
 
     def mk_grids(self, zs, elec_fn, field_fn):
@@ -101,7 +101,7 @@ class SURF:
         return self.jl.eval("select_electrodes")(elec, indices)
 
     def mk_solver_settings(self, solver="StaticMAW", *args):
-        return self.jl.eval("SRUF."+solver+".Settings")(*args)1
+        return self.jl.eval("SURF."+solver+".Settings")(*args)
 
     def solve_static(self, wells, elec_grid, field_grid, settings):
         """Find voltages to best produce target wells
@@ -115,11 +115,11 @@ class SURF:
         """
         weights_fn = self.jl.eval("mk_gaussian_weights")
         cull_fn = self.jl.eval("get_cull_indices")
-        calc_target_fn = self.jl.eval("SRUF.StaticMAW.calc_target")
-        cost_fn = self.jl.eval("SRUF.StaticMAW.cost_function")
-        constraint_fn = self.jl.eval("SRUF.StaticMAW.constraint")
+        calc_target_fn = self.jl.eval("SURF.StaticMAW.calc_target")
+        cost_fn = self.jl.eval("SURF.StaticMAW.cost_function")
+        constraint_fn = self.jl.eval("SURF.StaticMAW.constraint")
 
-        volt_set = self.jl.eval("SRUF.StaticMAW.solver")(
+        volt_set = self.jl.eval("SURF.StaticMAW.solver")(
             wells, elec_grid, field_grid, weights_fn, cull_fn, calc_target_fn,
             cost_fn, constraint_fn, settings)
         return volt_set
@@ -141,9 +141,9 @@ class SURF:
         """
         weights_fn = self.jl.eval("mk_gaussian_weights")
         cull_fn = self.jl.eval("get_cull_indices")
-        calc_target_fn = self.jl.eval("SRUF.DynamicClampedMAW.calc_target")
-        cost_fn = self.jl.eval("SRUF.DynamicClampedMAW.cost_function")
-        constraint_fn = self.jl.eval("SRUF.DynamicClampedMAW.constraint")
+        calc_target_fn = self.jl.eval("SURF.DynamicClampedMAW.calc_target")
+        cost_fn = self.jl.eval("SURF.DynamicClampedMAW.cost_function")
+        constraint_fn = self.jl.eval("SURF.DynamicClampedMAW.constraint")
 
         volt_set = self.jl.eval("SURF.DynamicClampedMAW.solver")(
             trajectory, elec_grid, field_grid, v_set_start, v_set_end,
