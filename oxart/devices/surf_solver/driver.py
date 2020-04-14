@@ -10,15 +10,16 @@ import julia
 class SURF:
     """SURF Uncomplicated Regional Fields"""
     def __init__(self, user_trap="Comet", julia_lib_path=None):
-        self.jl = julia.Julia(init_julia=False, runtime="C:\\Julia\\bin\\julia.exe")
+        self.jl = julia.Julia()# init_julia=False,
+                              # runtime="C:\\Julia\\bin\\julia.exe")
 
         if julia_lib_path != None:
             self.jl.eval("cd")(julia_lib_path)
         else:
             julia_lib_path = self.jl.eval("pwd()")
 
-        self.jl.eval("using Pkg")
-        self.jl.eval("Pkg.activate")(julia_lib_path)
+        # self.jl.eval("using Pkg")
+        # self.jl.eval("Pkg.activate")(julia_lib_path)
 
         self.jl.eval("import SURF")
         self.jl.eval("using SURF.Electrodes")
@@ -45,10 +46,89 @@ class SURF:
             "splitting_maw_settings": self.jl.eval(
                 "SURF." + user_trap + ".splitting_maw_settings"),
         }
+        print("ready")
 
-    def mk_wells(self, z, width, dphidx, dphidy, dphidz,
+    def do_solve(self, param_dict):
+        """Controls solvers and handels julia objects
+
+        This is required as sipyco can't serialise the julia objects.
+
+        :param param_dict: dictionary with execution information
+        :returns: voltage_array, electrode_name_tup
+            voltage_array shape: (electrode_name_tup, n_time_steps).
+        """
+        names = param_dict.get("electrodes", None)
+        if names==None:
+            elec_fn = self.elec_fn
+        else:
+            elec_fn = self._select_elec(self.elec_fn, names)
+
+        wells0 = self._mk_wells(**param_dict["wells0"])
+
+        if param_dict["solver"] == "static":
+            if param_dict.get("static_settings", None)==None:
+                settings = self.user_defaults["static_maw_settings"]
+            else:
+                settings = self._mk_solver_settings(
+                    param_dict["static_settings"], solver="StaticMAW")
+
+            zs = param_dict.get("zs",self.user_defaults["zs"])
+            elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
+            voltages = self._solve_static(wells0, elec_grid, field_grid,
+                                          settings)
+            return voltages, elec_fn.names
+
+        wells1 = self._mk_wells(**param_dict["wells1"])
+
+        if param_dict["solver"] == "splitting":
+            # only supports a single well in solver
+            if param_dict.get("splitting_settings", None)==None:
+                settings = self.user_defaults["splitting_maw_settings"]
+            else:
+                settings = self._mk_solver_settings(
+                    param_dict["splitting_settings"], solver="SplittingMAW")
+            voltages = self._solve_splitting(
+                wells0, wells1, param_dict["n_step"], param_dict["n_scan"],
+                elec_fn, self.field_fn, settings)
+            return voltages, elec_fn.names
+
+        trajectory = self._mk_trajectory(wells0, wells1, param_dict["n_step"])
+
+        zs = param_dict.get("zs", self.user_defaults["zs"])
+        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
+
+        if param_dict["solver"] == "dynamic_free":
+            if param_dict.get("dynamic_free_settings", None)==None:
+                settings = self.user_defaults["dynamic_free_maw_settings"]
+            else:
+                settings = self._mk_solver_settings(
+                    param_dict["dynamic_free_settings"],
+                    solver="DynamicFreeMAW")
+            voltages = self._solve_dynamic_free(trajectory, elec_grid,
+                                                field_grid, settings)
+            return voltages, elec_fn.names
+
+        if param_dict["solver"] == "dynamic_clamped":
+            if param_dict.get("dynamic_clamped_settings", None)==None:
+                settings = self.user_defaults["dynamic_clamped_maw_settings"]
+            else:
+                settings = self._mk_solver_settings(
+                    param_dict["dynamic_free_settings"],
+                    solver="DynamicFreeMAW")
+
+            v0 = (param_dict["volt_start"][name] for name in elec_fn.names)
+            v1 = (param_dict["volt_end"][name] for name in elec_fn.names)
+            voltages = self._solve_dynamic_clamped(
+                trajectory, v0, v1, elec_grid, field_grid, settings)
+            return voltages, elec_fn.names
+
+        raise KeyError("solver: {} is not known.")
+
+
+
+    def _mk_wells(self, z, width, dphidx, dphidy, dphidz,
                  rx_axial, ry_axial, phi_radial,
-                 d2phidz2, d3phidz3, d2phidradial_h2):
+                 d2phidaxial2, d3phidz3, d2phidradial_h2):
         """Struct, characterising target potential wells at a specific time.
 
         For n coexisting wells:
@@ -71,9 +151,9 @@ class SURF:
         """
         return self.jl.eval("PotentialWells")(z, width, dphidx, dphidy, dphidz,
                  rx_axial, ry_axial, phi_radial,
-                 d2phidz2, d3phidz3, d2phidradial_h2)
+                 d2phidaxial2, d3phidz3, d2phidradial_h2)
 
-    def mk_trajectory(self, wells_start, wells_end, n_step):
+    def _mk_trajectory(self, wells_start, wells_end, n_step):
         """Trajectory smoothly evolving wells_start to wells_end.
 
         :param wells_start: struct returned by self.mk_wells()
@@ -87,23 +167,23 @@ class SURF:
             "SURF.ModelTrajectories.create_shuttle_trajectory")(
             wells_start, wells_end, n_step)
 
-    def mk_grids(self, zs, elec_fn, field_fn):
+    def _mk_grids(self, zs, elec_fn, field_fn):
         """Sample electrodes and external fields at positions zs
 
         return (ElectrodesGrid, FieldGrid)"""
         return (self.jl.eval("mk_electrodes_grid")(zs, elec_fn),
                 self.jl.eval("mk_field_grid")(zs, field_fn))
 
-    def select_elec(self, elec, names):
+    def _select_elec(self, elec, names):
         """Select a subset of electrodes to use"""
         # julia is 1-indexed
         indices = [elec.names.index(name) + 1 for name in names]
         return self.jl.eval("select_electrodes")(elec, indices)
 
-    def mk_solver_settings(self, solver="StaticMAW", *args):
+    def _mk_solver_settings(self, *args, solver="StaticMAW"):
         return self.jl.eval("SURF."+solver+".Settings")(*args)
 
-    def solve_static(self, wells, elec_grid, field_grid, settings):
+    def _solve_static(self, wells, elec_grid, field_grid, settings):
         """Find voltages to best produce target wells
 
         :param wells: struct as returned by mk_wells
@@ -122,9 +202,9 @@ class SURF:
         volt_set = self.jl.eval("SURF.StaticMAW.solver")(
             wells, elec_grid, field_grid, weights_fn, cull_fn, calc_target_fn,
             cost_fn, constraint_fn, settings)
-        return volt_set
+        return np.array(volt_set)
 
-    def solve_dynamic_clamped(self, trajectory, v_set_start, v_set_end,
+    def _solve_dynamic_clamped(self, trajectory, v_set_start, v_set_end,
                               elec_grid, field_grid, settings):
         """Find voltages to best produce target trajectory (fixed start & end).
 
@@ -149,9 +229,9 @@ class SURF:
             trajectory, elec_grid, field_grid, v_set_start, v_set_end,
             weights_fn, cull_fn, calc_target_fn, cost_fn, constraint_fn,
             settings)
-        return volt_set
+        return np.array(volt_set)
 
-    def solve_dynamic_free(self, trajectory, elec_grid, field_grid, settings):
+    def _solve_dynamic_free(self, trajectory, elec_grid, field_grid, settings):
         """Find voltages to best produce target trajectory.
         Start and end voltages are floated.
 
@@ -172,9 +252,10 @@ class SURF:
         volt_set = self.jl.eval("SURF.DynamicFreeMAW.solver")(
             trajectory, elec_grid, field_grid, weights_fn, cull_fn,
             calc_target_fn, cost_fn, constraint_fn, settings)
-        return volt_set
+        return np.array(volt_set)
 
-    def solve_splitting(self, well_start, well_end, n_step, n_scan, settings):
+    def _solve_splitting(self, well_start, well_end, n_step, n_scan,
+                         elec_fn, field_fn, settings):
         """Find voltages for splitting/merging a well.
 
         The solver operates on a single well. This well evolves from well_start
@@ -183,17 +264,19 @@ class SURF:
         :param well_start: as returned by mk_wells. Only a single well is
             supported.
         :param well_end: as returned by mk_wells. Only a single well is
-            supported. This should only differ from well_start in d2Φdaxial2
+            supported. This should only differ from well_start in d2phidaxial2
         :param n_step: number of time steps in the splitting waveform
         :param n_scan: number of points in separation scan
+        :param elec_fn: ElectrodesFn of electrodes to be used
+        :param field_fn: FieldFn of external field
         :param settings:solver settings struct
 
         :return: voltage array, (n_electrode, time_step)
         """
         volt_set = self.jl.eval("SURF.SplittingMAW.solver")(
-            well_start, well_end, n_step, n_scan, self.elec_fn, self.field_fn,
+            well_start, well_end, n_step, n_scan, elec_fn, field_fn,
             settings)
-        return volt_set
+        return np.array(volt_set)
 
     def ping(self):
         return True
@@ -202,5 +285,18 @@ class SURF:
         pass
 
 if __name__=="__main__":
-    print("hello world")
-    # driver = IonMover("C:\\Users\\Marius\\scratch\\SURF")
+    print("setting up solver")
+
+    driver = SURF("Comet", "C:\\Users\\Marius\\scratch\\SURF")
+    tmp = 6.333873616858256e8
+    wells = driver.mk_wells([0.], [2e-5], [0.], [0.], [0.], [0.], [0.], [0.],
+                 [tmp/6], [0], [1.05 * tmp])
+    grids = driver.mk_grids(driver.user_defaults["zs"], driver.elec_fn,
+                            driver.field_fn)
+    print("calling solver")
+    volt = driver.solve_static(wells, *grids,
+                                   driver.user_defaults["static_maw_settings"])
+    print(volt)
+
+
+
