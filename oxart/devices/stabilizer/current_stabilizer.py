@@ -10,6 +10,8 @@ import numpy as np
 import socket
 import sys
 
+logger = logging.getLogger(__name__)
+
 
 class StabilizerError(Exception):
     pass
@@ -117,15 +119,21 @@ async def exchange_json(connection, request):
 
     s = json.dumps(request, separators=(",", ":"))
     assert "\n" not in s
-    #logger.debug("send %s", s)
+    logger.debug("send %s", s)
     writer.write(s.encode() + b"\n")
 
+    TIMEOUT = 5
     try:
-        r = (await reader.readline()).decode()
-    except ConnectionResetError:
-        logger.exception("Connection to Stabilizer lost, exiting.")
+        r = (await asyncio.wait_for(reader.readline(), timeout=TIMEOUT)).decode()
+    except asyncio.TimeoutError:
+        logger.exception(
+            "Stabilizer failed to respond within %s seconds "
+            "(firmware possibly crashed); exiting.", TIMEOUT)
         sys.exit(1)
-    #logger.debug("recv %s", r)
+    except ConnectionResetError:
+        logger.exception("Connection to Stabilizer lost; exiting.")
+        sys.exit(1)
+    logger.debug("recv %s", r)
     ret = json.loads(r, object_pairs_hook=OrderedDict)
     if ret["code"] != 200:
         raise StabilizerError(ret)
