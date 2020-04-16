@@ -105,11 +105,11 @@ class SURF:
                 settings = self.user_defaults["dynamic_clamped_maw_settings"]
             else:
                 settings = self._mk_solver_settings(
-                    param_dict["dynamic_free_settings"],
-                    solver="DynamicFreeMAW")
+                    param_dict["dynamic_clamped_settings"],
+                    solver="DynamicClampedMAW")
 
-            v0 = (param_dict["volt_start"][name] for name in elec_fn.names)
-            v1 = (param_dict["volt_end"][name] for name in elec_fn.names)
+            v0 = [param_dict["volt_start"][name] for name in elec_fn.names]
+            v1 = [param_dict["volt_end"][name] for name in elec_fn.names]
             voltages = self._solve_dynamic_clamped(
                 trajectory, v0, v1, elec_grid, field_grid, settings)
             return voltages, elec_fn.names
