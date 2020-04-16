@@ -62,7 +62,7 @@ class SURF:
                 settings = self.user_defaults["static_maw_settings"]
             else:
                 settings = self._mk_solver_settings(
-                    param_dict["static_settings"], solver="StaticMAW")
+                    *param_dict["static_settings"], solver="StaticMAW")
 
             zs = param_dict.get("zs",self.user_defaults["zs"])
             elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
@@ -78,7 +78,7 @@ class SURF:
                 settings = self.user_defaults["splitting_maw_settings"]
             else:
                 settings = self._mk_solver_settings(
-                    param_dict["splitting_settings"], solver="SplittingMAW")
+                    *param_dict["splitting_settings"], solver="SplittingMAW")
             voltages = self._solve_splitting(
                 wells0, wells1, param_dict["n_step"], param_dict["n_scan"],
                 elec_fn, self.field_fn, settings)
@@ -94,7 +94,7 @@ class SURF:
                 settings = self.user_defaults["dynamic_free_maw_settings"]
             else:
                 settings = self._mk_solver_settings(
-                    param_dict["dynamic_free_settings"],
+                    *param_dict["dynamic_free_settings"],
                     solver="DynamicFreeMAW")
             voltages = self._solve_dynamic_free(trajectory, elec_grid,
                                                 field_grid, settings)
@@ -105,7 +105,7 @@ class SURF:
                 settings = self.user_defaults["dynamic_clamped_maw_settings"]
             else:
                 settings = self._mk_solver_settings(
-                    param_dict["dynamic_clamped_settings"],
+                    *param_dict["dynamic_clamped_settings"],
                     solver="DynamicClampedMAW")
 
             v0 = [param_dict["volt_start"][name] for name in elec_fn.names]
@@ -194,7 +194,7 @@ class SURF:
         volt_set = self.jl.eval("SURF.StaticMAW.solver")(
             wells, elec_grid, field_grid, weights_fn, cull_fn, calc_target_fn,
             cost_fn, constraint_fn, settings)
-        return np.array(volt_set)
+        return np.ascontiguousarray(np.array(volt_set))
 
     def _solve_dynamic_clamped(self, trajectory, v_set_start, v_set_end,
                               elec_grid, field_grid, settings):
@@ -221,7 +221,7 @@ class SURF:
             trajectory, elec_grid, field_grid, v_set_start, v_set_end,
             weights_fn, cull_fn, calc_target_fn, cost_fn, constraint_fn,
             settings)
-        return np.array(volt_set)
+        return np.ascontiguousarray(np.array(volt_set))
 
     def _solve_dynamic_free(self, trajectory, elec_grid, field_grid, settings):
         """Find voltages to best produce target trajectory.
@@ -244,7 +244,7 @@ class SURF:
         volt_set = self.jl.eval("SURF.DynamicFreeMAW.solver")(
             trajectory, elec_grid, field_grid, weights_fn, cull_fn,
             calc_target_fn, cost_fn, constraint_fn, settings)
-        return np.array(volt_set)
+        return np.ascontiguousarray(np.array(volt_set))
 
     def _solve_splitting(self, well_start, well_end, n_step, n_scan,
                          elec_fn, field_fn, settings):
@@ -268,7 +268,7 @@ class SURF:
         volt_set = self.jl.eval("SURF.SplittingMAW.solver")(
             well_start, well_end, n_step, n_scan, elec_fn, field_fn,
             settings)
-        return np.array(volt_set)
+        return np.ascontiguousarray(np.array(volt_set))
 
     def ping(self):
         return True
