@@ -12,8 +12,8 @@ def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller for SURF")
     simple_network_args(parser, 4000)
     add_common_args(parser)
-    parser.add_argument("--lib_path", default=None,
-                        help="path to SURF library")
+    parser.add_argument("--load_path", default=None,
+                        help="path to trap data file")
     parser.add_argument("--user", default="Comet",
                         help="User preset")
     return parser
@@ -24,7 +24,7 @@ def main():
     args = get_argparser().parse_args()
     init_logger_from_args(args)
 
-    dev = SURF(args.user, args.lib_path)
+    dev = SURF(args.user, args.load_path)
 
     simple_server_loop({"SURF_"+args.user: dev}, args.bind, args.port)
 

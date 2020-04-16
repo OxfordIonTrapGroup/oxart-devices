@@ -9,17 +9,9 @@ import julia
 
 class SURF:
     """SURF Uncomplicated Regional Fields"""
-    def __init__(self, user_trap="Comet", julia_lib_path=None):
+    def __init__(self, user_trap="Comet", load_path=None):
         self.jl = julia.Julia()# init_julia=False,
                               # runtime="C:\\Julia\\bin\\julia.exe")
-
-        if julia_lib_path != None:
-            self.jl.eval("cd")(julia_lib_path)
-        else:
-            julia_lib_path = self.jl.eval("pwd()")
-
-        # self.jl.eval("using Pkg")
-        # self.jl.eval("Pkg.activate")(julia_lib_path)
 
         self.jl.eval("import SURF")
         self.jl.eval("using SURF.Electrodes")
@@ -29,7 +21,7 @@ class SURF:
 
         self.raw_elec_grid, self.raw_field_grid = self.jl.eval(
             "SURF." + user_trap + ".load_grids"
-            )(julia_lib_path+"\\src\\UserTraps\\")
+            )(load_path+"")
         self.elec_fn = self.jl.eval("mk_electrodes_fn")(self.raw_elec_grid)
         self.field_fn = self.jl.eval("mk_field_fn")(self.raw_field_grid)
 
@@ -287,7 +279,7 @@ class SURF:
 if __name__=="__main__":
     print("setting up solver")
 
-    driver = SURF("Comet", "C:\\Users\\Marius\\scratch\\SURF")
+    driver = SURF("Comet", "C:\\Users\\Marius\\scratch\\SURF\\src\\UserTraps\\")
     tmp = 6.333873616858256e8
     wells = driver.mk_wells([0.], [2e-5], [0.], [0.], [0.], [0.], [0.], [0.],
                  [tmp/6], [0], [1.05 * tmp])
