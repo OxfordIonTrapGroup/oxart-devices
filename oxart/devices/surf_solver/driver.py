@@ -9,7 +9,7 @@ import julia
 
 class SURF:
     """SURF Uncomplicated Regional Fields"""
-    def __init__(self, user_trap="Comet", load_path=None):
+    def __init__(self, user_trap="Comet", load_path=None, **kwargs):
         self.jl = julia.Julia()# init_julia=False,
                               # runtime="C:\\Julia\\bin\\julia.exe")
 
@@ -19,9 +19,13 @@ class SURF:
         self.jl.eval("using SURF.Traps")
         self.jl.eval("using SURF.DataSelect")
 
+        self.load_defaults(user_trap, load_path, **kwargs)
+        print("ready")
+
+    def load_defaults(self, user_trap, load_path, **kwargs):
         self.raw_elec_grid, self.raw_field_grid = self.jl.eval(
             "SURF." + user_trap + ".load_grids"
-            )(load_path+"")
+            )(load_path, **kwargs)
         self.elec_fn = self.jl.eval("mk_electrodes_fn")(self.raw_elec_grid)
         self.field_fn = self.jl.eval("mk_field_fn")(self.raw_field_grid)
 
@@ -38,7 +42,6 @@ class SURF:
             "splitting_maw_settings": self.jl.eval(
                 "SURF." + user_trap + ".splitting_maw_settings"),
         }
-        print("ready")
 
     def do_solve(self, param_dict):
         """Controls solvers and handels julia objects
