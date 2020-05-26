@@ -123,7 +123,7 @@ class SURF:
 
     def _mk_wells(self, z, width, dphidx, dphidy, dphidz,
                  rx_axial, ry_axial, phi_radial,
-                 d2phidaxial2, d3phidz3, d2phidradial_h2):
+                 d2phidaxial2, d3phidz3, d2phidradial_h2, **kwargs):
         """Struct, characterising target potential wells at a specific time.
 
         For n coexisting wells:
@@ -143,7 +143,7 @@ class SURF:
         :param d2phidaxial2: axial well strength
         :param d3phidz3: cubic z-field term (for splitting)
         :param d2phidradial_h2: horizontal radial mode frequency
-        """
+        :param **kwargs: additional kwargs are ignored"""
         return self.jl.eval("PotentialWells")(z, width, dphidx, dphidy, dphidz,
                  rx_axial, ry_axial, phi_radial,
                  d2phidaxial2, d3phidz3, d2phidradial_h2)
