@@ -7,6 +7,16 @@ configured for the conda environment"""
 import numpy as np
 import julia
 
+
+# ToDo: results should be cached.
+# @functools.lru_cache() caches results from current instance in memory.
+# This is fast, but does not survive controller restarts
+# Therefore: write own decorator caching to file. Should look smthng like this:
+# @functools.lru_cache
+# @my_file_cache
+# def so_solve()
+#     ...
+
 class SURF:
     """SURF Uncomplicated Regional Fields"""
     def __init__(self, user_trap="Comet", load_path=None, **kwargs):
