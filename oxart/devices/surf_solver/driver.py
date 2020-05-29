@@ -147,11 +147,11 @@ class SURF:
             settings = self._mk_solver_settings(
                 *param_dict["split_settings"], solver="Split")
 
-        voltages = self._solve_split(
+        voltages, sep_vec = self._solve_split(
             scan_start, scan_end, spectators, param_dict["n_step"],
             param_dict["n_scan"], elec_fn, self.field_fn,
             elec_grid, field_grid, settings)
-        return voltages, elec_fn.names
+        return voltages, elec_fn.names, sep_vec
 
     def dynamic_free(self, **param_dict):
         """Controls dynamic_free solver and handles julia objects
