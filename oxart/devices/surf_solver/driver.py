@@ -404,10 +404,11 @@ class SURF:
         """
         weights_fn = self.jl.eval("mk_gaussian_weights")
         cull_fn = self.jl.eval("get_cull_indices")
-        volt_set = self.jl.eval("SURF.Split.solver")(
+        volt_set, sep_vec = self.jl.eval("SURF.Split.solver")(
             scan_start, scan_end, spectator, n_step, n_scan, elec_fn, field_fn,
             elec_grid, field_grid, weights_fn, cull_fn, settings)
-        return np.ascontiguousarray(np.array(volt_set))
+        return (np.ascontiguousarray(np.array(volt_set)),
+                np.array(sep_vec))
 
     def ping(self):
         return True
