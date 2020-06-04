@@ -15,7 +15,7 @@ def get_argparser():
     parser.add_argument("-d", "--device", default=None, required=True,
                         help="serial device. See documentation for how to "
                              "specify a USB Serial Number.")
-    parser.add_argument("-c", "--closedloop", default=True,
+    parser.add_argument("-c", "--closedloop", action="store_true",
                         help="Use in closed-loop mode?")
     add_common_args(parser)
     return parser
