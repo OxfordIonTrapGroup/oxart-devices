@@ -2,13 +2,13 @@ from oxart.devices.thorlabs_apt.driver import MGMSG, SRC_DEST, Message, MsgError
 import struct
 import sipyco.pyon as pyon
 import serial
-import logging 
+import logging
 
 logger = logging.getLogger(__name__)
 
 # Conventions in the following:
 # A card occupies a bay in the rack and has a number of channels.
-# There is a RACK_CONTROLLER, which routes signals down to RACK_BAYs 
+# There is a RACK_CONTROLLER, which routes signals down to RACK_BAYs
 # if specified as destination.
 # bay_id: one of [1, 2, 3, (4, 5, 6, 7, 8, 9, 10)]
 # bay_idx: one of [0, 1, 2, (3, 4, 5, 6, 7, 8, 9)]
@@ -27,12 +27,12 @@ class _APTCardSlotDevice:
         self.bays = []
         for bay_idx in range(NUM_SLOTS_MAX):
             msg = self._send_request(
-                MGMSG.RACK_REQ_BAYUSED, 
-                param1 = bay_idx, 
+                MGMSG.RACK_REQ_BAYUSED,
+                param1 = bay_idx,
                 wait_for = [MGMSG.RACK_GET_BAYUSED])
             bay_is_occupied = (msg.param2 == 0x01)
             logger.info("{} is {}".format(
-                bay_idx, 
+                bay_idx,
                 "occupied" if bay_is_occupied else "not occupied"))
             if bay_is_occupied:
                 self.bays.append(SRC_DEST["RACK_BAY_{}".format(bay_idx)])
@@ -54,9 +54,9 @@ class _APTCardSlotDevice:
         logger.debug("Received: {}".format(msg))
         return msg
 
-    def _send_request(self, msgreq_id, wait_for, 
-        param1 = 0, param2 = 0, 
-        dest = SRC_DEST["RACK_CONTROLLER"].value, 
+    def _send_request(self, msgreq_id, wait_for,
+        param1 = 0, param2 = 0,
+        dest = SRC_DEST["RACK_CONTROLLER"].value,
         data=None):
         self._send_message(Message(msgreq_id, param1, param2, dest, data=data))
         while True:
@@ -100,8 +100,8 @@ class _APTCardSlotDevice:
     def get_enable(self, bay_id, channel=0):
         """ Return whether that bay is enabled """
         msg = self._send_request(
-            MGMSG.MOD_REQ_CHANENABLESTATE, 
-            wait_for = [MGMSG.MOD_GET_CHANENABLESTATE], 
+            MGMSG.MOD_REQ_CHANENABLESTATE,
+            wait_for = [MGMSG.MOD_GET_CHANENABLESTATE],
             dest = self.bays[bay_id-1],
             param1 = channel)
         if (msg.param2 == 0x01):
@@ -119,7 +119,7 @@ class _APTCardSlotDevice:
 
     def ack_status_update(self):
         self._send_message(Message(
-            MGMSG.PZ_ACK_PZSTATUSUPDATE, 
+            MGMSG.PZ_ACK_PZSTATUSUPDATE,
             dest=SRC_DEST["RACK_CONTROLLER"].value))
 
     def get_serial(self):
@@ -131,7 +131,7 @@ class _APTCardSlotDevice:
         struct.unpack("=L8sH4s60sHHH", msg.data)
         return serial
 
-    def ping(self):        
+    def ping(self):
         try:
             for i,_ in enumerate(self.bays):
                 self.get_status_bits(i+1)
@@ -144,7 +144,7 @@ class _APTCardSlotDevice:
         self.h.close()
 
 # Need for mdt69xb mediator to work:
-# get_channel('x') 
+# get_channel('x')
 # set_channel('x', 27.4)
 # get_channel_output('x')
 # save_setpoints()
@@ -166,7 +166,7 @@ class BPC303(_APTCardSlotDevice):
             self.set_enable_feedback(b+1) # Enable feedback -> Only set_position commands take effect
     #
     ### Functions interfacing with the mediator
-    ### Choose to always be in closed-loop mode and only expose 
+    ### Choose to always be in closed-loop mode and only expose
     ### position-setting functions
     #
     def set_channel(self, channel_char, value):
@@ -188,10 +188,10 @@ class BPC303(_APTCardSlotDevice):
         bay_id = ord(channel_char) - ord('w')
         return self.get_position(bay_id)
     #
-    ### Internal functions 
+    ### Internal functions
     #
     def set_voltage(self, bay_id, voltage, channel=0):
-        """ 
+        """
         Set a piezo to a given voltage.
         In closed-loop control, this is ignored.
         """
@@ -215,7 +215,7 @@ class BPC303(_APTCardSlotDevice):
         return v/32767*PZ_MAX_VOLTAGE
 
     def set_position(self, bay_id, position, channel=0):
-        """ 
+        """
         Set a piezo to a given position.
         In open-loop mode, this is ignored.
         """
@@ -240,7 +240,7 @@ class BPC303(_APTCardSlotDevice):
 
     def set_enable_feedback(self, bay_id, enable=True, smooth=True, channel=0):
         """
-        When in closed‐loop mode, position is maintained by a feedback signal 
+        When in closed‐loop mode, position is maintained by a feedback signal
         from the piezo actuator.
         If set to Smooth, the transition from open to closed loop (or vice versa)
         is achieved over a longer period in order to minimize voltage transients.
@@ -267,12 +267,12 @@ class BPC303(_APTCardSlotDevice):
         return not msg.param2 % 2
 
     def set_voltage_limit(self, bay_id, voltage, channel=0):
-        if voltage > 150 or voltage < 0:   
+        if voltage > 150 or voltage < 0:
             raise ValueError(
                 "{}V not between 0V and 150V".format(voltage))
         payload = struct.pack("<HHH", channel, int(10*voltage), 0)
         self._send_message(Message(
-            MGMSG.PZ_SET_OUTPUTMAXVOLTS, 
+            MGMSG.PZ_SET_OUTPUTMAXVOLTS,
             dest=self.bays[bay_id-1],
             data=payload))
 
