@@ -150,12 +150,13 @@ class _APTCardSlotDevice:
 # save_setpoints()
 
 class BPC303(_APTCardSlotDevice):
-    def __init__(self, port):
+    def __init__(self, port, enable_feedback=False):
         super().__init__(port)
         logger.info("Device vlimit is {}, travel is {}um".format(PZ_MAX_VOLTAGE, PZ_TRAVEL_UM))
         self.fname = "piezo_{}.pyon".format(self.get_serial())
         self.voltages = {"volt_{}".format(i): -1 for i in range(len(self.bays))}
         self.positions = {"pos_{}".format(i): -1 for i in range(len(self.bays))}
+        self.enable_feedback = en_fb
         self._load_setpoints()
         self.setup()
 
@@ -163,30 +164,37 @@ class BPC303(_APTCardSlotDevice):
         for b in range(len(self.bays)):
             self.set_voltage_limit(b+1, PZ_MAX_VOLTAGE)
             self.set_enable(b+1)
-            self.set_enable_feedback(b+1) # Enable feedback -> Only set_position commands take effect
+            # Enable feedback -> Only set_position commands take effect
+            self.set_enable_feedback(b+1, enable=self.enable_feedback)
     #
     ### Functions interfacing with the mediator
-    ### Choose to always be in closed-loop mode and only expose
-    ### position-setting functions
     #
     def set_channel(self, channel_char, value):
         """Set one of the axes ('x', 'y', 'z') to a certain value"""
-        # Assume the values are microns
         self._check_valid_channel(channel_char)
         bay_id = ord(channel_char) - ord('w')
-        self.set_position(bay_id, value)
+        if self.enable_feedback:
+            self.set_position(bay_id, value)
+        else:
+            self.set_voltage(bay_id, value)
 
     def get_channel(self, channel_char):
-        """ Get last position set from this driver """
+        """ Get last value set from this driver (don't query hardware) """
         self._check_valid_channel(channel_char)
         bay_idx = ord(channel_char) - ord('x')
-        return self.positions["pos_{}".format(bay_idx)]
+        if self.enable_feedback:
+            return self.positions["pos_{}".format(bay_idx)]
+        else:
+            return self.voltages["volt_{}".format(bay_idx)]
 
     def get_channel_output(self, channel_char):
-        """ Get actual position """
+        """ Get actual output value (query hardware) """
         self._check_valid_channel(channel_char)
         bay_id = ord(channel_char) - ord('w')
-        return self.get_position(bay_id)
+        if self.enable_feedback:
+            return self.get_position(bay_id)
+        else:
+            return self.get_voltage(bay_id)
     #
     ### Internal functions
     #
