@@ -156,7 +156,7 @@ class BPC303(_APTCardSlotDevice):
         self.fname = "piezo_{}.pyon".format(self.get_serial())
         self.voltages = {"volt_{}".format(i): -1 for i in range(len(self.bays))}
         self.positions = {"pos_{}".format(i): -1 for i in range(len(self.bays))}
-        self.enable_feedback = en_fb
+        self.enable_feedback = enable_feedback
         self._load_setpoints()
         self.setup()
 
