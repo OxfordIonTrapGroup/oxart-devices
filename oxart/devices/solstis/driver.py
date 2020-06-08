@@ -1,6 +1,5 @@
 import websockets
 import json
-from requests.exceptions import ConnectionError
 from asyncio import wait_for
 
 
