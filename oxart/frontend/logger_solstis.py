@@ -9,31 +9,32 @@ from oxart.devices.solstis.driver import SolstisNotifier
 
 def get_argparser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--server", required=True, 
-        help="Laser controller address / hostname")
-    parser.add_argument("--name", required=True, 
-        help="Logical laser name, defines measurement name")
-    parser.add_argument("--influx-server", default="localhost", 
-        help="Influx server address")
-    parser.add_argument("--database", default="solstis", 
-        help="Influx database name")
-    parser.add_argument("--poll", default=30, type=int,
-        help="Measurement polling period (seconds)")
+    parser.add_argument("-s",
+                        "--server",
+                        required=True,
+                        help="Laser controller address / hostname")
+    parser.add_argument("--name",
+                        required=True,
+                        help="Logical laser name, defines measurement name")
+    parser.add_argument("--influx-server",
+                        default="localhost",
+                        help="Influx server address")
+    parser.add_argument("--database", default="solstis", help="Influx database name")
+    parser.add_argument("--poll",
+                        default=30,
+                        type=int,
+                        help="Measurement polling period (seconds)")
     return parser
+
 
 def main():
     args = get_argparser().parse_args()
     loop = asyncio.get_event_loop()
 
-    influx_client = InfluxDBClient(
-        host=args.influx_server,
-        database=args.database)
+    influx_client = InfluxDBClient(host=args.influx_server, database=args.database)
 
     def write_point(fields, tags={}):
-        point = {
-            "measurement": args.name,
-            "fields": fields
-        }
+        point = {"measurement": args.name, "fields": fields}
         for tag in tags:
             point["tags"][tag] = tags[tag]
         try:
@@ -58,6 +59,7 @@ def main():
             "brf_wavelength": float(msg["wsd_wavelength"])
         }
         write_point(fields)
+
     handle_status_update.last_status_update = 0
 
     def handle_notification(msg):
@@ -72,17 +74,12 @@ def main():
                 "Saved Wavelength Meter Setup",
                 "Saved Common Items"]:
             return
-        fields = {
-            "title": msg["notification_message"],
-            "tags": args.name
-        }
-        write_point(fields, tags={"type":"display_notification"})
+        fields = {"title": msg["notification_message"], "tags": args.name}
+        write_point(fields, tags={"type": "display_notification"})
 
-    notifier = SolstisNotifier(
-        server=args.server,
-        notification_callback=handle_notification,
-        status_callback=handle_status_update
-    )
+    notifier = SolstisNotifier(server=args.server,
+                               notification_callback=handle_notification,
+                               status_callback=handle_status_update)
     loop.run_until_complete(notifier.run())
 
 
