@@ -24,6 +24,12 @@ def get_argparser():
                         default=30,
                         type=int,
                         help="Measurement polling period (seconds)")
+    parser.add_argument(
+        "--timeout",
+        default=60,
+        type=int,
+        help="Time (seconds) between messages from device after which connection is " +
+        "considered faulty and program exits")
     return parser
 
 
@@ -31,7 +37,9 @@ def main():
     args = get_argparser().parse_args()
     loop = asyncio.get_event_loop()
 
-    influx_client = InfluxDBClient(host=args.influx_server, database=args.database)
+    influx_client = InfluxDBClient(host=args.influx_server,
+                                   database=args.database,
+                                   timeout=args.timeout)
 
     def write_point(fields, tags={}):
         point = {"measurement": args.name, "fields": fields}
