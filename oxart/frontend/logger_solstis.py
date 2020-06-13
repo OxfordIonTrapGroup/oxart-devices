@@ -39,7 +39,7 @@ def main():
 
     influx_client = InfluxDBClient(host=args.influx_server,
                                    database=args.database,
-                                   timeout=args.timeout)
+                                   timeout=30)
 
     def write_point(fields, tags={}):
         point = {"measurement": args.name, "fields": fields}
@@ -87,7 +87,8 @@ def main():
 
     notifier = SolstisNotifier(server=args.server,
                                notification_callback=handle_notification,
-                               status_callback=handle_status_update)
+                               status_callback=handle_status_update,
+                               timeout=args.timeout)
     loop.run_until_complete(notifier.run())
 
 
