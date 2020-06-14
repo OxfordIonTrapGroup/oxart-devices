@@ -13,8 +13,8 @@ class SolstisNotifier:
         self.server = server
         self.port = port
         self.status_callback = status_callback
-        self.notification_callback = None
-        self.timeout = None
+        self.notification_callback = notification_callback
+        self.timeout = timeout
 
     async def run(self):
         async with websockets.connect('ws://{}:{}'.format(self.server, self.port),
