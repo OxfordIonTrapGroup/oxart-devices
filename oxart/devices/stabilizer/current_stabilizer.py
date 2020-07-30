@@ -195,7 +195,7 @@ class Stabilizer:
         if coefficients is None:
             coefficients = np.zeros(self.num_harmonics)
         cos_amps = [coefficients[n].real for n in range(len(coefficients))]
-        sin_amps = [-coefficients[n].imag for n in range(len(coefficients))]
+        sin_amps = [coefficients[n].imag for n in range(len(coefficients))]
         ff = Feedforward(self.num_harmonics)
         ff.set_cosine_amplitudes(cos_amps)
         ff.set_sine_amplitudes(sin_amps)
