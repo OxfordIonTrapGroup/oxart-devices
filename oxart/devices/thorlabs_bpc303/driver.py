@@ -246,6 +246,9 @@ class BPC303(_APTCardSlotDevice):
         chan, pos = struct.unpack("=HH", msg.data)
         return pos/32767.0*PZ_TRAVEL_UM
 
+    def feedback_enabled(self):
+        return self.enable_feedback
+
     def set_enable_feedback(self, bay_id, enable=True, smooth=True, channel=0):
         """
         When in closed‐loop mode, position is maintained by a feedback signal

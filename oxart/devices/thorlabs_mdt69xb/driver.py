@@ -50,6 +50,10 @@ class PiezoController:
         """Close the serial port."""
         self.port.close()
 
+    def feedback_enabled(self):
+        # For API compatibility with BPC303 driver.
+        return False
+
     #
     # Basic sending/receiving operations
     #
