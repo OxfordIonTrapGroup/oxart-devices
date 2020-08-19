@@ -39,8 +39,8 @@ class SURF:
                 "SURF." + user_trap + ".static_settings"),
             "dynamic_free_settings": self.jl.eval(
                 "SURF." + user_trap + ".dynamic_free_settings"),
-            "dynamic_clamped_settings": self.jl.eval(
-                "SURF." + user_trap + ".dynamic_clamped_settings"),
+            "dynamic_settings": self.jl.eval(
+                "SURF." + user_trap + ".dynamic_settings"),
             "split_single_settings": self.jl.eval(
                 "SURF." + user_trap + ".split_single_settings"),
             "split_settings": self.jl.eval(
@@ -85,50 +85,6 @@ class SURF:
                                       settings)
 
         with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/static.db") as db:
-            try:
-                db[pyon.encode(param_dict)] = voltages, elec_fn.names
-            except ValueError:
-                    pass  # value too large
-        return voltages, elec_fn.names
-
-    def split_single(self, **param_dict):
-        """Controls split_single solver and handles julia objects
-
-        This is required as sipyco can't serialise the julia objects.
-
-        :param **param_dict: dictionary with execution information
-            specify fields by using kwargs/unpacking a dictionary.
-            Most parameters load sane defaults.
-
-        :returns: voltage_array, electrode_name_tup
-            voltage_array shape: (electrode_name_tup, n_time_steps).
-        """
-        names = param_dict.get("electrodes", None)
-        if names is None:
-            elec_fn = self.elec_fn
-        else:
-            elec_fn = self._select_elec(self.elec_fn, names)
-
-        scan_start = self._mk_wells(**param_dict["scan_start"])
-        scan_end = self._mk_wells(**param_dict["scan_end"])
-        # only supports a single well in solver
-        if param_dict.get("split_single_settings", None) is None:
-            settings = self.user_defaults["split_single_settings"]
-        else:
-            settings = self._mk_solver_settings(
-                *param_dict["split_single_settings"], solver="SplitSingle")
-
-        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/split_single.db") as db:
-            try:
-                return db[pyon.encode(param_dict)]
-            except KeyError:
-                pass  # key not found
-
-        voltages = self._solve_split_single(
-            scan_start, scan_end, param_dict["n_step"], param_dict["n_scan"],
-            elec_fn, self.field_fn, settings)
-
-        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/split_single.db") as db:
             try:
                 db[pyon.encode(param_dict)] = voltages, elec_fn.names
             except ValueError:
@@ -185,8 +141,8 @@ class SURF:
 
         return voltages, elec_fn.names, sep_vec
 
-    def dynamic_free(self, **param_dict):
-        """Controls dynamic_free solver and handles julia objects
+    def dynamic(self, **param_dict):
+        """Controls dynamic solver and handles julia objects
 
         This is required as sipyco can't serialise the julia objects.
 
@@ -211,75 +167,25 @@ class SURF:
 
         trajectory = self._mk_trajectory(wells0, wells1, param_dict["n_step"])
 
-        if param_dict.get("dynamic_free_settings", None) is None:
-            settings = self.user_defaults["dynamic_free_settings"]
+        if param_dict.get("dynamic_settings", None) is None:
+            settings = self.user_defaults["dynamic_settings"]
         else:
             settings = self._mk_solver_settings(
-                *param_dict["dynamic_free_settings"],
-                solver="DynamicFree")
-
-
-        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/dynamic_free.db") as db:
-            try:
-                return db[pyon.encode(param_dict)]
-            except KeyError:
-                pass  # key not found
-        voltages = self._solve_dynamic_free(trajectory, elec_grid,
-                                            field_grid, settings)
-
-        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/dynamic_free.db") as db:
-            try:
-                db[pyon.encode(param_dict)] = voltages, elec_fn.names
-            except ValueError:
-                    pass  # value too large
-        return voltages, elec_fn.names
-
-    def dynamic_clamped(self, **param_dict):
-        """Controls dynamic_clamped solver and handles julia objects
-
-        This is required as sipyco can't serialise the julia objects.
-
-        :param **param_dict: dictionary with execution information
-            specify fields by using kwargs/unpacking a dictionary.
-            Most parameters load sane defaults.
-
-        :returns: voltage_array, electrode_name_tup
-            voltage_array shape: (electrode_name_tup, n_time_steps).
-        """
-        names = param_dict.get("electrodes", None)
-        if names is None:
-            elec_fn = self.elec_fn
-        else:
-            elec_fn = self._select_elec(self.elec_fn, names)
-
-        zs = param_dict.get("zs", self.user_defaults["zs"])
-        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
-
-        wells0 = self._mk_wells(**param_dict["wells0"])
-        wells1 = self._mk_wells(**param_dict["wells1"])
-
-        trajectory = self._mk_trajectory(wells0, wells1, param_dict["n_step"])
-
-        if param_dict.get("dynamic_clamped_settings", None) is None:
-            settings = self.user_defaults["dynamic_clamped_settings"]
-        else:
-            settings = self._mk_solver_settings(
-                *param_dict["dynamic_clamped_settings"],
-                solver="DynamicClamped")
+                *param_dict["dynamic_settings"],
+                solver="Dynamic")
 
         v0 = [param_dict["volt_start"][name] for name in elec_fn.names]
         v1 = [param_dict["volt_end"][name] for name in elec_fn.names]
 
-
-        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/dynamic_clamped.db") as db:
+        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/dynamic.db") as db:
             try:
                 return db[pyon.encode(param_dict)]
             except KeyError:
                 pass  # key not found
-        voltages = self._solve_dynamic_clamped(
+        voltages = self._solve_dynamic(
             trajectory, v0, v1, elec_grid, field_grid, settings)
 
-        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/dynamic_clamped.db") as db:
+        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/dynamic.db") as db:
             try:
                 db[pyon.encode(param_dict)] = voltages, elec_fn.names
             except ValueError:
@@ -365,8 +271,8 @@ class SURF:
             cost_fn, constraint_fn, settings)
         return np.ascontiguousarray(np.array(volt_set))
 
-    def _solve_dynamic_clamped(self, trajectory, v_set_start, v_set_end,
-                               elec_grid, field_grid, settings):
+    def _solve_dynamic(self, trajectory, v_set_start, v_set_end,
+                       elec_grid, field_grid, settings):
         """Find voltages to best produce target trajectory (fixed start & end).
 
         :param trajectory: as returned by mk_trajectory
@@ -382,60 +288,13 @@ class SURF:
         """
         weights_fn = self.jl.eval("mk_gaussian_weights")
         cull_fn = self.jl.eval("get_cull_indices")
-        calc_target_fn = self.jl.eval("SURF.DynamicClamped.calc_target")
-        cost_fn = self.jl.eval("SURF.DynamicClamped.cost_function")
-        constraint_fn = self.jl.eval("SURF.DynamicClamped.constraint")
+        calc_target_fn = self.jl.eval("SURF.Dynamic.calc_target")
+        cost_fn = self.jl.eval("SURF.Dynamic.cost_function")
+        constraint_fn = self.jl.eval("SURF.Dynamic.constraint")
 
-        volt_set = self.jl.eval("SURF.DynamicClamped.solver")(
+        volt_set = self.jl.eval("SURF.Dynamic.solver")(
             trajectory, elec_grid, field_grid, v_set_start, v_set_end,
             weights_fn, cull_fn, calc_target_fn, cost_fn, constraint_fn,
-            settings)
-        return np.ascontiguousarray(np.array(volt_set))
-
-    def _solve_dynamic_free(self, trajectory, elec_grid, field_grid, settings):
-        """Find voltages to best produce target trajectory.
-        Start and end voltages are floated.
-
-        :param trajectory: as returned by mk_trajectory
-        :param elec_grid: gridded electrodes as returned by mk_grid
-            (order matches v_sets)
-        :param field_grid: gridded external field as returned by mk_grid
-        :param settings: solver settings struct
-
-        :returns: voltage array, (n_electrode, time_step)
-        """
-        weights_fn = self.jl.eval("mk_gaussian_weights")
-        cull_fn = self.jl.eval("get_cull_indices")
-        calc_target_fn = self.jl.eval("SURF.DynamicFree.calc_target")
-        cost_fn = self.jl.eval("SURF.DynamicFree.cost_function")
-        constraint_fn = self.jl.eval("SURF.DynamicFree.constraint")
-
-        volt_set = self.jl.eval("SURF.DynamicFree.solver")(
-            trajectory, elec_grid, field_grid, weights_fn, cull_fn,
-            calc_target_fn, cost_fn, constraint_fn, settings)
-        return np.ascontiguousarray(np.array(volt_set))
-
-    def _solve_split_single(self, well_start, well_end, n_step, n_scan,
-                            elec_fn, field_fn, settings):
-        """Find voltages for splitting/merging a single well.
-
-        The solver operates on a single well. This well evolves from well_start
-        to well_end.
-
-        :param well_start: as returned by mk_wells. Only a single well is
-            supported.
-        :param well_end: as returned by mk_wells. Only a single well is
-            supported. This should only differ from well_start in d2phidaxial2
-        :param n_step: number of time steps in the splitting waveform
-        :param n_scan: number of points in separation scan
-        :param elec_fn: ElectrodesFn of electrodes to be used
-        :param field_fn: FieldFn of external field
-        :param settings: solver settings struct
-
-        :return: voltage array, (n_electrode, time_step)
-        """
-        volt_set = self.jl.eval("SURF.SplitSingle.solver")(
-            well_start, well_end, n_step, n_scan, elec_fn, field_fn,
             settings)
         return np.ascontiguousarray(np.array(volt_set))
 
