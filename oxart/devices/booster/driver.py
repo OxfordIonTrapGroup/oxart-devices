@@ -97,7 +97,9 @@ class Booster:
         This is the same as :meth:`get_version`, but as a dictionary rather than a named
         tuple to be compatible with PYON for use as an ARTIQ controller.
         """
-        return self.get_version()._asdict()
+        result = self.get_version()._asdict()
+        result["fw_build_date"] = str(result["fw_build_date"])
+        return result
 
     def ping(self):
         """ Returns True if we are connected to a Booster """
