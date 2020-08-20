@@ -106,13 +106,13 @@ class QL355:
         """Returns the actual (measured) output voltage in volts"""
         self._check_valid_channel(channel)
         self.stream.write("V{}O?\n".format(channel+1).encode())
-        return float(self.stream.readline().decode()[:-1])
+        return float(self.stream.readline().decode().rstrip()[:-1])
 
     def get_current(self, channel=0):
         """Returns the actual (measured) output current in amps"""
         self._check_valid_channel(channel)
         self.stream.write("I{}O?\n".format(channel+1).encode())
-        return float(self.stream.readline().decode()[:-1])
+        return float(self.stream.readline().decode().rstrip()[:-1])
 
     def identify(self):
         """Returns device identity string"""
