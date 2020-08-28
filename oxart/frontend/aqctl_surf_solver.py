@@ -12,10 +12,13 @@ def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller for SURF")
     simple_network_args(parser, 4000)
     add_common_args(parser)
-    parser.add_argument("--load_path", default=None,
-                        help="path to trap data file")
-    parser.add_argument("--user", default="Comet",
-                        help="User preset")
+    parser.add_argument("--trap_model_path",
+                        default="/home/ion/scratch/julia_projects/"
+                        "SURF/trap_model/comet_model.jld",
+                        help="path to the SURF trap model file")
+    parser.add_argument("--cache_path", default=None,
+                        help="path on which to cache results. `None` (default)"
+                        " disables the cache.")
     return parser
 
 
@@ -24,7 +27,7 @@ def main():
     args = get_argparser().parse_args()
     init_logger_from_args(args)
 
-    dev = SURF(args.user, args.load_path)
+    dev = SURF(args.trap_model_path, args.cache_path)
 
     simple_server_loop({"SURF_"+args.user: dev}, args.bind, args.port)
 

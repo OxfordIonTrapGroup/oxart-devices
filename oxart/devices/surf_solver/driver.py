@@ -1,8 +1,9 @@
 """This driver requires PyJulia & working julia install with configured PyCall
 
-PyJulia doesn't play nice with conda. The best way to use a conda environment
-with this driver is by calling the frontend/driver from Julia using PyCall
-configured for the conda environment"""
+PyJulia doesn't play nice with conda. You should call this driver from the same
+environment that you configured for PyCall in Julia. Instructions to configure
+PyCall with conda are given in the README file of the SURF Julia library.
+"""
 
 import numpy as np
 import julia
@@ -11,8 +12,15 @@ import shelve
 
 
 class SURF:
-    """SURF Uncomplicated Regional Fields"""
-    def __init__(self, user_trap="Comet", load_path=None, **kwargs):
+    """SURF Uncomplicated Regional Fields (python driver)"""
+    def __init__(self,
+                 trap_model_path="/home/ion/scratch/julia_projects/SURF/"
+                 "trap_model/comet_model.jld",
+                 cache_path=None, **kwargs):
+        """
+        :param trap_model_path: path to the SURF trap model file
+        :param cache_path: path on which to cache results. None disables cache.
+        """
         self.jl = julia.Julia()
         self.jl.eval("import SURF")
         self.jl.eval("using SURF.Electrodes")
@@ -20,31 +28,32 @@ class SURF:
         self.jl.eval("using SURF.Traps")
         self.jl.eval("using SURF.DataSelect")
 
-        self.load_defaults(user_trap, load_path, **kwargs)
+        self.load_defaults(trap_model_path, cache_path, **kwargs)
         print("ready")
 
-    def load_defaults(self, user_trap, load_path, **kwargs):
-        self.user_trap = user_trap
-        self.raw_elec_grid, self.raw_field_grid = self.jl.eval(
-            "SURF." + user_trap + ".load_grids"
-            )(load_path, **kwargs)
+    def reload(self,
+               trap_model_path="/home/ion/scratch/julia_projects/SURF/"
+               "trap_model/comet_model.jld",
+               cache_path=None, **kwargs):
+        """
+        :param trap_model_path: path to the SURF trap model file
+        :param cache_path: path on which to cache results. `None` disables the
+            cache. Be sure to update/purge the cache if you change the trap
+            model!
+        """
+        self.cache_path = cache_path
+
+        model = self.jl.eval("SURF.Load.load_grids")(trap_model_path, **kwargs)
+        self.raw_elec_grid, self.raw_field_grid = model[0:2]
         self.elec_fn = self.jl.eval("mk_electrodes_fn")(self.raw_elec_grid)
         self.field_fn = self.jl.eval("mk_field_fn")(self.raw_field_grid)
 
         # recommended default values for user
         self.user_defaults = {
-            "zs": self.jl.eval(
-                "SURF." + user_trap + ".zs"),
-            "static_settings": self.jl.eval(
-                "SURF." + user_trap + ".static_settings"),
-            "dynamic_free_settings": self.jl.eval(
-                "SURF." + user_trap + ".dynamic_free_settings"),
-            "dynamic_settings": self.jl.eval(
-                "SURF." + user_trap + ".dynamic_settings"),
-            "split_single_settings": self.jl.eval(
-                "SURF." + user_trap + ".split_single_settings"),
-            "split_settings": self.jl.eval(
-                "SURF." + user_trap + ".split_settings"),
+            "zs": model[2],
+            "static_settings": model[3],
+            "dynamic_settings": model[4],
+            "split_settings": model[5],
         }
 
     def static(self, **param_dict):
@@ -75,19 +84,21 @@ class SURF:
             settings = self._mk_solver_settings(
                 *param_dict["static_settings"], solver="Static")
 
-        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/static.db") as db:
-            try:
-                return db[pyon.encode(param_dict)]
-            except KeyError:
-                pass  # key not found
+        if self.cache_path is not None:
+            with shelve.open(self.cache_path + "static.db") as db:
+                try:
+                    return db[pyon.encode(param_dict)]
+                except KeyError:
+                    pass  # key not found
 
         voltages = self._solve_static(wells, elec_grid, field_grid,
                                       settings)
 
-        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/static.db") as db:
-            try:
-                db[pyon.encode(param_dict)] = voltages, elec_fn.names
-            except ValueError:
+        if self.cache_path is not None:
+            with shelve.open(self.cache_path + "static.db") as db:
+                try:
+                    db[pyon.encode(param_dict)] = voltages, elec_fn.names
+                except ValueError:
                     pass  # value too large
         return voltages, elec_fn.names
 
@@ -122,21 +133,24 @@ class SURF:
             settings = self._mk_solver_settings(
                 *param_dict["split_settings"], solver="Split")
 
-        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/split.db") as db:
-            try:
-                return db[pyon.encode(param_dict)]
-            except KeyError:
-                pass  # key not found
+        if self.cache_path is not None:
+            with shelve.open(self.cache_path + "split.db") as db:
+                try:
+                    return db[pyon.encode(param_dict)]
+                except KeyError:
+                    pass  # key not found
 
         voltages, sep_vec = self._solve_split(
             scan_start, scan_end, spectators, param_dict["n_step"],
             param_dict["n_scan"], elec_fn, self.field_fn,
             elec_grid, field_grid, settings)
 
-        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/split.db") as db:
-            try:
-                db[pyon.encode(param_dict)] = voltages, elec_fn.names, sep_vec
-            except ValueError:
+        if self.cache_path is not None:
+            with shelve.open(self.cache_path + "split.db") as db:
+                try:
+                    db[pyon.encode(param_dict)] = (voltages, elec_fn.names,
+                                                   sep_vec)
+                except ValueError:
                     pass  # value too large
 
         return voltages, elec_fn.names, sep_vec
@@ -177,18 +191,20 @@ class SURF:
         v0 = [param_dict["volt_start"][name] for name in elec_fn.names]
         v1 = [param_dict["volt_end"][name] for name in elec_fn.names]
 
-        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/dynamic.db") as db:
-            try:
-                return db[pyon.encode(param_dict)]
-            except KeyError:
-                pass  # key not found
+        if self.cache_path is not None:
+            with shelve.open(self.cache_path + "dynamic.db") as db:
+                try:
+                    return db[pyon.encode(param_dict)]
+                except KeyError:
+                    pass  # key not found
         voltages = self._solve_dynamic(
             trajectory, v0, v1, elec_grid, field_grid, settings)
 
-        with shelve.open("/home/ion/SURF_cache/" + self.user_trap + "/dynamic.db") as db:
-            try:
-                db[pyon.encode(param_dict)] = voltages, elec_fn.names
-            except ValueError:
+        if self.cache_path is not None:
+            with shelve.open(self.cache_path + "dynamic.db") as db:
+                try:
+                    db[pyon.encode(param_dict)] = voltages, elec_fn.names
+                except ValueError:
                     pass  # value too large
         return voltages, elec_fn.names
 
