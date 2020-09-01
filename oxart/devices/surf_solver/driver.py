@@ -88,7 +88,11 @@ class SURF:
             elec_fn = self.elec_fn
         else:
             elec_fn = self._select_elec(self.elec_fn, names)
-        zs = param_dict.get("zs", self.user_defaults["zs"])
+
+        zs = param_dict.get("zs", None)
+        if zs is None:
+            zs = self.user_defaults["zs"]
+
         elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
 
         wells = self._mk_wells(**param_dict["wells"])
@@ -134,7 +138,11 @@ class SURF:
             elec_fn = self.elec_fn
         else:
             elec_fn = self._select_elec(self.elec_fn, names)
-        zs = param_dict.get("zs", self.user_defaults["zs"])
+
+        zs = param_dict.get("zs", None)
+        if zs is None:
+            zs = self.user_defaults["zs"]
+
         elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
 
         scan_start = self._mk_wells(**param_dict["scan_start"])
@@ -188,7 +196,10 @@ class SURF:
         else:
             elec_fn = self._select_elec(self.elec_fn, names)
 
-        zs = param_dict.get("zs", self.user_defaults["zs"])
+        zs = param_dict.get("zs", None)
+        if zs is None:
+            zs = self.user_defaults["zs"]
+
         elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
 
         wells0 = self._mk_wells(**param_dict["wells0"])
