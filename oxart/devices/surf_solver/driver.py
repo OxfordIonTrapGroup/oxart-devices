@@ -28,22 +28,30 @@ class SURF:
         self.jl.eval("using SURF.Traps")
         self.jl.eval("using SURF.DataSelect")
 
-        self.load_defaults(trap_model_path, cache_path, **kwargs)
+        self.load_config(trap_model_path, cache_path, **kwargs)
         print("ready")
 
-    def reload(self,
-               trap_model_path="/home/ion/scratch/julia_projects/SURF/"
-               "trap_model/comet_model.jld",
-               cache_path=None, **kwargs):
+    def load_config(self, trap_model_path=None, cache_path=None,
+                    omega_rf=None, mass=None, v_rf=None):
         """
+        The trap model and default solver settings are (re-)loaded from the
+        specified file. The solution cache is set to to the specified path.
+        Infuture results will be cached/loaded to/from this path.
+
         :param trap_model_path: path to the SURF trap model file
-        :param cache_path: path on which to cache results. `None` disables the
-            cache. Be sure to update/purge the cache if you change the trap
-            model!
+        :param cache_path: path on which to cache results.  Be sure to
+            update/purge the cache if you change the trap model!
+            `None` disables the cache.
+        :param omega_rf: angular frequency of trap-RF [in rad/s]
+        :param mass: mass of ion in atomic mass units
+        :param v_rf: RF voltage amplitude.
         """
+        if trap_model_path is not None:
+            self.trap_model_path = trap_model_path
         self.cache_path = cache_path
 
-        model = self.jl.eval("SURF.Load.load_grids")(trap_model_path, **kwargs)
+        model = self.jl.eval("SURF.Load.load_grids")(
+            self.trap_model_path, omega_rf, mass, v_rf)
         self.raw_elec_grid, self.raw_field_grid = model[0:2]
         self.elec_fn = self.jl.eval("mk_electrodes_fn")(self.raw_elec_grid)
         self.field_fn = self.jl.eval("mk_field_fn")(self.raw_field_grid)
@@ -207,6 +215,10 @@ class SURF:
                 except ValueError:
                     pass  # value too large
         return voltages, elec_fn.names
+
+    def get_all_electrode_names(self):
+        """Return a list of all electrode names defined in the trap model"""
+        return elec_fn.names
 
     def _mk_wells(self, z, width, dphidx, dphidy, dphidz,
                   rx_axial, ry_axial, phi_radial,
