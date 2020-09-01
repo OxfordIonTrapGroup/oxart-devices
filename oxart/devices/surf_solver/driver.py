@@ -63,6 +63,13 @@ class SURF:
             "dynamic_settings": model[4],
             "split_settings": model[5],
         }
+        return get_config()
+
+    def get_config(self):
+        """Dictionary containing configuration Settings"""
+        return {"trap_model_path": self.trap_model_path,
+                "cache_path": self.cache_path,
+                }.update(self.user_defaults)
 
     def static(self, **param_dict):
         """Controls static solver and handles julia objects
