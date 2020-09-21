@@ -29,7 +29,7 @@ def main():
 
     dev = SURF(args.trap_model_path, args.cache_path)
 
-    simple_server_loop({"SURF_"+args.user: dev}, args.bind, args.port)
+    simple_server_loop({"SURF_controller": dev}, args.bind, args.port)
 
 
 if __name__ == "__main__":
