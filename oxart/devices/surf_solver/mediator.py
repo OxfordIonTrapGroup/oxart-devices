@@ -149,7 +149,7 @@ class MotionControl:
     def get_new_waveform(self, z, f_axial=1e6, f_rad_x=5e6, width=5e-6,
                          dphidx=0., dphidy=0., dphidz=0., rx_axial=0.,
                          ry_axial=0., phi_radial=0., d3phidz3=0., name=None,
-                         *, mass=43, charge=1, electrodes=None, z_grid=None):
+                         *, electrodes=None, z_grid=None):
         """Start a new Waveform with given potential wells
 
         Each well is identified by its index within parameter lists. An
@@ -184,10 +184,6 @@ class MotionControl:
             use the well index as a name. If unspecified, all names are the
             well index.
 
-        :param mass: atomic mass number of ion. This is used to convert fields
-            and frequencies. Default: 43
-        :param charge: elementary charge of ion. This is used to convert fields
-            and frequencies. Default: 1
         :param electrodes: list naming electrodes to be used in the waveform.
             If `None` the default electrodes are used.
         :param z_grid: z-grid on which to perform optimisation. If `None` SURF
@@ -195,7 +191,7 @@ class MotionControl:
         """
         well = self._mk_wells(z, f_axial, f_rad_x, width, dphidx, dphidy,
                               dphidz, rx_axial, ry_axial, phi_radial, d3phidz3,
-                              name, mass=mass, charge=charge)
+                              name)
         volt, el = self._volt_from_wells(well, electrodes, z_grid)
         wave = self._mk_waveform(volt, el, well)
         return wave
@@ -538,19 +534,8 @@ class MotionControl:
         wave.wells_idx.append(len(wave.voltage_vec_list))
         return wave
 
-    def _interpolate(self, volt0, volt1, n_step):
-        """Smoothly evolve between 2 voltage vectors.
-
-        Assumes electrode ordering in both voltage vectors is identical.
-
-        May be used to connect different (similar) waveforms or
-        evolve to/from non SURF voltages"""
-        return [volt0 + (volt1 - volt0) * t for t in np.linspace(0, 1, n_step)]
-
-    def _mk_wells(self, z, f_axial=1e6, f_rad_x=5e6, width=5e-6, dphidx=0.,
-                  dphidy=0., dphidz=0., rx_axial=0., ry_axial=0.,
-                  phi_radial=0., d3phidz3=0., name=None, *, mass=43, charge=1):
-        """Wells should be specified as parameter iterables of equal length.
+    def spawn_wells(self, wave, z, n_step=5, *, z_grid=None, **kwargs):
+        """Spawn new wells in a waveform
 
         Each well is identified by its index within parameter lists. An
         optional more user-friendly name may also be specified for later
@@ -584,24 +569,83 @@ class MotionControl:
             use the well index as a name. If unspecified, all names are the
             well index.
 
-        :param mass: atomic mass number of ion. This is used to convert fields
-            and frequencies. Default: 43
-        :param charge: elementary charge of ion. This is used to convert fields
-            and frequencies. Default: 1
+        :param z_grid: z-grid on which to perform optimisation. If `None` SURF
+            will use the default grid.
         """
-        def f_to_field(frequency):
-            return (mass * const["atomic mass constant"]
-                    / (charge * const["atomic unit of charge"])
-                    * (2 * np.pi * frequency)**2)
+        old_wells = wave.fixed_wells[-1]
+        old_volt = wave.voltage_vec_list[-1]
 
+        tmp_wells = self._mk_wells(z, **kwargs)
+        new_wells = deepcopy(old_wells)
+        for i, value_list in enumerate(tmp_wells):
+            new_wells[i] = [*new_wells[i], *tmp_wells[i]]
+
+        new_volt, el = self._volt_from_wells(new_wells, new_wells.el_vec,
+                                             z_grid)
+        v_steps = self._interpolate(old_volt, new_volt, n_step)
+        wave.fixed_wells.append(new_wells)
+        wave.voltage_vec_list.extend(v_steps)
+        wave.wells_idx.append(len(wave.voltage_vec_list))
+
+    def _interpolate(self, volt0, volt1, n_step):
+        """Smoothly evolve between 2 voltage vectors.
+
+        Assumes electrode ordering in both voltage vectors is identical.
+
+        May be used to connect different (similar) waveforms or
+        evolve to/from non SURF voltages"""
+        return [volt0 + (volt1 - volt0) * t for t in np.linspace(0, 1, n_step)]
+
+    def f_to_field(self, frequency):
+        return (self.mass * const["atomic mass constant"]
+                / (self.charge * const["atomic unit of charge"])
+                * (2 * np.pi * frequency)**2)
+
+    def _mk_wells(self, z, f_axial=1e6, f_rad_x=5e6, width=5e-6, dphidx=0.,
+                  dphidy=0., dphidz=0., rx_axial=0., ry_axial=0.,
+                  phi_radial=0., d3phidz3=0., name=None):
+        """Wells should be specified as parameter iterables of equal length.
+
+        Each well is identified by its index within parameter lists. An
+        optional more user-friendly name may also be specified for later
+        convenience.
+
+        :param z: iterable of well centre positions in m.
+        :param f_axial: list of well axial frequencies in Hz. Scalars are
+            broadcast. Default: 1e6
+        :param f_rad_x: list of radial frequencies in Hz. For a non-rotated
+            well this mode is on the x-axis. Scalars are broadcast.
+            Default: 5e6
+        :param width: characteristic size over which the well is produced in m.
+            Scalars are broadcast. Default: 5e-6
+        :param dphidx: x-compensation in V/m. Scalars are broadcast. Default: 0
+        :param dphidy: y-compensation in V/m. Scalars are broadcast. Default: 0
+        :param dphidz: z-compensation in V/m. Scalars are broadcast. Default: 0
+        :param rx_axial: x-rotation angle of the axial mode from the z-axis in
+            radians. Scalars are broadcast. Default: 0.
+        :param ry_axial: y-rotation angle of the axial mode from the z-axis in
+            radians. Scalars are broadcast. Default: 0.
+        :param phi_radial: Rotation of the radial mode axes from the coordinate
+            axes in radians. To be precise, the coordinate axes are transformed
+            to the well principal axes by the following steps:
+                1.  A rotation around the z-axis by phi_radial
+                2.  A rotation around the y-axis by ry_axial
+                3.  A rotation around the x-axis by rx_axial
+            Default: 0.
+        :param d3phidz3: cubic electric potential term in V*m^-3. Scalars are
+            broadcast. Default: 0.
+        :param name: List of string names for wells. Elements set to None will
+            use the well index as a name. If unspecified, all names are the
+            well index.
+        """
         z = tuple(i for i in z)
 
         if not isinstance(f_axial, Iterable):
             f_axial = tuple(f_axial for i in z)
-        d2phidaxial2 = tuple(f_to_field(i) for i in f_axial)
+        d2phidaxial2 = tuple(self.f_to_field(i) for i in f_axial)
         if not isinstance(f_rad_x, Iterable):
             f_rad_x = tuple(f_rad_x for i in z)
-        d2phidradial_h2 = tuple(f_to_field(i) for i in f_rad_x)
+        d2phidradial_h2 = tuple(self.f_to_field(i) for i in f_rad_x)
 
         if not isinstance(width, Iterable):
             width = tuple(width for i in z)
