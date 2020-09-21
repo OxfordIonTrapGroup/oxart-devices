@@ -25,8 +25,9 @@ class SURF:
         self.jl.eval("import SURF")
         self.jl.eval("using SURF.Electrodes")
         self.jl.eval("using SURF.ExternalField")
-        self.jl.eval("using SURF.Traps")
+        self.jl.eval("using SURF.TargetPotential")
         self.jl.eval("using SURF.DataSelect")
+        self.jl.eval("using SURF.Load")
 
         self.load_config(trap_model_path, cache_path, **kwargs)
         print("ready")
@@ -50,8 +51,8 @@ class SURF:
             self.trap_model_path = trap_model_path
         self.cache_path = cache_path
 
-        model = self.jl.eval("SURF.Load.load_grids")(
-            self.trap_model_path, omega_rf, mass, v_rf)
+        model = self.jl.eval("SURF.Load.load_model")(
+            self.trap_model_path, omega_rf=omega_rf, mass=mass, v_rf=v_rf)
         self.raw_elec_grid, self.raw_field_grid = model[0:2]
         self.elec_fn = self.jl.eval("mk_electrodes_fn")(self.raw_elec_grid)
         self.field_fn = self.jl.eval("mk_field_fn")(self.raw_field_grid)
@@ -63,7 +64,7 @@ class SURF:
             "dynamic_settings": model[4],
             "split_settings": model[5],
         }
-        return get_config()
+        return self.get_config()
 
     def get_config(self):
         """Dictionary containing configuration Settings"""
