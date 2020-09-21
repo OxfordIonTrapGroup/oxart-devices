@@ -68,9 +68,30 @@ class SURF:
 
     def get_config(self):
         """Dictionary containing configuration Settings"""
-        return {"trap_model_path": self.trap_model_path,
+        conf = {"trap_model_path": self.trap_model_path,
                 "cache_path": self.cache_path,
-                }.update(self.user_defaults)
+                "zs": self.user_defaults["zs"],
+                }
+        settings = {
+            "static_settings": (
+                self.user_defaults["static_settings"].scale_tup,
+                self.user_defaults["static_settings"].v_weight,
+                self.user_defaults["static_settings"].v_max,
+                ),
+            "dynamic_settings": (
+                self.user_defaults["dynamic_settings"].scale_tup,
+                self.user_defaults["dynamic_settings"].v_weight,
+                self.user_defaults["dynamic_settings"].v_step_weights,
+                self.user_defaults["dynamic_settings"].v_max,
+                ),
+            "split_settings": (
+                self.user_defaults["split_settings"].split_scale_tup,
+                self.user_defaults["split_settings"].spectator_scale_tup,
+                self.user_defaults["split_settings"].v_weight,
+                self.user_defaults["split_settings"].v_max,),
+        }
+        conf.update(settings)
+        return conf
 
     def static(self, **param_dict):
         """Controls static solver and handles julia objects
@@ -237,7 +258,7 @@ class SURF:
 
     def get_all_electrode_names(self):
         """Return a list of all electrode names defined in the trap model"""
-        return elec_fn.names
+        return self.elec_fn.names
 
     def _mk_wells(self, z, width, dphidx, dphidy, dphidz,
                   rx_axial, ry_axial, phi_radial,

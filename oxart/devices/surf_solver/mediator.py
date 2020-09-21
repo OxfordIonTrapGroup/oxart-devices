@@ -55,8 +55,7 @@ class MotionControl:
             good positions for splitting/merging are at the centre of an
             electrode pair. [in m]
         :param charge: this must match the value of SURF.Constants.q
-        :param mass: mass of ion in atomic mass units.
-        """
+        :param mass: mass of ion in atomic mass units."""
         self.driver = dmgr.get(device)
         if default_electrode_override is None:
             self.default_electrodes = self.get_all_electrode_names()
@@ -67,7 +66,7 @@ class MotionControl:
         self.default_split_start = default_split_start_curvature
         self.default_split_end = default_split_end_curvature
         self.default_split_end = default_split_end_curvature
-        self.default_split_well_seperatio = default_split_well_seperation
+        self.default_split_well_seperation = default_split_well_seperation
         self.default_split_positions = default_split_positions
         self.charge, self.mass = charge, mass
 
@@ -91,8 +90,7 @@ class MotionControl:
             default electrodes are used.
         :param z_grid: vector of z-axis grid points to use for optimisation.
             `None` defaults to the default grid supplied with the trap model.
-        :param static_settings: settings for the static solver. User beware!
-        """
+        :param static_settings: settings for the static solver. User beware!"""
         if electrodes is None:
             electrodes = self.default_electrodes
         el_names = self.get_all_electrode_names()
@@ -139,11 +137,10 @@ class MotionControl:
         :param mass: mass of ion in atomic mass units
             Defaults to the most recently specified mass
         :param v_rf: RF voltage amplitude.
-            Default is given in trap model
-        """
+            Default is given in trap model"""
         if mass is not None:
             self.mass = mass
-        return self.driver.load_congig(trap_model_path, cache_path,
+        return self.driver.load_config(trap_model_path, cache_path,
                                        omega_rf, self.mass, v_rf)
 
     def get_new_waveform(self, z, f_axial=1e6, f_rad_x=5e6, width=5e-6,
@@ -187,8 +184,7 @@ class MotionControl:
         :param electrodes: list naming electrodes to be used in the waveform.
             If `None` the default electrodes are used.
         :param z_grid: z-grid on which to perform optimisation. If `None` SURF
-            will use the default grid.
-        """
+            will use the default grid."""
         well = self._mk_wells(z, f_axial, f_rad_x, width, dphidx, dphidy,
                               dphidz, rx_axial, ry_axial, phi_radial, d3phidz3,
                               name)
@@ -196,7 +192,7 @@ class MotionControl:
         wave = self._mk_waveform(volt, el, well)
         return wave
 
-    def modify(self, wave, change_dict, n_step=55, *,
+    def modify(self, change_dict, wave, n_step=55, *,
                electrodes=None, z_grid=None,
                static_settings=None, dynamic_settings=None):
         """Calculate evolution to modified parameters
@@ -534,7 +530,7 @@ class MotionControl:
         wave.wells_idx.append(len(wave.voltage_vec_list))
         return wave
 
-    def spawn_wells(self, wave, z, n_step=5, *, z_grid=None, **kwargs):
+    def spawn_wells(self, z, wave, n_step=5, *, z_grid=None, **kwargs):
         """Spawn new wells in a waveform
 
         Each well is identified by its index within parameter lists. An
@@ -570,17 +566,16 @@ class MotionControl:
             well index.
 
         :param z_grid: z-grid on which to perform optimisation. If `None` SURF
-            will use the default grid.
-        """
+            will use the default grid."""
         old_wells = wave.fixed_wells[-1]
         old_volt = wave.voltage_vec_list[-1]
 
         tmp_wells = self._mk_wells(z, **kwargs)
         new_wells = deepcopy(old_wells)
-        for i, value_list in enumerate(tmp_wells):
-            new_wells[i] = [*new_wells[i], *tmp_wells[i]]
+        new_wells = Wells(*[[*new_wells[i], *tmp_wells[i]]
+                            for i in range(len(new_wells))])
 
-        new_volt, el = self._volt_from_wells(new_wells, new_wells.el_vec,
+        new_volt, el = self._volt_from_wells(new_wells, wave.el_vec,
                                              z_grid)
         v_steps = self._interpolate(old_volt, new_volt, n_step)
         wave.fixed_wells.append(new_wells)
@@ -597,8 +592,8 @@ class MotionControl:
         return [volt0 + (volt1 - volt0) * t for t in np.linspace(0, 1, n_step)]
 
     def f_to_field(self, frequency):
-        return (self.mass * const["atomic mass constant"]
-                / (self.charge * const["atomic unit of charge"])
+        return (self.mass * const("atomic mass constant")
+                / (self.charge * const("atomic unit of charge"))
                 * (2 * np.pi * frequency)**2)
 
     def _mk_wells(self, z, f_axial=1e6, f_rad_x=5e6, width=5e-6, dphidx=0.,
@@ -636,39 +631,41 @@ class MotionControl:
             broadcast. Default: 0.
         :param name: List of string names for wells. Elements set to None will
             use the well index as a name. If unspecified, all names are the
-            well index.
-        """
-        z = tuple(i for i in z)
+            well index."""
+        if not isinstance(z, Iterable):
+            z = [z,]
+        else:
+            z = [i for i in z]
 
         if not isinstance(f_axial, Iterable):
-            f_axial = tuple(f_axial for i in z)
-        d2phidaxial2 = tuple(self.f_to_field(i) for i in f_axial)
+            f_axial = [f_axial for i in z]
+        d2phidaxial2 = [self.f_to_field(i) for i in f_axial]
         if not isinstance(f_rad_x, Iterable):
-            f_rad_x = tuple(f_rad_x for i in z)
-        d2phidradial_h2 = tuple(self.f_to_field(i) for i in f_rad_x)
+            f_rad_x = [f_rad_x for i in z]
+        d2phidradial_h2 = [self.f_to_field(i) for i in f_rad_x]
 
         if not isinstance(width, Iterable):
-            width = tuple(width for i in z)
+            width = [width for i in z]
         if not isinstance(dphidx, Iterable):
-            dphidx = tuple(dphidx for i in z)
+            dphidx = [dphidx for i in z]
         if not isinstance(dphidy, Iterable):
-            dphidy = tuple(dphidy for i in z)
+            dphidy = [dphidy for i in z]
         if not isinstance(dphidz, Iterable):
-            dphidz = tuple(dphidz for i in z)
+            dphidz = [dphidz for i in z]
 
         if not isinstance(rx_axial, Iterable):
-            rx_axial = tuple(rx_axial for i in z)
+            rx_axial = [rx_axial for i in z]
         if not isinstance(ry_axial, Iterable):
-            ry_axial = tuple(ry_axial for i in z)
-        if not isinstance(rx_axial, Iterable):
-            phi_radial = tuple(phi_radial for i in z)
+            ry_axial = [ry_axial for i in z]
+        if not isinstance(phi_radial , Iterable):
+            phi_radial = [phi_radial for i in z]
         if not isinstance(d3phidz3, Iterable):
-            d3phidz3 = tuple(d3phidz3 for i in z)
+            d3phidz3 = [d3phidz3 for i in z]
 
         if name is None:
-            name = tuple(i for i in range(len(z)))
+            name = [str(i) for i in range(len(z))]
         else:
-            tuple(n if n is not None else str(i) for i, n in enumerate(name))
+            [n if n is not None else str(i) for i, n in enumerate(name)]
 
         return Wells(name, z, width, dphidx, dphidy, dphidz, rx_axial,
                      ry_axial, phi_radial, d2phidaxial2, d3phidz3,
