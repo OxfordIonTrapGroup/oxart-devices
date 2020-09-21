@@ -35,15 +35,15 @@ class Agilent6671A:
 
     def set_voltage_limit(self, voltage_limit):
         """Set the voltage limit for channel in volts."""
-        self.stream.write(":VOLT {:f}".format(voltage_limit))
+        self.stream.write(":VOLT {:f}\n".format(voltage_limit).encode())
 
     def set_current_limit(self, current_limit):
         """Set the current limit for channel in amps"""
-        self.stream.write(":CURR {:f}".format(current_limit))
+        self.stream.write(":CURR {:f}\n".format(current_limit).encode())
 
     def set_output_enable(self, enable):
         """Enable/disable a channel."""
-        self.stream.write("OUTP {}".format(int(bool(enable))).encode())
+        self.stream.write("OUTP {}\n".format(int(bool(enable))).encode())
 
     def set_overvoltage_limit(self, overvoltage_limit):
         """Set the overvoltage protection (OVP) level of the power supply.
