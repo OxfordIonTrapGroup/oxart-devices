@@ -30,6 +30,8 @@ class MotionControl:
     def __init__(self, dmgr, device,
                  default_electrode_override=None,
                  default_z_grid_override=None,
+                 default_f_axial=1e6,
+                 default_f_rad_x=5e6,
                  default_split_start_curvature=1.e7,
                  default_split_end_curvature=-1.e7,
                  default_split_well_seperation=140e-6,
@@ -42,6 +44,9 @@ class MotionControl:
             using all trap_model electrodes.
         :param default_z_grid_override: If `None` SURF will default to
             using the `zs` vector provided in the trap model.
+         :param default_f_axial: default axial trap frequency in Hz
+         :param default_f_rad_x: default horizontal radial mode trap frequency
+            in Hz
          :param default_split_start_curvature: transition from interpolation to
             split solver. Not included with the trap model as this is likely
             to require experimental optimisation. [in V m^-2]
@@ -63,6 +68,8 @@ class MotionControl:
             self.default_electrodes = default_electrode_override
 
         self.default_z_grid = default_z_grid_override
+        self.default_f_axial = default_f_axial
+        self.default_f_rad_x = default_f_rad_x
         self.default_split_start = default_split_start_curvature
         self.default_split_end = default_split_end_curvature
         self.default_split_end = default_split_end_curvature
@@ -143,7 +150,7 @@ class MotionControl:
         return self.driver.load_config(trap_model_path, cache_path,
                                        omega_rf, self.mass, v_rf)
 
-    def get_new_waveform(self, z, f_axial=1e6, f_rad_x=5e6, width=5e-6,
+    def get_new_waveform(self, z, f_axial=None, f_rad_x=None, width=5e-6,
                          dphidx=0., dphidy=0., dphidz=0., rx_axial=0.,
                          ry_axial=0., phi_radial=0., d3phidz3=0., name=None,
                          *, electrodes=None, z_grid=None):
@@ -155,10 +162,10 @@ class MotionControl:
 
         :param z: iterable of well centre positions in m.
         :param f_axial: list of well axial frequencies in Hz. Scalars are
-            broadcast. Default: 1e6
+            broadcast. If `None` `self.default_f_axial` is used.
         :param f_rad_x: list of radial frequencies in Hz. For a non-rotated
             well this mode is on the x-axis. Scalars are broadcast.
-            Default: 5e6
+            If `None` `self.default_f_rad_x` is used.
         :param width: characteristic size over which the well is produced in m.
             Scalars are broadcast. Default: 5e-6
         :param dphidx: x-compensation in V/m. Scalars are broadcast. Default: 0
@@ -596,7 +603,7 @@ class MotionControl:
                 / (self.charge * const("atomic unit of charge"))
                 * (2 * np.pi * frequency)**2)
 
-    def _mk_wells(self, z, f_axial=1e6, f_rad_x=5e6, width=5e-6, dphidx=0.,
+    def _mk_wells(self, z, f_axial=None, f_rad_x=None, width=5e-6, dphidx=0.,
                   dphidy=0., dphidz=0., rx_axial=0., ry_axial=0.,
                   phi_radial=0., d3phidz3=0., name=None):
         """Wells should be specified as parameter iterables of equal length.
@@ -607,10 +614,10 @@ class MotionControl:
 
         :param z: iterable of well centre positions in m.
         :param f_axial: list of well axial frequencies in Hz. Scalars are
-            broadcast. Default: 1e6
+            broadcast. If `None` `self.default_f_axial` is used.
         :param f_rad_x: list of radial frequencies in Hz. For a non-rotated
             well this mode is on the x-axis. Scalars are broadcast.
-            Default: 5e6
+            If `None` `self.default_f_rad_x` is used.
         :param width: characteristic size over which the well is produced in m.
             Scalars are broadcast. Default: 5e-6
         :param dphidx: x-compensation in V/m. Scalars are broadcast. Default: 0
@@ -632,6 +639,11 @@ class MotionControl:
         :param name: List of string names for wells. Elements set to None will
             use the well index as a name. If unspecified, all names are the
             well index."""
+        if f_axial is None:
+            f_axial = self.default_f_axial
+        if f_rad_x is None:
+            f_rad_x = self.default_f_rad_x
+
         if not isinstance(z, Iterable):
             z = [z,]
         else:
