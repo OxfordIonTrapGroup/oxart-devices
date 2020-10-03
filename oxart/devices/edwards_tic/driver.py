@@ -21,7 +21,7 @@ class Turbo:
         """ Returns the temperature of an input channel as a float in Kelin
         : param input: either "A" or "B"
         """
-        self._send_cmd("?V913".encode())
+        self._send_cmd("?V913")
         reply = self._read()
         pressure = float(reply.split(" ")[1].split(";")[0])/100
         return pressure
