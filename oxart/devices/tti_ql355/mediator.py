@@ -19,9 +19,25 @@ class PsuWrapper:
         (device, channel) = self._get_dev_channel(logicalChannel)
         device.set_current_limit(value, channel=channel)
 
+    def get_current_limit(self, logicalChannel):
+        (device, channel) = self._get_dev_channel(logicalChannel)
+        return device.get_current_limit(channel=channel)
+
+    def get_current(self,logicalChannel):
+        (device, channel) = self._get_dev_channel(logicalChannel)
+        return device.get_current(channel=channel)
+
     def set_output_enable(self, logicalChannel, value):
         (device, channel) = self._get_dev_channel(logicalChannel)
         device.set_output_enable(value, channel=channel)
+
+    def trip_reset(self, logicalChannel):
+        (device, channel) = self._get_dev_channel(logicalChannel)
+        device.trip_reset(channel=channel)
+
+    def get_ocp_current(self, logicalChannel):
+        (device, channel) = self._get_dev_channel(logicalChannel)
+        return device.get_ocp_current(channel=channel)
 
     def _get_dev_channel(self, logicalChannel):
         """Return a (device handle, channel) tuple given a logical channel"""
