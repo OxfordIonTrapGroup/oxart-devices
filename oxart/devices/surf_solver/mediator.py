@@ -27,6 +27,11 @@ Waveform.__doc__ = """Represents the electrode voltage evolution
 
 
 class SURFMediator:
+    """A high level interface to calculate electrode voltages for ion dynamics.
+
+    The bare bones interface of the SURF driver is abstracted to simplify
+    creating and chaining common operations.
+    """
     def __init__(self, dmgr, device,
                  default_electrode_override=None,
                  default_z_grid_override=None,
