@@ -26,7 +26,7 @@ Waveform.__doc__ = """Represents the electrode voltage evolution
 :param wells_idx: list relating voltage_list indices to fixed_wells"""
 
 
-class MotionControl:
+class SURFMediator:
     def __init__(self, dmgr, device,
                  default_electrode_override=None,
                  default_z_grid_override=None,
