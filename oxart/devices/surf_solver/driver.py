@@ -67,7 +67,7 @@ class SURF:
         return self.get_config()
 
     def get_div_grad_phi(self, z):
-        """return div(grad(\N{Greek Capital Letter Phi})) at z position"""
+        """return div(grad(Phi)) at z position"""
         # hack: field names are unicode (not a valid python identifier)
         # The work-around is to evaluate the field names in julia
 
