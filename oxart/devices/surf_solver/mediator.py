@@ -215,6 +215,17 @@ class SURFMediator:
         wave = self._mk_waveform(volt, el, well)
         return wave
 
+    def continue_with_new_waveform(self, old_waveform, well_idx=-1):
+        """Returns a new waveform starting with a well in `old_waveform`
+
+        :param old_waveform: old waveform to continue from
+        :param well_idx: index of potential well to continue with. Defaults to
+            the last well in the waveform"""
+        return self._mk_waveform(
+            old_waveform.voltage_vec_list[old_waveform.wells_idx[well_idx]],
+            old_waveform.el_vec,
+            old_waveform.fixed_wells[well_idx])
+
     def modify(self, change_dict, wave, n_step=55, *,
                electrodes=None, z_grid=None,
                static_settings=None, dynamic_settings=None):
