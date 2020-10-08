@@ -43,7 +43,7 @@ class SURFMediator:
                  default_split_positions=np.array([0.]),
                  charge=1, mass=43):
         """
-        :param dmgr: device maneger
+        :param dmgr: device manager
         :param device: name of SURF driver
         :param default_electrode_override: If `None` SURF will default to
             using all trap_model electrodes.
@@ -340,18 +340,13 @@ class SURFMediator:
         scan_start.rx_axial[0] = 0.
         scan_start.ry_axial[0] = 0.
         scan_start.phi_radial[0] = 0.
-        # empirical, good values will be different for different traps
-        # ~1/10th of a "strong" trap
-        scan_start.d2phidaxial2[0] = scan_curv_start  # 1.1666111496697802e7
-        # tested split/merge with +-5833055.748348901
+        scan_start.d2phidaxial2[0] = scan_curv_start
 
         scan_end = deepcopy(target_well)
         scan_end.rx_axial[0] = 0.
         scan_end.ry_axial[0] = 0.
         scan_end.phi_radial[0] = 0.
-        # empirical, good values will be different for different traps
-        # value is chosen to give a 2-ion separation of ~70 um = 1 electrode
-        scan_end.d2phidaxial2[0] = scan_curv_end  # -1.1666111496697802e7 * 4
+        scan_end.d2phidaxial2[0] = scan_curv_end
 
         split_params = {
             "electrodes": wave.el_vec,
@@ -368,7 +363,6 @@ class SURFMediator:
         volt_split, split_el, sep_vec = self.driver.split(**split_params)
         volt_split = [volt_split[:, i] for i in range(n_step)]
 
-        # 140 um spaced wells -> at +- 1 electrode to start
         names = [
             name if out_name0 is None else out_name0,
             (name + "_1") if out_name1 is None else out_name1, ]
@@ -496,8 +490,6 @@ class SURFMediator:
             d3phidz3=[np.mean(target_well.d3phidz3)],
             d2phidradial_h2=[np.mean(target_well.d2phidradial_h2)],)
         scan_end = deepcopy(scan_start)
-        # empirical, good values will be different for different traps
-        # value is chosen to give a 2-ion separation of ~70 um = 1 electrode
         scan_end.d2phidaxial2[0] = scan_curv_end
 
         # solve splitting dynamics (merging is inverse splitting)
