@@ -66,6 +66,22 @@ class SURF:
         }
         return self.get_config()
 
+    def get_div_grad_phi(self, z):
+        """return div(grad(\N{Greek Capital Letter Phi})) at z position"""
+        # hack: field names are unicode (not a valid python identifier)
+        # The work-around is to evaluate the field names in julia
+
+        # assignment in julia repel main name-space
+        julia.Main.last_field_fn = self.field_fn
+        div_grad_phi = self.jl.eval(
+            "last_field_fn.d2\N{Greek Capital Letter Phi}dx2")(z)
+        div_grad_phi += self.jl.eval(
+            "last_field_fn.d2\N{Greek Capital Letter Phi}dy2")(z)
+        div_grad_phi += self.jl.eval(
+            "last_field_fn.d2\N{Greek Capital Letter Phi}dz2")(z)
+        return div_grad_phi
+
+
     def get_config(self):
         """Dictionary containing configuration Settings"""
         conf = {"trap_model_path": self.trap_model_path,

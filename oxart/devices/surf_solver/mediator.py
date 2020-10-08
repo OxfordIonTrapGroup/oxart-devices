@@ -133,6 +133,17 @@ class SURFMediator:
         else:
             return self.default_electrodes
 
+    def get_sum_square_freq(self, z):
+        """Return the single ion sum of square mode frequencies of the model
+
+        The correct model RF amplitude can be selected by scaling the RF
+        amplitude such that the sum of square frequencies matches those
+        measured experimentally
+
+        :param z: position where the sum of square frequencies is found [in m]
+        """
+        return self.field_to_f(self.driver.get_div_grad_phi(z))**2
+
     def reload_trap_model(self, trap_model_path=None, cache_path=None,
                           omega_rf=None, mass=None, v_rf=None):
         """Reload the trap model caching and trap parameters
@@ -604,9 +615,17 @@ class SURFMediator:
         return [volt0 + (volt1 - volt0) * t for t in np.linspace(0, 1, n_step)]
 
     def f_to_field(self, frequency):
+        "convert mode frequency to field curvature"
         return (self.mass * const("atomic mass constant")
                 / (self.charge * const("atomic unit of charge"))
                 * (2 * np.pi * frequency)**2)
+
+    def field_to_f(self, field_curvature):
+        "convert field curvature to mode frequency"
+        return np.sqrt(field_curvature
+                       * self.charge * const("atomic unit of charge")
+                       / (self.mass * const("atomic mass constant"))
+                       ) / (2 * np.pi)
 
     def _mk_wells(self, z, f_axial=None, f_rad_x=None, width=5e-6, dphidx=0.,
                   dphidy=0., dphidz=0., rx_axial=0., ry_axial=0.,
