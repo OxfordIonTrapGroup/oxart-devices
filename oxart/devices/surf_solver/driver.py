@@ -9,7 +9,7 @@ import numpy as np
 import julia
 from sipyco import pyon
 import shelve
-
+import os
 
 class SURF:
     """SURF Uncomplicated Regional Fields (python driver)"""
@@ -49,6 +49,13 @@ class SURF:
         """
         if trap_model_path is not None:
             self.trap_model_path = trap_model_path
+        # create cache directory as needed
+        if cache_path is not None:
+            cache_path = os.path.join(cache_path,
+                                      "m{}_w{}_v{}".format(mass, omega_rf,
+                                                           v_rf))
+            if not os.path.isdir(cache_path):
+                os.mkdir(cache_path)
         self.cache_path = cache_path
 
         model = self.jl.eval("SURF.Load.load_model")(
@@ -141,10 +148,20 @@ class SURF:
             settings = self._mk_solver_settings(
                 *param_dict["static_settings"], solver="Static")
 
+        # need to fix argument order!
+        arg_key = pyon.encode((
+            elec_fn.names, zs, param_dict.get("static_settings", None),
+            param_dict["wells"]["z"], param_dict["wells"]["width"],
+            param_dict["wells"]["dphidx"], param_dict["wells"]["dphidy"],
+            param_dict["wells"]["dphidz"], param_dict["wells"]["rx_axial"],
+            param_dict["wells"]["ry_axial"], param_dict["wells"]["phi_radial"],
+            param_dict["wells"]["d2phidaxial2"],
+            param_dict["wells"]["d3phidz3"],
+            param_dict["wells"]["d2phidradial_h2"]))
         if self.cache_path is not None:
-            with shelve.open(self.cache_path + "static.db") as db:
+            with shelve.open(os.path.join(self.cache_path, "static")) as db:
                 try:
-                    return db[pyon.encode(param_dict)]
+                    return db[arg_key]
                 except KeyError:
                     pass  # key not found
 
@@ -152,9 +169,9 @@ class SURF:
                                       settings)
 
         if self.cache_path is not None:
-            with shelve.open(self.cache_path + "static.db") as db:
+            with shelve.open(os.path.join(self.cache_path, "static")) as db:
                 try:
-                    db[pyon.encode(param_dict)] = voltages, elec_fn.names
+                    db[arg_key] = voltages, elec_fn.names
                 except ValueError:
                     pass  # value too large
         return voltages, elec_fn.names
@@ -194,10 +211,46 @@ class SURF:
             settings = self._mk_solver_settings(
                 *param_dict["split_settings"], solver="Split")
 
+        # need to fix argument order!
+        arg_key = pyon.encode((
+            elec_fn.names, zs, param_dict.get("split_settings", None),
+            param_dict["scan_start"]["z"],
+            param_dict["scan_start"]["width"],
+            param_dict["scan_start"]["dphidx"],
+            param_dict["scan_start"]["dphidy"],
+            param_dict["scan_start"]["dphidz"],
+            param_dict["scan_start"]["rx_axial"],
+            param_dict["scan_start"]["ry_axial"],
+            param_dict["scan_start"]["phi_radial"],
+            param_dict["scan_start"]["d2phidaxial2"],
+            param_dict["scan_start"]["d3phidz3"],
+            param_dict["scan_start"]["d2phidradial_h2"],
+            param_dict["scan_end"]["z"],
+            param_dict["scan_end"]["width"],
+            param_dict["scan_end"]["dphidx"],
+            param_dict["scan_end"]["dphidy"],
+            param_dict["scan_end"]["dphidz"],
+            param_dict["scan_end"]["rx_axial"],
+            param_dict["scan_end"]["ry_axial"],
+            param_dict["scan_end"]["phi_radial"],
+            param_dict["scan_end"]["d2phidaxial2"],
+            param_dict["scan_end"]["d3phidz3"],
+            param_dict["scan_end"]["d2phidradial_h2"],
+            param_dict["spectators"]["z"],
+            param_dict["spectators"]["width"],
+            param_dict["spectators"]["dphidx"],
+            param_dict["spectators"]["dphidy"],
+            param_dict["spectators"]["dphidz"],
+            param_dict["spectators"]["rx_axial"],
+            param_dict["spectators"]["ry_axial"],
+            param_dict["spectators"]["phi_radial"],
+            param_dict["spectators"]["d2phidaxial2"],
+            param_dict["spectators"]["d3phidz3"],
+            param_dict["spectators"]["d2phidradial_h2"],))
         if self.cache_path is not None:
-            with shelve.open(self.cache_path + "split.db") as db:
+            with shelve.open(os.path.join(self.cache_path, "split.db")) as db:
                 try:
-                    return db[pyon.encode(param_dict)]
+                    return db[arg_key]
                 except KeyError:
                     pass  # key not found
 
@@ -207,10 +260,9 @@ class SURF:
             elec_grid, field_grid, settings)
 
         if self.cache_path is not None:
-            with shelve.open(self.cache_path + "split.db") as db:
+            with shelve.open(os.path.join(self.cache_path, "split.db")) as db:
                 try:
-                    db[pyon.encode(param_dict)] = (voltages, elec_fn.names,
-                                                   sep_vec)
+                    db[arg_key] = (voltages, elec_fn.names, sep_vec)
                 except ValueError:
                     pass  # value too large
 
@@ -255,19 +307,39 @@ class SURF:
         v0 = [param_dict["volt_start"][name] for name in elec_fn.names]
         v1 = [param_dict["volt_end"][name] for name in elec_fn.names]
 
+        # need to fix argument order!
+        arg_key = pyon.encode((
+            elec_fn.names, zs, param_dict.get("dynamic_settings", None),
+            v0, v1,
+            param_dict["wells0"]["z"], param_dict["wells0"]["width"],
+            param_dict["wells0"]["dphidx"], param_dict["wells0"]["dphidy"],
+            param_dict["wells0"]["dphidz"], param_dict["wells0"]["rx_axial"],
+            param_dict["wells0"]["ry_axial"],
+            param_dict["wells0"]["phi_radial"],
+            param_dict["wells0"]["d2phidaxial2"],
+            param_dict["wells0"]["d3phidz3"],
+            param_dict["wells0"]["d2phidradial_h2"],
+            param_dict["wells1"]["z"], param_dict["wells1"]["width"],
+            param_dict["wells1"]["dphidx"], param_dict["wells1"]["dphidy"],
+            param_dict["wells1"]["dphidz"], param_dict["wells1"]["rx_axial"],
+            param_dict["wells1"]["ry_axial"],
+            param_dict["wells1"]["phi_radial"],
+            param_dict["wells1"]["d2phidaxial2"],
+            param_dict["wells1"]["d3phidz3"],
+            param_dict["wells1"]["d2phidradial_h2"],))
         if self.cache_path is not None:
-            with shelve.open(self.cache_path + "dynamic.db") as db:
+            with shelve.open(os.path.join(self.cache_path, "dynamic.db")) as db:
                 try:
-                    return db[pyon.encode(param_dict)]
+                    return db[arg_key]
                 except KeyError:
                     pass  # key not found
         voltages = self._solve_dynamic(
             trajectory, v0, v1, elec_grid, field_grid, settings)
 
         if self.cache_path is not None:
-            with shelve.open(self.cache_path + "dynamic.db") as db:
+            with shelve.open(os.path.join(self.cache_path, "dynamic.db")) as db:
                 try:
-                    db[pyon.encode(param_dict)] = voltages, elec_fn.names
+                    db[arg_key] = voltages, elec_fn.names
                 except ValueError:
                     pass  # value too large
         return voltages, elec_fn.names
