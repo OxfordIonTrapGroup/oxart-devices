@@ -122,6 +122,15 @@ class SURFMediator:
         v_vec, el_vec = self.driver.static(**param)
         return v_vec[:, 0], el_vec
 
+    def get_model_fields(self, zs, volt_dict):
+        """get a dict of trap fields at specified positions for given voltages
+
+        :param zs: list of z-positions to evaluate [in m]
+        :param volt_dict: dictionary {<electrode_name>: <electrode voltage>}
+            unspecified voltages are assumed to be zero.
+        """
+        return self.driver.get_model_fields(zs, volt_dict)
+
     def get_all_electrode_names(self):
         """Return a list of all electrode names defined in the trap model"""
         return self.driver.get_all_electrode_names()

@@ -417,6 +417,44 @@ class SURF:
     def close(self):
         pass
 
+    def get_model_fields(self, zs, volt_dict):
+        "get a dict of trap fields at specified positions for given voltages"
+        return {
+            "zs": zs,
+            "phi": self._calc_model_field(zs, volt_dict, "phi"),
+            "dphidx": self._calc_model_field(zs, volt_dict, "dphidx"),
+            "dphidy": self._calc_model_field(zs, volt_dict, "dphidy"),
+            "dphidz": self._calc_model_field(zs, volt_dict, "dphidz"),
+            "d2phidx2": self._calc_model_field(zs, volt_dict, "d2phidx2"),
+            "d2phidy2": self._calc_model_field(zs, volt_dict, "d2phidy2"),
+            "d2phidz2": self._calc_model_field(zs, volt_dict, "d2phidz2"),
+            "d2phidxdy": self._calc_model_field(zs, volt_dict, "d2phidxdy"),
+            "d2phidxdz": self._calc_model_field(zs, volt_dict, "d2phidxdz"),
+            "d2phidydz": self._calc_model_field(zs, volt_dict, "d2phidydz"),
+            "d3phidz3": self._calc_model_field(zs, volt_dict, "d3phidz3"),
+            "d4phidz4": self._calc_model_field(zs, volt_dict, "d4phidz4"),
+        }
+
+
+    def _calc_model_field(self, zs, volt_dict, field="dphidz"):
+        """Return a list of trap model values for desired property"""
+        names = volt_dict.keys()
+        elec_fn = self._select_elec(self.elec_fn, names)
+        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
+        volt_vec = [volt_dict[name] for name in elec_fn.names]
+        # assignment in julia repel main name-space
+        julia.Main.positions = zs
+        julia.Main.field_grid = field_grid
+        julia.Main.elec_grid = elec_grid
+        julia.Main.volt_vec = volt_vec
+        # convert to unicode identifiers
+        field = field.replace("phi", "\N{Greek Capital Letter Phi}")
+        field_list = self.jl.eval(
+            # matrix(zs, elec)    mat_mul   electrode voltage vector
+            "(elec_grid." + field + " * " + "volt_vec)"
+            " + field_grid." + field)
+        return field_list
+
 
 if __name__ == "__main__":
     print("setting up solver")
