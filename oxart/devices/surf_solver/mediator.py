@@ -299,7 +299,7 @@ class SURFMediator:
         # append to wave
         wave.voltage_vec_list.extend([volt_evol[:, i] for i in range(n_step)])
         wave.fixed_wells.append(new_wells)
-        wave.wells_idx.append(len(wave.voltage_vec_list))
+        wave.wells_idx.append(len(wave.voltage_vec_list)-1)
         return wave
 
     def split(self, name, wave, n_step, n_scan=55, n_itpl=101, out_name0=None,
@@ -419,7 +419,7 @@ class SURFMediator:
             self._interpolate(wave.voltage_vec_list[-1], final_volt, n_itpl))
 
         wave.fixed_wells.append(final_wells)
-        wave.wells_idx.append(len(wave.voltage_vec_list))
+        wave.wells_idx.append(len(wave.voltage_vec_list)-1)
         return wave
 
     def merge(self, name0, name1, wave, n_step, n_scan=55, n_itpl=101,
@@ -562,7 +562,7 @@ class SURFMediator:
             self._interpolate(wave.voltage_vec_list[-1], final_volt, n_itpl))
 
         wave.fixed_wells.append(final_wells)
-        wave.wells_idx.append(len(wave.voltage_vec_list))
+        wave.wells_idx.append(len(wave.voltage_vec_list)-1)
         return wave
 
     def spawn_wells(self, z, wave, n_step=5, *, z_grid=None, **kwargs):
@@ -615,7 +615,7 @@ class SURFMediator:
         v_steps = self._interpolate(old_volt, new_volt, n_step)
         wave.fixed_wells.append(new_wells)
         wave.voltage_vec_list.extend(v_steps)
-        wave.wells_idx.append(len(wave.voltage_vec_list))
+        wave.wells_idx.append(len(wave.voltage_vec_list)-1)
 
     def _interpolate(self, volt0, volt1, n_step):
         """Smoothly evolve between 2 voltage vectors.
