@@ -61,7 +61,7 @@ def main():
             "amp-seed-power" : "laser1:amp:pd:seed:power",
             "amp-power" : "laser1:amp:pd:amp:power",
             "shg-temp-act" : "laser1:nlo:shg:tc:temp-act",
-            "shg-power" : "laser1:pd-ext:power"
+            "shg-power" : "laser1:nlo:pd:shg:power"
         }
         msg = {key : None for key in parameters.keys()}
         async with Client(NetworkConnection(args.server)) as dlc:
