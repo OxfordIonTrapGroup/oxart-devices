@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import argparse
 import asyncio
+from asyncio import wait_for
+import time
 from influxdb import InfluxDBClient
 
-from oxart.devices.toptica.driver import TopticaDLCpro
+from toptica.lasersdk.asyncio.dlcpro.v2_0_1 import Client, NetworkConnection
 
 def get_argparser():
     parser = argparse.ArgumentParser()
@@ -21,7 +23,7 @@ def get_argparser():
                         default="lab_1_toptica_raman",
                         help="Influx database name")
     parser.add_argument("--poll",
-                        default=60,
+                        default=30,
                         type=int,
                         help="Measurement polling period (seconds)")
     parser.add_argument(
@@ -32,7 +34,6 @@ def get_argparser():
         "considered faulty and program exits")
     return parser
 
-
 def main():
     args = get_argparser().parse_args()
     loop = asyncio.get_event_loop()
@@ -41,20 +42,6 @@ def main():
                                    database=args.database,
                                    timeout=30)
 
-    # Dictionary containing location of parameters in dlc
-    parameters = {
-        "dl-current-act" : "laser1:dl:cc:current-act",
-        "dl-voltage-act" : "laser1:dl:cc:voltage-act",
-        "dl-temp-act" : "laser1:dl:tc:temp-act",
-        "amp-current-act" : "laser1:amp:cc:current-act",
-        "amp-voltage-act" : "laser1:amp:cc:voltage-act",
-        "amp-temp-act" : "laser1:amp:tc:temp-act",
-        "amp-seed-power" : "laser1:amp:pd:seed:power",
-        "amp-power" : "laser1:amp:pd:amp:power",
-        "shg-temp-act" : "laser1:nlo:shg:tc:temp-act",
-        "shg-power" : "laser1:pd-ext:power"
-    }
-
     def write_point(fields):
         point = {"measurement": args.name, "fields": fields}
         try:
@@ -62,12 +49,36 @@ def main():
         except ConnectionError:
             print("ConnectionError: Influxdb down?")
 
-    dlcpro = TopticaDLCpro(server=args.server,
-                            parameters = parameters,
-                            write_point=write_point,
-                            poll = args.poll,
-                            timeout=args.timeout)
-    loop.run_until_complete(dlcpro.run())
+    async def run():
+        # Dictionary containing location of parameters in dlc
+        parameters = {
+            "dl-current-act" : "laser1:dl:cc:current-act",
+            "dl-voltage-act" : "laser1:dl:cc:voltage-act",
+            "dl-temp-act" : "laser1:dl:tc:temp-act",
+            "amp-current-act" : "laser1:amp:cc:current-act",
+            "amp-voltage-act" : "laser1:amp:cc:voltage-act",
+            "amp-temp-act" : "laser1:amp:tc:temp-act",
+            "amp-seed-power" : "laser1:amp:pd:seed:power",
+            "amp-power" : "laser1:amp:pd:amp:power",
+            "shg-temp-act" : "laser1:nlo:shg:tc:temp-act",
+            "shg-power" : "laser1:pd-ext:power"
+        }
+        msg = {key : None for key in parameters.keys()}
+        async with Client(NetworkConnection(args.server)) as dlc:
+            last_update = time.time()
+            while True:
+                t = time.time()
+                if t >= last_update + args.poll:
+                    for key in parameters.keys():
+                        try:
+                            msg[key] = await wait_for(dlc.get(parameters[key], float),
+                                                        timeout = args.timeout)
+                        except:
+                            print('Error: Is DLC pro connected to network?')
+                    last_update = t
+                    write_point(msg)
+
+    loop.run_until_complete(run())
 
 
 if __name__ == "__main__":
