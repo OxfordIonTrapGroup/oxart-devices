@@ -7,8 +7,8 @@ from oxart.devices.streams import get_stream
 
 class E4405B:
 
-    def __init__(self, device):
-        self.stream = get_stream(device)
+    def __init__(self, device, timeout=10):
+        self.stream = get_stream(device, timeout=timeout)
         assert self.ping()
 
     def identify(self):
@@ -99,6 +99,22 @@ class E4405B:
     def get_sweep_scale(self):
         """ Returns either "lin" or "log". """
         self.stream.write("SWEEP:SPACING?\n".encode())
+        return self.stream.readline().decode().lower().strip()
+
+    def get_bandwidth(self):
+        """Retireves the resolution bandwidth in Hz"""
+        self.stream.write("BANDWIDTH?\n".encode())
+        return float(self.stream.readline().decode().lower().strip())
+
+    def set_bandwidth(self, bwidth):
+        """Specifies the resolution bandwidth in Hz"""
+        self.stream.write("BANDWIDTH {}\n".format(bwidth).encode())
+        return self.stream.readline().decode().lower().strip()
+
+    def auto_bandwidth(self, select):
+        '''Couples the resolution bandwidth to the frequency span.
+        Select either 0, 1 for False/True'''
+        self.stream.write("BANDWIDTH:AUTO {}\n".format(select).encode())
         return self.stream.readline().decode().lower().strip()
 
     def get_trace(self):
