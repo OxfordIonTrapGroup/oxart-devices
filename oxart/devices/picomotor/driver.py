@@ -204,7 +204,7 @@ class PicomotorController:
     def get_errors(self):
         errors = []
         errors.append(self._error_code_query())
-        while errors[-1] is not 0:
+        while errors[-1] != 0:
             errors.append(self._error_code_query())
         if len(errors) > 1:
             errors.pop(-1)
