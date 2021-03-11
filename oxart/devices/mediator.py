@@ -55,8 +55,9 @@ def multi_channel_dev_mediator(mediator_cls):
     Docstrings are taken from the driver class.
 
     - mediator_cls should have a _driver_cls member, giving the driver to use.
-    - "channel" positional arguments in the driver methods are replaced with
-      "channel_name" arguments in the wrapped functions.
+    - mediator_cls can have a _channel_param_name member (defaults to "channel").
+    - _channel_param_name ("channel") positional arguments in the driver methods are
+      replaced with "channel_name" arguments in the wrapped functions.
 
     Example::
 
@@ -68,6 +69,8 @@ def multi_channel_dev_mediator(mediator_cls):
             self.devices = {dev: dmgr.get(dev) for dev in devices}
             self.mappings = mappings
     """
+    if not hasattr(mediator_cls, "_channel_param_name"):
+        setattr(mediator_cls, "_channel_param_name", "channel")
 
     funcs = [
         (func_name, func) for (func_name, func)
@@ -82,8 +85,8 @@ def multi_channel_dev_mediator(mediator_cls):
         sig = inspect.signature(func)
         params = list(sig.parameters.values())
         param_names = [param.name for param in params]
-        if "channel" in param_names:
-            idx = param_names.index("channel")
+        if mediator_cls._channel_param_name in param_names:
+            idx = param_names.index(mediator_cls._channel_param_name)
             params[idx] = params[idx].replace(name="channel_name")
             wrapper = _wrap_function(func_name, func, idx)
         else:
