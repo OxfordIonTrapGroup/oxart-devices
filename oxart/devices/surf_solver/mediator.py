@@ -415,8 +415,10 @@ class SURFMediator:
             self._interpolate(wave.voltage_vec_list[-1], volt_split[0], n_itpl)
             )
         wave.voltage_vec_list.extend(volt_split)
+        # use _poly_interpolate to achieve smoother ion acceleration
         wave.voltage_vec_list.extend(
-            self._interpolate(wave.voltage_vec_list[-1], final_volt, n_itpl))
+            self._poly_interpolate(
+                wave.voltage_vec_list[-1], final_volt, n_itpl))
 
         wave.fixed_wells.append(final_wells)
         wave.wells_idx.append(len(wave.voltage_vec_list)-1)
@@ -553,9 +555,10 @@ class SURFMediator:
             static_settings=static_settings)
 
         # interpolate start and finish
+        # use _poly_interpolate to achieve smoother ion acceleration
         wave.voltage_vec_list.extend(
-            self._interpolate(wave.voltage_vec_list[-1],
-                              volt_merge[0], n_itpl))
+            self._poly_interpolate(wave.voltage_vec_list[-1],
+                                   volt_merge[0], n_itpl))
         wave.voltage_vec_list.extend(volt_merge)
 
         wave.voltage_vec_list.extend(
@@ -618,13 +621,27 @@ class SURFMediator:
         wave.wells_idx.append(len(wave.voltage_vec_list)-1)
 
     def _interpolate(self, volt0, volt1, n_step):
-        """Smoothly evolve between 2 voltage vectors.
+        """Linearly evolve between 2 voltage vectors.
 
         Assumes electrode ordering in both voltage vectors is identical.
 
         May be used to connect different (similar) waveforms or
         evolve to/from non SURF voltages"""
         return [volt0 + (volt1 - volt0) * t for t in np.linspace(0, 1, n_step)]
+
+    def _poly_interpolate(self, volt0, volt1, n_step):
+        """Smoothly evolve between 2 voltage vectors.
+        May be used to connect different (similar) waveforms or
+        evolve to/from non SURF voltages.
+
+        The polynomial has been chosen to have d2voltage/dt2 = 0 at
+        the start and end of the interpolation.
+        (Inspired by H Kaufmann et al 2014 New J. Phys. 16 073012)
+
+        Assumes electrode ordering in both voltage vectors is identical.
+        """
+        return [volt0 + (volt1 - volt0) * (10 * t**3 - 15 * t**4 + 6 * t**5)
+                for t in np.linspace(0, 1, n_step)]
 
     def f_to_field(self, frequency):
         "convert mode frequency to field curvature"
@@ -681,7 +698,7 @@ class SURFMediator:
             f_rad_x = self.default_f_rad_x
 
         if not isinstance(z, Iterable):
-            z = [z,]
+            z = [z, ]
         else:
             z = [i for i in z]
 
@@ -705,7 +722,7 @@ class SURFMediator:
             rx_axial = [rx_axial for i in z]
         if not isinstance(ry_axial, Iterable):
             ry_axial = [ry_axial for i in z]
-        if not isinstance(phi_radial , Iterable):
+        if not isinstance(phi_radial, Iterable):
             phi_radial = [phi_radial for i in z]
         if not isinstance(d3phidz3, Iterable):
             d3phidz3 = [d3phidz3 for i in z]
