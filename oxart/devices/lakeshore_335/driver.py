@@ -13,7 +13,7 @@ class LakeShore335:
         return self.stream.readline().decode()
 
     def get_temp(self, input="A"):
-        """ Returns the temperature of an input channel as a float in Kelin
+        """ Returns the temperature of an input channel as a float in Kelvin
         : param input: either "A" or "B"
         """
         self.stream.write("KRDG? {}\n".format(input).encode())
@@ -24,9 +24,10 @@ class LakeShore335:
         return idn[0:2] == ['LSCI', 'MODEL335']
 
     def get_manual_heater_output(self, output=1):
-        """ Returns the output power of the heater, scale 0-100%.
+        """ Returns the output power/current of the heater, scale 0-100%.
         Must set heater mode to open loop first.
         : param output: either 1 or 2 for heater channels
+        : return: output power/current of the heater, scale 0-100%
         """
         self.stream.write("MOUT? {}\n".format(output).encode())
         return float(self.stream.readline())
@@ -36,21 +37,23 @@ class LakeShore335:
         display setting in heater_setup function. Must set heater mode to open loop first.
         : param value: 0 - 100 % 
         : param output: either 1 or 2 for heater channels
+        : return: output, value
         """
         self.stream.write("MOUT {},{}\n".format(output, value).encode())
         return output, value
 
     def get_heater_output(self, output=1):
-        """ Returns the output power/current of the heater. Depends on
-        display setting in heater_setup function.
-        Returns percenatge of full scale, 0-100%
+        """ Returns the output power/current of the heater, scale 0-100%.
+        : param output: either 1 or 2 for heater channels
+        : return: output power/current of the heater, scale 0-100%
         """
         self.stream.write("HTR? {}\n".format(output).encode())
         return float(self.stream.readline())
 
     def get_heater_mode(self, output=1):
         """ Returns the output mode of the heater
-        Returns <mode>,<input>,<powerup enable>
+        : param output: either 1 or 2 for heater channels
+        : return: <mode>, <input>, <powerup enable>
         """
         self.stream.write("OUTMODE? {}\n".format(output).encode())
         return float(self.stream.readline())
@@ -63,6 +66,7 @@ class LakeShore335:
         : param input: input to use for control: 0 = None, 1 = A, 2 = B
         : param powerup_enable: Specifies whether the output remains on or shuts off after power cycle. 
                                 0 = powerup enable off, 1 = powerup enable on.
+        : return: output, mode, channel, powerup_enable
         """
         self.stream.write("OUTMODE {},{},{},{}\n".format(output, mode, channel, powerup_enable).encode())
         return output, mode, channel, powerup_enable
@@ -70,8 +74,8 @@ class LakeShore335:
     def get_heater_range(self, output=1):
         """ Returns the heater range
         : param output: either 1 or 2 for heater channels
-        : returns: For Outputs 1 and 2 in Current mode: 0 = Off, 1 = Low, 2 = Medium, 3 = High
-                   For Output 2 in Voltage mode: 0 = Off, 1 = On
+        : return: For Outputs 1 and 2 in Current mode: 0 = Off, 1 = Low, 2 = Medium, 3 = High
+                  For Output 2 in Voltage mode: 0 = Off, 1 = On
         """
         self.stream.write("RANGE? {}\n".format(output).encode())
         return float(self.stream.readline())
@@ -79,47 +83,50 @@ class LakeShore335:
     def set_heater_range(self, htr_range, output=1):
         """ Returns the heater range
         : param output: either 1 or 2 for heater channels
-        : returns: For Outputs 1 and 2 in Current mode: 0 = Off, 1 = Low, 2 = Medium, 3 = High
-                   For Output 2 in Voltage mode: 0 = Off, 1 = On
+        : return: For Outputs 1 and 2 in Current mode: 0 = Off, 1 = Low, 2 = Medium, 3 = High
+                  For Output 2 in Voltage mode: 0 = Off, 1 = On
         """
         self.stream.write("RANGE {},{}\n".format(output, htr_range).encode())
         return output, htr_range
 
     def get_pid(self, output=1):
-        """ Returns the heater range
+        """ Returns the PID settings
         : param output: either 1 or 2 for heater channels
-        : returns: <P value>, <I value>, <D value>
+        : return: <P value>, <I value>, <D value>
         """
         self.stream.write("PID? {}\n".format(output).encode())
         return self.stream.readline().decode()
 
     def set_pid(self, p, i, d, output=1):
-        """ Returns the heater range
+        """ Set PID paramaters
         : param output: either 1 or 2 for heater channels
         : param p: Proportional 0.1 to 1000.
         : param i: Integral 0.1 to 1000.
         : param d: Derivative 0 to 200.
+        : return: output, p, i, d
         """
         self.stream.write("PID {},{},{},{}\n".format(output, p, i, d).encode())
         return output, p, i, d
 
     def get_setpoint(self, output=1):
-        """ Returns the PID set point 
+        """ Get the temeperature set point for PID
         : param output: either 1 or 2 for heater channels
+        : return: Temperature of PID setpoint (K)
         """
         self.stream.write("SETP? {}\n".format(output).encode())
         return float(self.stream.readline())
 
     def set_setpoint(self, value, output=1):
-        """ Set the PID set point
+        """ Set the temeperature set point for PID
         : param output: either 1 or 2 for heater channels
         : param value: temperature (K)
+        : return: output, value
         """
         self.stream.write("SETP {},{}\n".format(output, value).encode())
         return output, value
 
     def heater_setup(self, out_type, htr_res, I_max, I_max_user, display, output=1):
-        """ Returns the heater range
+        """ Configures the heater
         : param output: either 1 or 2 for heater channels
         : param out_type: Output type (Output 2 only): 0=Current, 1=Voltage
         : param htr_res: Heater Resistance Setting: 1 = 25 Ohm, 2 = 50 Ohm
@@ -131,15 +138,17 @@ class LakeShore335:
         : param display: Specifies whether the heater output displays in current or 
                          power (current mode only). Valid entries: 1 = current, 
                          2 = power
+        : return: output, out_type, htr_res, I_max, I_max_user, display
         """
         self.stream.write("HTRSET {},{},{},{},{},{}\n".format(output, out_type, htr_res, 
                                                             I_max, I_max_user, display).encode())
         return output, out_type, htr_res, I_max, I_max_user, display
 
     def get_heater_setup(self, output=1):
-        """ Returns the heater range
+        """ Returns the current configuration of the heater
         : param output: either 1 or 2 for heater channels
         see above 'heater_setup' function for return meanings
+        : return: output, out_type, htr_res, I_max, I_max_user, display
         """
         self.stream.write("HTRSET? {}\n".format(output).encode())
         out = self.stream.readline().decode().split(',')
