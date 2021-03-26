@@ -39,6 +39,13 @@ class Thermostat:
             result[int(item["channel"])] = item
         return result
 
+    def ping(self):
+        read = self.get_pid()
+        if read is not None:
+            return True
+        else:
+            return False
+
     def get_pwm(self):
         """Retrieve PWM limits for the TEC
 
