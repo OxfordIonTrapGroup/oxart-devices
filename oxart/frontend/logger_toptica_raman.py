@@ -65,18 +65,15 @@ def main():
         }
         msg = {key : None for key in parameters.keys()}
         async with Client(NetworkConnection(args.server)) as dlc:
-            last_update = time.time()
             while True:
-                t = time.time()
-                if t >= last_update + args.poll:
-                    for key in parameters.keys():
-                        try:
-                            msg[key] = await wait_for(dlc.get(parameters[key], float),
-                                                        timeout = args.timeout)
-                        except:
-                            print('Error: Is DLC pro connected to network?')
-                    last_update = t
-                    write_point(msg)
+                time.sleep(args.poll)
+                for key in parameters.keys():
+                    try:
+                        msg[key] = await wait_for(dlc.get(parameters[key], float),
+                                                    timeout = args.timeout)
+                    except:
+                        print('Error: Is DLC pro connected to network?')
+                write_point(msg)
 
     loop.run_until_complete(run())
 
