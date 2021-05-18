@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>oxart-drivers &mdash; oxart-devices  documentation</title>
+  <title>oxart-devices &mdash; oxart-devices  documentation</title>
   
 
   
@@ -136,7 +136,7 @@
     
       <li><a href="#" class="icon icon-home"></a> &raquo;</li>
         
-      <li>oxart-drivers</li>
+      <li>oxart-devices</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -157,10 +157,23 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="oxart-drivers">
-<h1>oxart-drivers<a class="headerlink" href="#oxart-drivers" title="Permalink to this headline">¶</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">oitg</span></code> library contains common routines and convenience functions used by the
+  <div class="section" id="oxart-devices">
+<h1>oxart-devices<a class="headerlink" href="#oxart-devices" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">oxart.devices</span></code> library contains
+<a class="reference external" href="https://github.com/m-labs/sipyco">SiPyCo</a>-compatible drivers
+for interfacing with various laboratory devices from the
+<a class="reference external" href="https://m-labs.hk/experiment-control/artiq/">ARTIQ</a>-based
 experiments in the <a class="reference external" href="https://www.physics.ox.ac.uk/research/ion-trap-quantum-computing-group">Oxford Ion Trap Quantum Computing Group</a>.</p>
+<p>The “drivers” (Python device access classes) in this repository were
+extracted from a long-standing internal source tree, and vary greatly
+in terms of completeness and level of documentation. Nevertheless, we
+hope that the code will be useful for physicists and engineers outside
+of our group as well, and we are always happy to collaborate (e.g. via
+GitHub pull requests).</p>
+<p>API documentation for some of the code can be found below, but for now,
+the best way to get an overview of the available devices is to browse
+the list of SiPyCo controller executables in
+<a class="reference external" href="https://github.com/OxfordIonTrapGroup/oxart-devices/tree/master/oxart/frontend">https://github.com/OxfordIonTrapGroup/oxart-devices/tree/master/oxart/frontend</a>.</p>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
