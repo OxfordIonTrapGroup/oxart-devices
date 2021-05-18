@@ -1,9 +1,5 @@
 import logging
-import serial
-
 from Adafruit_BBIO import GPIO
-
-import sipyco.pyon as pyon
 
 logger = logging.getLogger(__name__)
 

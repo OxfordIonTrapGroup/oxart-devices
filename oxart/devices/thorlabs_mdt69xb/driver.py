@@ -307,7 +307,7 @@ class PiezoController:
 
     def _strip_brackets(self, line):
         """Take string enclosed in square brackets and return string"""
-        match = re.search("\[(.*)\]", line)
+        match = re.search(r"\[(.*)\]", line)
         if match:
             return match.group(1)
         raise ParseError("Bracketed string not found in '{}'".format(line))

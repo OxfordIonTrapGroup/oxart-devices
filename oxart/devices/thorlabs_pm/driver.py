@@ -109,7 +109,7 @@ class _TLPM:
 
         Note: The instrument must be reinitialized to use it again.
         """
-        pInvokeResult = self.dll.TLPM_close(self.dev_session)
+        self.dll.TLPM_close(self.dev_session)
 
     def find_devices(self):
         """

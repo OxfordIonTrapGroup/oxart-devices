@@ -4,7 +4,8 @@ import argparse
 
 from oxart.devices.picomotor.driver import PicomotorController
 from sipyco.pc_rpc import simple_server_loop
-from sipyco.common_args import simple_network_args, init_logger_from_args, bind_address_from_args
+from sipyco.common_args import (simple_network_args, init_logger_from_args,
+                                bind_address_from_args)
 from oxart.tools import add_common_args
 
 

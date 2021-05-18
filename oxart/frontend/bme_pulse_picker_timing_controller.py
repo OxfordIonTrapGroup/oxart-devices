@@ -5,7 +5,8 @@ import argparse
 from oxart.devices.bme_pulse_picker.bme_delay_gen import ClockSource, Driver
 from oxart.devices.bme_pulse_picker.timing import PulsePickerTiming
 from sipyco.pc_rpc import simple_server_loop
-from sipyco.common_args import verbosity_args, simple_network_args, init_logger_from_args
+from sipyco.common_args import (init_logger_from_args, simple_network_args,
+                                verbosity_args)
 
 
 def get_argparser():

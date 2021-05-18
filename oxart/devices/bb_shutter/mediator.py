@@ -1,7 +1,3 @@
-from artiq.language.core import *
-import numpy as np
-
-
 class ShutterWrapper:
     """
     Wraps one or more shutter drivers to allow reference to channels by an

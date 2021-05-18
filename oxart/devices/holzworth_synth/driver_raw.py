@@ -6,7 +6,8 @@ logger = logging.getLogger(__name__)
 
 
 class HolzworthSynthRaw():
-    """Raw driver to communicate with the Holzworth Synthesiser using SCPI commands over USB"""
+    """Raw driver to communicate with the Holzworth Synthesiser using SCPI commands over
+    USB"""
     def __init__(self):
 
         self.dll = ctypes.WinDLL("HolzworthHS1001.dll")
@@ -29,8 +30,9 @@ class HolzworthSynthRaw():
                               }  # swap keys for values
 
     def get_freq(self, limits=0):
-        """Returns the current set frequency of the Holzworth synth when called without arguments or limits=0
-        , and returns the maximum and minimum allowed frequency when called with limits=1 and limits =-1 respectively"""
+        """Returns the current set frequency of the Holzworth synth when called without
+        arguments or limits=0, and returns the maximum and minimum allowed frequency
+        when called with limits=1 and limits =-1 respectively"""
 
         limits_dict = {0: '', 1: ':MAX', -1: ':MIN'}
         command = ctypes.c_char_p((':FREQ' + limits_dict[limits] + '?').encode())
@@ -57,10 +59,9 @@ class HolzworthSynthRaw():
             np.log10(freq) / 3.0))  # find nearest SI suffix exponent (i.e. 0,3,6 or 9)
 
         try:
-            freq_string = str(
-                round(freq / (10**exponent), exponent + 3)
-            ) + self.exponent_dict[
-                exponent]  # rounding to 3 d.p. as otherwise synth can set to the wrong frequency.
+            # rounding to 3 d.p. as otherwise synth can set to the wrong frequency.
+            freq_string = str(round(freq / (10**exponent),
+                                    exponent + 3)) + self.exponent_dict[exponent]
         except KeyError as e:
             raise Exception('Invalid exponent"' + e.args[0] + '"')
 
@@ -69,8 +70,9 @@ class HolzworthSynthRaw():
         assert (rx.decode() == 'Frequency Set')
 
     def get_pow(self, limits=0):
-        """Returns the current set power of the Holzworth synth when called without arguments or limits=0
-        , and returns the maximum and minimum allowed frequency when called with limits=1 and limits =-1 respectively"""
+        """Returns the current set power of the Holzworth synth when called without
+        arguments or limits=0, and returns the maximum and minimum allowed frequency
+        when called with limits=1 and limits =-1 respectively"""
         limits_dict = {0: '', 1: ':MAX', -1: ':MIN'}
         command = ctypes.c_char_p((':PWR' + limits_dict[limits] + '?').encode())
 
@@ -95,7 +97,8 @@ class HolzworthSynthRaw():
         assert (rx.decode() == 'Power Set')
 
     def identity(self):
-        """Retrieves the Manufacturer, Device Name, Board Number, Firmware Version, Instrument Serial Number"""
+        """Retrieves the Manufacturer, Device Name, Board Number, Firmware Version,
+        Instrument Serial Number"""
         command = ctypes.c_char_p((':IDN?').encode())
         rx = self.dll.usbCommWrite(self.serialnum, command)
         return rx.decode()
@@ -104,11 +107,10 @@ class HolzworthSynthRaw():
         """Needed to check connnection is alive"""
         if self.identity() == '':
             raise Exception("No devices connected")
-
         return True
 
     def close(self):
-        """Closes connection to the Holzworth. Must be called when disconnecting else future connections may not work"""
-
+        """Closes connection to the Holzworth. Must be called when disconnecting else
+        future connections may not work"""
         self.dll.close_all()
         print('Connection to Holzworth synth closed safely')

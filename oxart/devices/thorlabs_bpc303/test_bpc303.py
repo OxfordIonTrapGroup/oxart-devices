@@ -1,4 +1,4 @@
-from driver import Message, BPC303, MGMSG, SRC_DEST
+from .driver import BPC303
 
 d = BPC303("/dev/bpc303_71134204")
 print("ping: ", d.ping())

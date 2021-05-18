@@ -73,7 +73,7 @@ def main():
                     try:
                         msg[key] = await wait_for(dlc.get(parameters[key], float),
                                                   timeout=args.timeout)
-                    except:
+                    except Exception:
                         print('Error: Is DLC pro connected to network?')
                 write_point(msg)
 

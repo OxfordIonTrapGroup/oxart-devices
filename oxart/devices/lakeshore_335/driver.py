@@ -34,8 +34,10 @@ class LakeShore335:
 
     def set_manual_heater_output(self, value, output=1):
         """ Sets the output power/current of the heater, scale 0-100%. Depends on
-        display setting in heater_setup function. Must set heater mode to open loop first.
-        : param value: 0 - 100 % 
+        display setting in heater_setup function. Must set heater mode to open loop
+        first.
+
+        : param value: 0 - 100 %
         : param output: either 1 or 2 for heater channels
         : return: output, value
         """
@@ -60,11 +62,12 @@ class LakeShore335:
 
     def set_heater_mode(self, mode, channel=1, output=1, powerup_enable=0):
         """ Set the output mode of the heater
-        : param mode: Control mode: 0 = Off, 1 = PID, 2 = Zone, 3 = Open Loop, 4 = Monitor out, 
-                                    5 = Warmup Supply 
+        : param mode: Control mode: 0 = Off, 1 = PID, 2 = Zone, 3 = Open Loop,
+                                    4 = Monitor out, 5 = Warmup Supply
         : param output: either 1 or 2 for heater channels
         : param input: input to use for control: 0 = None, 1 = A, 2 = B
-        : param powerup_enable: Specifies whether the output remains on or shuts off after power cycle. 
+        : param powerup_enable: Specifies whether the output remains on or shuts off
+                                after power cycle.
                                 0 = powerup enable off, 1 = powerup enable on.
         : return: output, mode, channel, powerup_enable
         """
@@ -75,7 +78,8 @@ class LakeShore335:
     def get_heater_range(self, output=1):
         """ Returns the heater range
         : param output: either 1 or 2 for heater channels
-        : return: For Outputs 1 and 2 in Current mode: 0 = Off, 1 = Low, 2 = Medium, 3 = High
+        : return: For Outputs 1 and 2 in Current mode: 0 = Off, 1 = Low, 2 = Medium,
+                  3 = High
                   For Output 2 in Voltage mode: 0 = Off, 1 = On
         """
         self.stream.write("RANGE? {}\n".format(output).encode())
@@ -84,7 +88,8 @@ class LakeShore335:
     def set_heater_range(self, htr_range, output=1):
         """ Returns the heater range
         : param output: either 1 or 2 for heater channels
-        : return: For Outputs 1 and 2 in Current mode: 0 = Off, 1 = Low, 2 = Medium, 3 = High
+        : return: For Outputs 1 and 2 in Current mode: 0 = Off, 1 = Low, 2 = Medium,
+                  3 = High
                   For Output 2 in Voltage mode: 0 = Off, 1 = On
         """
         self.stream.write("RANGE {},{}\n".format(output, htr_range).encode())
@@ -131,13 +136,13 @@ class LakeShore335:
         : param output: either 1 or 2 for heater channels
         : param out_type: Output type (Output 2 only): 0=Current, 1=Voltage
         : param htr_res: Heater Resistance Setting: 1 = 25 Ohm, 2 = 50 Ohm
-        : param I_max_user: Specifies the maximum heater output current if 
+        : param I_max_user: Specifies the maximum heater output current if
                             max current is set to User Specified. (A)
-        : param I_max: Specifies the maximum heater output current: 
-                       0 = User Specified, 1 = 0.707 A, 2 = 1 A, 3 = 1.141 A, 
+        : param I_max: Specifies the maximum heater output current:
+                       0 = User Specified, 1 = 0.707 A, 2 = 1 A, 3 = 1.141 A,
                        4 = 1.732 A
-        : param display: Specifies whether the heater output displays in current or 
-                         power (current mode only). Valid entries: 1 = current, 
+        : param display: Specifies whether the heater output displays in current or
+                         power (current mode only). Valid entries: 1 = current,
                          2 = power
         : return: output, out_type, htr_res, I_max, I_max_user, display
         """

@@ -1,8 +1,6 @@
 import logging
 import serial
 
-import sipyco.pyon as pyon
-
 logger = logging.getLogger(__name__)
 
 

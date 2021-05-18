@@ -39,7 +39,7 @@ class Conex:
     def _send_command(self, cmd):
         try:
             self.port.write(("1" + cmd + "\r\n").encode())
-        except serial.SerialTimeoutException as e:
+        except serial.SerialTimeoutException:
             logger.exception("Serial write timeout: Force exit")
             # This is hacky but makes the server exit
             asyncio.get_event_loop().call_soon(sys.exit, 42)

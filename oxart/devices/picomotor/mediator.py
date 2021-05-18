@@ -1,6 +1,3 @@
-from artiq.language.core import *
-
-
 class PicoMirror:
     """
     Wraps multiple picomotor controllers and channels to allow addressing a

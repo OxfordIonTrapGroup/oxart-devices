@@ -1,10 +1,8 @@
 import serial
 import struct
 import time
-import numpy as np
 import logging
 from enum import IntEnum
-import sipyco.pyon as pyon
 
 logger = logging.getLogger(__name__)
 
@@ -376,7 +374,7 @@ class _APTDevice:
     def ping(self):
         try:
             self.get_status()
-        except:
+        except Exception:
             return False
         return True
 
@@ -415,7 +413,7 @@ class _APTRotation(_APTDevice):
         if check_position:
             try:
                 self.check_angle_mu(acceptable_error=acceptable_error)
-            except ValueError as e:
+            except ValueError:
                 if auto_retry > 0:
                     self.set_angle(angle,
                                    check_position=check_position,
@@ -433,7 +431,7 @@ class _APTRotation(_APTDevice):
 
     def check_angle_mu(self, acceptable_error=0):
         """Check currently set angle against stored value"""
-        if self._last_angle_mu == None:
+        if self._last_angle_mu is None:
             # nothing to check against
             return
 
@@ -463,7 +461,7 @@ class K10CR1(_APTRotation):
         hold_factor = int(hold_power * 100)
         move_factor = int(move_power * 100)
         channel = 0
-        payload = struct.pack("<HHH", channel, rest_factor, move_factor)
+        payload = struct.pack("<HHH", channel, hold_factor, move_factor)
         self._send_message(Message(MGMSG.MOT_SET_POWER_PARAMS, data=payload))
 
     def set_angle(self, angle):

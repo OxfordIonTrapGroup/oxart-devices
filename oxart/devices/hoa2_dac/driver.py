@@ -1,6 +1,4 @@
-import serial
 import logging
-import numpy as np
 from .pirate_dac import PirateDac
 
 logger = logging.getLogger(__name__)

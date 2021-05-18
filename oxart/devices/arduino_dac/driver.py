@@ -1,5 +1,6 @@
 import time
 import serial
+import sys
 import logging
 import asyncio
 import numpy as np
@@ -31,7 +32,7 @@ class ArduinoDAC:
     def _send_command(self, command):
         try:
             self.port.write((command + '\n').encode())
-        except serial.SerialTimeoutException as e:
+        except serial.SerialTimeoutException:
             logger.exception("Serial write timeout: Force exit")
             # This is hacky but makes the server exit
             asyncio.get_event_loop().call_soon(sys.exit, 42)
@@ -68,7 +69,7 @@ class ArduinoDAC:
             return True
 
     def set_voltage(self, channel, voltage, update=True):
-        """Set the voltage on the given channel. Voltage is a float with 
+        """Set the voltage on the given channel. Voltage is a float with
         units of volts. Update determines whether to the output should be
         updated on execution of this command, or later with 'update'
         """

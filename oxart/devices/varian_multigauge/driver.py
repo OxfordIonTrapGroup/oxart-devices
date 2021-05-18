@@ -129,18 +129,17 @@ class VarianIonGauge:
 
 
 if __name__ == "__main__":
-
     g = VarianIonGauge(port="COM8")
 
-    #g.set_emission_current(1, 9.99)
-    #g.set_emission_current(2, 9.99)
+    # g.set_emission_current(1, 9.99)
+    # g.set_emission_current(2, 9.99)
     print(g.read_emission_current(1))
     print(g.read_emission_current(2))
-    #g.set_emission_status(1, False)
-    #g.set_emission_status(2, False)
-    #g.set_emission_status(1, True)
-    #g.set_emission_status(2, True)
-    #import time
+    # g.set_emission_status(1, False)
+    # g.set_emission_status(2, False)
+    # g.set_emission_status(1, True)
+    # g.set_emission_status(2, True)
+    # import time
     # time.sleep(3)
     # print(g.read_emission_status(1))
     # print(g.read_emission_status(2))

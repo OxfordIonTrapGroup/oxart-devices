@@ -272,7 +272,7 @@ class _Tcube:
             await self.hardware_request_information()
         except asyncio.CancelledError:
             raise
-        except:
+        except Exception:
             logger.warning("ping failed", exc_info=True)
             return False
         return True

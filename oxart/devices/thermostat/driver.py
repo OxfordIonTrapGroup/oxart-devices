@@ -1,4 +1,6 @@
-"""Adapted from https://git.m-labs.hk/M-Labs/thermostat/src/branch/master/pytec/pytec/client.py"""
+"""Adapted from
+https://git.m-labs.hk/M-Labs/thermostat/src/branch/master/pytec/pytec/client.py
+"""
 
 import socket
 import json
@@ -120,32 +122,32 @@ class Thermostat:
 
         Example::
               [{'channel': 0,
-              'time': 76332.548, 
-              'interval': 0.12, 
-              'adc': 0.7265734615241562, 
-              'sens': 8025.597054833033, 
-              'temperature': 29.999977197542364, 
-              'pid_engaged': True, 
-              'i_set': 0.15560243296810894, 
-              'vref': 1.5, 'dac_value': 1.5768012164840546, 
-              'dac_feedback': 1.573, 
-              'i_tec': 1.567, 
-              'tec_i': 0.20000000000000018, 
-              'tec_u_meas': 0.0680000000000005, 
+              'time': 76332.548,
+              'interval': 0.12,
+              'adc': 0.7265734615241562,
+              'sens': 8025.597054833033,
+              'temperature': 29.999977197542364,
+              'pid_engaged': True,
+              'i_set': 0.15560243296810894,
+              'vref': 1.5, 'dac_value': 1.5768012164840546,
+              'dac_feedback': 1.573,
+              'i_tec': 1.567,
+              'tec_i': 0.20000000000000018,
+              'tec_u_meas': 0.0680000000000005,
               'pid_output': 0.14770870320992324},
              {'channel': 0,
-              'time': 76332.548, 
-              'interval': 0.12, 
-              'adc': 0.7265734615241562, 
-              'sens': 8025.597054833033, 
-              'temperature': 29.999977197542364, 
-              'pid_engaged': True, 
-              'i_set': 0.15560243296810894, 
-              'vref': 1.5, 'dac_value': 1.5768012164840546, 
-              'dac_feedback': 1.573, 
-              'i_tec': 1.567, 
-              'tec_i': 0.20000000000000018, 
-              'tec_u_meas': 0.0680000000000005, 
+              'time': 76332.548,
+              'interval': 0.12,
+              'adc': 0.7265734615241562,
+              'sens': 8025.597054833033,
+              'temperature': 29.999977197542364,
+              'pid_engaged': True,
+              'i_set': 0.15560243296810894,
+              'vref': 1.5, 'dac_value': 1.5768012164840546,
+              'dac_feedback': 1.573,
+              'i_tec': 1.567,
+              'tec_i': 0.20000000000000018,
+              'tec_u_meas': 0.0680000000000005,
               'pid_output': 0.14770870320992324}]
         """
         return self._get_conf("report")

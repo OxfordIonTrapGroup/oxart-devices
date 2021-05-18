@@ -36,8 +36,8 @@ def _check_status(code):
         10: "File not found",
         11: "Low-level driver (PLX) command failed",
         12: "Communication with delay generator could not be established",
-        12: "Improper ribbon cable connection to delay generator",
-        13: "Proper ribbon cable connection to delay generator",  # XXX: Not an error?!
+        13: "Improper ribbon cable connection to delay generator",
+        14: "Proper ribbon cable connection to delay generator",  # XXX: Not an error?!
     }
 
     msg = messages.get(code, None)
@@ -54,23 +54,46 @@ class StatusFlag(Enum):
     The definitions can be found in the "Programming BME_SG08P3" chapter of the BME_G0X
     manual, in the "Command register (read)" section.
     """
-    channel_a_active = (1 << 0)  #: channel A is active
-    channel_b_active = (1 << 1)  #: channel B is active
-    channel_c_active = (1 << 2)  #: channel C is active
-    channel_d_active = (1 << 3)  #: channel D is active
-    channel_e_active = (1 << 4)  #: channel E is active
-    channel_f_active = (1 << 5)  #: channel F is active
-    primary_trigger_active = (1 << 6)  #: primary trigger is active
-    secondary_trigger_active = (1 << 7)  #: secondary trigger is active
-    force_trigger_active = (1 << 8)  #: force trigger is active
-    terminal_count_reached = (1 << 9
-                              )  #: terminal count of preset register has been reached
-    external_clock_no_transitions_detected = (
-        1 << 10
-    )  #: external clock fed via the trigger input connector is used, but no level transitions have been detected for the number of periods of the internal clock as prescribed by Multipurpose register, byte no. 6
-    all_wait_times_elapsed = (1 << 11
-                              )  #: all wait times for the trigger system have elapsed
-    load_command_active = (1 << 17)  #: Load command is active
+    #: channel A is active
+    channel_a_active = (1 << 0)
+
+    #: channel B is active
+    channel_b_active = (1 << 1)
+
+    #: channel C is active
+    channel_c_active = (1 << 2)
+
+    #: channel D is active
+    channel_d_active = (1 << 3)
+
+    #: channel E is active
+    channel_e_active = (1 << 4)
+
+    #: channel F is active
+    channel_f_active = (1 << 5)
+
+    #: primary trigger is active
+    primary_trigger_active = (1 << 6)
+
+    #: secondary trigger is active
+    secondary_trigger_active = (1 << 7)
+
+    #: force trigger is active
+    force_trigger_active = (1 << 8)
+
+    #: terminal count of preset register has been reached
+    terminal_count_reached = (1 << 9)
+
+    #: external clock fed via the trigger input connector is used, but no level
+    #: transitions have been detected for the number of periods of the internal clock as
+    #: prescribed by Multipurpose register, byte no. 6
+    external_clock_no_transitions_detected = (1 << 10)
+
+    #: all wait times for the trigger system have elapsed
+    all_wait_times_elapsed = (1 << 11)
+
+    #: Load command is active
+    load_command_active = (1 << 17)
 
 
 class Driver:

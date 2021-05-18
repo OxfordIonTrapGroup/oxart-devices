@@ -136,7 +136,7 @@ class _APTCardSlotDevice:
         try:
             for i, _ in enumerate(self.bays):
                 self.get_status_bits(i + 1)
-        except:
+        except Exception:
             return False
         return True
 

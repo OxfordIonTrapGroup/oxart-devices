@@ -1,4 +1,3 @@
-from artiq.language.core import *
 from .driver_raw import HolzworthSynthRaw
 import math
 import time
@@ -8,14 +7,15 @@ import os
 
 
 class HolzworthSynth():
-    """Driver for Holzworth synth to get and set the frequency, and get and set the ramp rate to track the 674 nm quadrupole laser cavity drift."""
+    """Driver for Holzworth synth to get and set the frequency, and get and set the ramp
+    rate to track the 674 nm quadrupole laser cavity drift."""
     def __init__(self):
 
         self.synth_raw = HolzworthSynthRaw()  # The raw driver
         self.max_step = 10e3  # Hz
-        folder = os.path.dirname(
-            os.path.realpath(__file__)
-        )  # Saves the log file in the same folder as the driver, so it can be backed up with git
+        # Saves the log file in the same folder as the driver, so it can be backed up
+        # with git
+        folder = os.path.dirname(os.path.realpath(__file__))
         file_name = "Holzworth_synth_config.txt"
         self.logfile_path = os.path.join(folder, file_name)
         if not os.path.isfile(self.logfile_path):
@@ -50,20 +50,20 @@ class HolzworthSynth():
             self.synth_raw.set_freq(f)
             await asyncio.sleep(0)
 
-        assert (
-            math.isclose(await self.get_freq(),
-                         freq_end,
-                         rel_tol=0.5e-12,
-                         abs_tol=0.0011)
-        )  # Checking we reach the final frequency, allowing for rounding differences in the 3rd decimal place for values as large as 2.048 GHZ (max frequency output)
+        # Checking we reach the final frequency, allowing for rounding differences in
+        # the 3rd decimal place for values as large as 2.048 GHZ (max frequency output)
+        assert (math.isclose(await self.get_freq(),
+                             freq_end,
+                             rel_tol=0.5e-12,
+                             abs_tol=0.0011))
 
     async def set_freq(self, freq):
         """Sets the Holzworth frequency and saves the value and time to file."""
 
         await self._move_freq(freq)
 
-        self.data["time_freq_set"] = time.time(
-        )  # All times are read and written as UNIX time (seconds since epoch)
+        # All times are read and written as UNIX time (seconds since epoch)
+        self.data["time_freq_set"] = time.time()
         self.data["last_freq_set"] = freq
 
         with open(self.logfile_path, "w") as f:  # Overwrites files
@@ -74,7 +74,8 @@ class HolzworthSynth():
         return self.synth_raw.get_freq()
 
     async def update_freq(self):
-        """Updates the frequency by the difference between the current time and the last time set_freq was called multiplied by the drift rate."""
+        """Updates the frequency by the difference between the current time and the last
+        time set_freq was called multiplied by the drift rate."""
 
         ramp = self.data["ramp"]  # Hz per second
         ref_freq = self.data["last_freq_set"]  # Freq when it was last set (not updated)

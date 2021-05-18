@@ -5,7 +5,6 @@ import logging
 
 from oxart.devices.lakeshore_335.driver import LakeShore335
 from sipyco.pc_rpc import simple_server_loop
-from oxart.tools import add_common_args
 import sipyco.common_args as sca
 
 logger = logging.getLogger(__name__)

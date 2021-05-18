@@ -1,6 +1,3 @@
-from artiq.language.core import *
-
-
 class UWaveDDSWrapper:
     """Wraps an Arduino DDS class to allow profiles to be set in
     logical frequencies (detunings from zero field) rather than the

@@ -90,7 +90,8 @@ class GPIO_HDR_SPI:
     conversion_factor = full_scale / cpu_dac_range
 
     def set_gpio_hdr(self, gpio_hdr_word):
-        assert gpio_hdr_word >= 0 and gpio_hdr_word <= 0xffff, "GPIO_HDR_SPI setting out of range"
+        assert gpio_hdr_word >= 0 and gpio_hdr_word <= 0xffff, \
+            "GPIO_HDR_SPI setting out of range"
         self.gpio_hdr_word = math.ceil(gpio_hdr_word * self.conversion_factor)
 
 

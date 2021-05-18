@@ -1,8 +1,6 @@
-import serial
 import logging
 import numpy as np
 from sipyco import pyon
-from artiq.language.core import *
 
 logger = logging.getLogger(__name__)
 
