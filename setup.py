@@ -36,7 +36,7 @@ scripts = [
 
 setup(
     name="oxart-devices",
-    version="0.1",
+    version="0.2",
     description="ARTIQ/SiPyCo-compatible drivers for laboratory equipment",
     author="Oxford Ion Trap Quantum Computing Group",
     packages=find_packages(),
