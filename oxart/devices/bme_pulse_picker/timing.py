@@ -1,5 +1,33 @@
+"""
+High-level experimentalist's interface for arming the pulse picker
+setup and specifying its timing parameters.
+
+Note that there is quite some potential for confusion due to overloaded
+terminology here. In normal experimentalist's usage, as well as this
+high-level interface, the term "pulse" refers to an optical laser pulse.
+A pulse picker is a device that selects from those pulses. To do that,
+the Pockels cell driver hardware needs to be triggered by a number of
+electronic pulses with certain delays between them, which is how the term
+is also used in the low-level delay generator driver.
+
+In a similar vein, the two pairs of high-voltage switches (high-side and
+low-side in an H-bridge configuration) are referred to as "on" and "off"
+in the labels and documentation of the pulse picker head, even though they
+do not correspond to optical bright/dark (which is the XOR of their states).
+
+Currently, only the BME_SG08p delay generator is supported, with its six
+channels connected as following to a BME pulse picker driver head:
+
+    - A: OFF A
+    - B: <unused>
+    - C: OFF B
+    - D: <unused>
+    - E: ON A
+    - F: ON B
+"""
+
 import copy
-from .bme_delay_gen import OutputGateMode, PulseParameters
+from .bme_delay_gen import Driver, OutputGateMode, PulseParameters
 
 
 class InvalidTimingError(Exception):
@@ -12,15 +40,15 @@ class TimingParams:
     """Stores different pulse picker timing parameters. All times in
     microseconds."""
 
-    # 80 MHz repetition rate
+    #: 80 MHz repetition rate
     LASER_PERIOD_US = 12.5e-3
 
-    # The safe hardware limit is actually 50 us, but with the delay
-    # generator currently running at 10 MHz, the trigger pulses themselves
-    # end up being up to ~130 ns long, so be on the safe side.
+    #: The safe hardware limit is actually 50 us, but with the delay
+    #: generator currently running at 10 MHz, the trigger pulses themselves
+    #: end up being up to ~130 ns long, so be on the safe side.
     MIN_SWITCH_INTERVAL_US = 150e-3
 
-    def __init__(self, allow_long_pulses):
+    def __init__(self, allow_long_pulses: bool):
         self._allow_long_pulses = allow_long_pulses
 
         self.offset_on_us = -0.0007
@@ -78,44 +106,18 @@ class TimingParams:
 
 
 class PulsePickerTiming:
-    """High-level experimentalist's interface for arming the pulse picker
-    setup and specifying its timing parameters.
-
-    Note that there is quite some potential for confusion due to overloaded
-    terminology here. In normal experimentalist's usage, as well as this
-    high-level interface, the term "pulse" refers to an optical laser pulse.
-    A pulse picker is a device that selects from those pulses. To do that,
-    the Pockels cell driver hardware needs to be triggered by a number of
-    electronic pulses with certain delays between them, which is how the term
-    is also used in the low-level delay generator driver.
-
-    In a similar vein, the two pairs of high-voltage switches (high-side and
-    low-side in an H-bridge configuration) are referred to as "on" and "off"
-    in the labels and documentation of the pulse picker head, even though they
-    do not correspond to optical bright/dark (which is the XOR of their states).
-
-    Currently, only the BME_SG08p delay generator is supported, with its six
-    channels connected as following to a BME pulse picker driver head:
-    A: OFF A
-    B: <unused>
-    C: OFF B
-    D: <unused>
-    E: ON A
-    F: ON B
     """
-    def __init__(self, delay_gen, allow_long_pulses=False):
-        """
-        Create a new high-level interface for using the passed delay generator
-        to drive a instance for driving a pulse picker head.
+    Create a new high-level interface for using the passed delay generator
+    to drive a pulse picker head.
 
-        :param delay_gen: The BME_SG08p instance to use. It will be configured
-            for the pulse picker head, its outputs initially disabled. None for
-            simulation mode.
-        :param allow_long_pulses: Whether to allow (optical) pulses that are
-            longer than sensible for calibrating single-pulse picking
-            (2 * LASER_PERIOD_US).
-        """
-
+    :param delay_gen: The BME_SG08p instance to use. It will be configured
+        for the pulse picker head, its outputs initially disabled. None for
+        simulation mode.
+    :param allow_long_pulses: Whether to allow (optical) pulses that are
+        longer than sensible for calibrating single-pulse picking
+        (2 * LASER_PERIOD_US).
+    """
+    def __init__(self, delay_gen: Driver, allow_long_pulses: bool = False):
         self._delay_gen = delay_gen
         self._times = TimingParams(allow_long_pulses)
 
@@ -152,9 +154,13 @@ class PulsePickerTiming:
     # meta-programming magic.
 
     def get_offset_on_us(self):
+        """
+        """
         return self._times.offset_on_us
 
     def set_offset_on_us(self, value):
+        """
+        """
         new = copy.copy(self._times)
         new.offset_on_us = value
         new.ensure_valid()
@@ -162,9 +168,13 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_offset_off_us(self):
+        """
+        """
         return self._times.offset_off_us
 
     def set_offset_off_us(self, value):
+        """
+        """
         new = copy.copy(self._times)
         new.offset_off_us = value
         new.ensure_valid()
@@ -172,9 +182,13 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_pre_open_us(self):
+        """
+        """
         return self._times.pre_open_us
 
     def set_pre_open_us(self, value):
+        """
+        """
         new = copy.copy(self._times)
         new.pre_open_us = value
         new.ensure_valid()
@@ -182,9 +196,13 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_post_open_us(self):
+        """
+        """
         return self._times.post_open_us
 
     def set_post_open_us(self, value):
+        """
+        """
         new = copy.copy(self._times)
         new.post_open_us = value
         new.ensure_valid()
@@ -192,9 +210,13 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_open_us(self):
+        """
+        """
         return self._times.open_us
 
     def set_open_us(self, value):
+        """
+        """
         new = copy.copy(self._times)
         new.open_us = value
         new.ensure_valid()
@@ -202,9 +224,13 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_align_us(self):
+        """
+        """
         return self._times.align_us
 
     def set_align_us(self, value):
+        """
+        """
         new = copy.copy(self._times)
         new.align_us = value
         new.ensure_valid()

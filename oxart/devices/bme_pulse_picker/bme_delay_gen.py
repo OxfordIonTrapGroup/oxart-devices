@@ -1,6 +1,8 @@
 """Control a BME delay generator PCI cards using the vendor driver DLL."""
 from ctypes import byref, cdll, c_bool, c_double, c_long, c_ulong
+from dataclasses import dataclass
 from enum import Enum, unique
+from typing import Iterable, List, Set
 
 import ctypes
 
@@ -221,12 +223,18 @@ class OutputGateMode(Enum):
     gate_xor = 3
 
 
+@dataclass
 class PulseParameters:
     """Timing parameters for a single delay channel on the card."""
-    def __init__(self, enabled, delay_us, width_us):
-        self.enabled = enabled
-        self.delay_us = delay_us
-        self.width_us = width_us
+
+    #: Whether to generate a pulse on the channel at all.
+    enabled: bool
+
+    #: The delay of the pulse in microseconds, relative to the sequence start.
+    delay_us: float
+
+    #: The width of the pulse in microseconds.
+    width_us: float
 
 
 class BME_SG08p:
@@ -236,6 +244,9 @@ class BME_SG08p:
     Many settings (trigger inputs, etc.) are currently hard-coded to match a
     specific application in the Oxford Old Lab, and should be made configurable
     for a general-purpose driver.
+
+    :param driver_lib: A handle to the driver DLL.
+    :param device_idx: The index of the device to use, as per the DLL's conception.
     """
 
     CHANNEL_COUNT = 6
@@ -270,7 +281,7 @@ class BME_SG08p:
         self._lib.initialize_dg(slot_id, product_id, self._device_idx)
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the card configuration to the default state, with the default
         trigger settings, no special gate functions enabled and all the delay
@@ -310,7 +321,9 @@ class BME_SG08p:
 
         self._lib.activate_dg(self._device_idx)
 
-    def set_clock_source(self, source):
+    def set_clock_source(self, source: ClockSource) -> None:
+        """
+        """
         self._deactivate_safely()
         self._set_clock_params(source)
         self._lib.activate_dg(self._device_idx)
@@ -335,7 +348,9 @@ class BME_SG08p:
             # crystal as fallback, 4: master/slave bus
             self._device_idx)
 
-    def set_trigger(self, use_external_gate, inhibit_us):
+    def set_trigger(self, use_external_gate: bool, inhibit_us: float) -> None:
+        """
+        """
         self._deactivate_safely()
         self._set_trigger_params(use_external_gate, inhibit_us)
         self._lib.activate_dg(self._device_idx)
@@ -358,7 +373,9 @@ class BME_SG08p:
             # of the gate signal
             self._device_idx)
 
-    def set_output_gates(self, modes):
+    def set_output_gates(self, modes: Iterable[OutputGateMode]) -> None:
+        """
+        """
         mode_ab, mode_cd, mode_ef = modes
 
         # The hardware goes into xor pulse mode if both flags are set.
@@ -385,7 +402,9 @@ class BME_SG08p:
         self._lib.set_gate_function(flags, self._device_idx)
         self._lib.activate_dg(self._device_idx)
 
-    def set_pulse_parameters(self, params):
+    def set_pulse_parameters(self, params: List[PulseParameters]) -> None:
+        """
+        """
         if len(params) != self.CHANNEL_COUNT:
             raise DelayGenException("Expected one pulse parameter specification "
                                     "for each of the {} channels, not {}".format(
@@ -416,7 +435,9 @@ class BME_SG08p:
     def _read_status_word(self):
         return self._lib.read_dg_status(self._device_idx)
 
-    def read_status_flags(self):
+    def read_status_flags(self) -> Set[StatusFlag]:
+        """
+        """
         status_word = self._read_status_word()
 
         result = set()
