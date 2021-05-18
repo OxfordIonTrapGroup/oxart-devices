@@ -1,0 +1,31 @@
+package:
+  name: oxart-devices
+  version: {{ environ.get("GIT_DESCRIBE_TAG", "") }}
+
+source:
+  git_url: ../..
+
+{% set data = load_setup_py_data() %}
+
+build:
+  noarch: python
+  number: {{ environ.get("GIT_DESCRIBE_NUMBER", 0) }}
+  string: py38_{{ environ.get("GIT_DESCRIBE_NUMBER", 0) }}+git{{ environ.get("GIT_DESCRIBE_HASH", "")[1:] }}
+  script: python setup.py install
+  entry_points:
+    {% for entry_point_type, entry_points in data.get("entry_points", dict()).items() -%}
+    {% for entry_point in entry_points -%}
+    - {{ entry_point }}
+    {% endfor %}
+    {% endfor %}
+  # For namespace package compatibility – might or might not actually be required.
+  preserve_egg_dir: True
+
+requirements:
+  build:
+    - python >=3.8
+  run:
+    - python >=3.8
+    - numpy
+    - sipyco
+    - pyzmq
