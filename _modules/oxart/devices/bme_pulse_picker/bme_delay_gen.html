@@ -1,0 +1,673 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>oxart.devices.bme_pulse_picker.bme_delay_gen &mdash; oxart-devices  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+    <link rel="canonical" href="https://oxfordiontrapgroup.github.io/oxart-devices/_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html"/>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> oxart-devices
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../bme.html">Bergmann Messgeräte Entwicklung devices</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">oxart-devices</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>oxart.devices.bme_pulse_picker.bme_delay_gen</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for oxart.devices.bme_pulse_picker.bme_delay_gen</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Control a BME delay generator PCI cards using the vendor driver DLL.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">ctypes</span> <span class="kn">import</span> <span class="n">byref</span><span class="p">,</span> <span class="n">cdll</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_double</span><span class="p">,</span> <span class="n">c_long</span><span class="p">,</span> <span class="n">c_ulong</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">unique</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Set</span>
+
+<span class="kn">import</span> <span class="nn">ctypes</span>
+
+<span class="n">c_bool_p</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">c_bool</span><span class="p">)</span>
+<span class="n">c_long_p</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">c_long</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="DelayGenException"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.DelayGenException">[docs]</a><span class="k">class</span> <span class="nc">DelayGenException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Raised on passing invalid parameters or hardware communication issues.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<span class="k">def</span> <span class="nf">_check_status</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert non-zero status codes into exceptions.</span>
+
+<span class="sd">    The strings are derived from the &quot;Error Codes&quot; page in the HLP file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">code</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># Success.</span>
+        <span class="k">return</span> <span class="n">code</span>
+
+    <span class="n">messages</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Wrong product number&quot;</span><span class="p">,</span>
+        <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Delay generator index out of range&quot;</span><span class="p">,</span>
+        <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Delay time negative&quot;</span><span class="p">,</span>
+        <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;Incompatible trigger modes specified&quot;</span><span class="p">,</span>
+        <span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;Delay time too long&quot;</span><span class="p">,</span>
+        <span class="mi">6</span><span class="p">:</span> <span class="s2">&quot;Invalid output level&quot;</span><span class="p">,</span>
+        <span class="mi">7</span><span class="p">:</span> <span class="s2">&quot;Invalid clock source&quot;</span><span class="p">,</span>
+        <span class="mi">8</span><span class="p">:</span> <span class="s2">&quot;New calibration file created&quot;</span><span class="p">,</span>  <span class="c1"># XXX: Not an error?!</span>
+        <span class="mi">9</span><span class="p">:</span> <span class="s2">&quot;Error writing to file&quot;</span><span class="p">,</span>
+        <span class="mi">10</span><span class="p">:</span> <span class="s2">&quot;File not found&quot;</span><span class="p">,</span>
+        <span class="mi">11</span><span class="p">:</span> <span class="s2">&quot;Low-level driver (PLX) command failed&quot;</span><span class="p">,</span>
+        <span class="mi">12</span><span class="p">:</span> <span class="s2">&quot;Communication with delay generator could not be established&quot;</span><span class="p">,</span>
+        <span class="mi">13</span><span class="p">:</span> <span class="s2">&quot;Improper ribbon cable connection to delay generator&quot;</span><span class="p">,</span>
+        <span class="mi">14</span><span class="p">:</span> <span class="s2">&quot;Proper ribbon cable connection to delay generator&quot;</span><span class="p">,</span>  <span class="c1"># XXX: Not an error?!</span>
+    <span class="p">}</span>
+
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">messages</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">msg</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Unknown error code: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="n">DelayGenException</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="StatusFlag"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag">[docs]</a><span class="nd">@unique</span>
+<span class="k">class</span> <span class="nc">StatusFlag</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hardware status register flags.</span>
+
+<span class="sd">    The definitions can be found in the &quot;Programming BME_SG08P3&quot; chapter of the BME_G0X</span>
+<span class="sd">    manual, in the &quot;Command register (read)&quot; section.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#: channel A is active</span>
+    <span class="n">channel_a_active</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1">#: channel B is active</span>
+    <span class="n">channel_b_active</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1">#: channel C is active</span>
+    <span class="n">channel_c_active</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1">#: channel D is active</span>
+    <span class="n">channel_d_active</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="c1">#: channel E is active</span>
+    <span class="n">channel_e_active</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span>
+
+    <span class="c1">#: channel F is active</span>
+    <span class="n">channel_f_active</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="c1">#: primary trigger is active</span>
+    <span class="n">primary_trigger_active</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">6</span><span class="p">)</span>
+
+    <span class="c1">#: secondary trigger is active</span>
+    <span class="n">secondary_trigger_active</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">7</span><span class="p">)</span>
+
+    <span class="c1">#: force trigger is active</span>
+    <span class="n">force_trigger_active</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span>
+
+    <span class="c1">#: terminal count of preset register has been reached</span>
+    <span class="n">terminal_count_reached</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">9</span><span class="p">)</span>
+
+    <span class="c1">#: external clock fed via the trigger input connector is used, but no level</span>
+    <span class="c1">#: transitions have been detected for the number of periods of the internal clock as</span>
+    <span class="c1">#: prescribed by Multipurpose register, byte no. 6</span>
+    <span class="n">external_clock_no_transitions_detected</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1">#: all wait times for the trigger system have elapsed</span>
+    <span class="n">all_wait_times_elapsed</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">11</span><span class="p">)</span>
+
+    <span class="c1">#: Load command is active</span>
+    <span class="n">load_command_active</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">17</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Driver"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.Driver">[docs]</a><span class="k">class</span> <span class="nc">Driver</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interface to the driver DLL for the delay generator PCI cards by BME</span>
+<span class="sd">    (Bergmann Messgeräte Entwicklung KG).</span>
+
+<span class="sd">    There should typically only be one instance of this class per process. Note</span>
+<span class="sd">    also that the class does not currently uninitialise and unload the DLL upon</span>
+<span class="sd">    destruction (although that would be easily fixable), so creating many objects</span>
+<span class="sd">    would eventually deplete the process handle pool.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">lib</span> <span class="o">=</span> <span class="n">cdll</span><span class="o">.</span><span class="n">DelayGenerator</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DelayGenException</span><span class="p">(</span><span class="s2">&quot;Failed to load delay generator DLL: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+        <span class="k">def</span> <span class="nf">get_fn</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">param_types</span><span class="p">,</span> <span class="n">returns_status</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Look up a function from the DLL handle.</span>
+
+<span class="sd">            If returns_status is True, applies a wrapper that converts non-zero</span>
+<span class="sd">            status code return values into exceptions.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">fn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">fn</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="n">param_types</span>
+            <span class="k">if</span> <span class="n">returns_status</span><span class="p">:</span>
+                <span class="n">fn</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">_check_status</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">fn</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reserve_dg_data</span> <span class="o">=</span> <span class="n">get_fn</span><span class="p">(</span><span class="s2">&quot;Reserve_DG_Data&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">c_long</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">detect_pci_dgs</span> <span class="o">=</span> <span class="n">get_fn</span><span class="p">(</span><span class="s2">&quot;DetectPciDelayGenerators&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">c_long_p</span><span class="p">],</span>
+                                         <span class="n">returns_status</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_pci_dg</span> <span class="o">=</span> <span class="n">get_fn</span><span class="p">(</span><span class="s2">&quot;GetPciDelayGenerator&quot;</span><span class="p">,</span>
+                                     <span class="p">[</span><span class="n">c_long_p</span><span class="p">,</span> <span class="n">c_long_p</span><span class="p">,</span> <span class="n">c_bool_p</span><span class="p">,</span> <span class="n">c_long</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initialize_dg</span> <span class="o">=</span> <span class="n">get_fn</span><span class="p">(</span><span class="s2">&quot;Initialize_DG_BME&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">c_long</span><span class="p">,</span> <span class="n">c_long</span><span class="p">,</span> <span class="n">c_long</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">deactivate_dg</span> <span class="o">=</span> <span class="n">get_fn</span><span class="p">(</span><span class="s2">&quot;Deactivate_DG_BME&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">c_long</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">activate_dg</span> <span class="o">=</span> <span class="n">get_fn</span><span class="p">(</span><span class="s2">&quot;Activate_DG_BME&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">c_long</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_gate_function</span> <span class="o">=</span> <span class="n">get_fn</span><span class="p">(</span><span class="s2">&quot;Set_GateFunction&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">c_ulong</span><span class="p">,</span> <span class="n">c_long</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trigger_parameters</span> <span class="o">=</span> <span class="n">get_fn</span><span class="p">(</span><span class="s2">&quot;Set_TriggerParameters&quot;</span><span class="p">,</span> <span class="p">[</span>
+                <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_double</span><span class="p">,</span> <span class="n">c_double</span><span class="p">,</span> <span class="n">c_ulong</span><span class="p">,</span> <span class="n">c_ulong</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span>
+                <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_long</span>
+            <span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_resetwhendone</span> <span class="o">=</span> <span class="n">get_fn</span><span class="p">(</span><span class="s2">&quot;Set_ResetWhenDone&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">c_bool</span><span class="p">,</span> <span class="n">c_long</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">read_dg_status</span> <span class="o">=</span> <span class="n">get_fn</span><span class="p">(</span><span class="s2">&quot;Read_DG_Status&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">c_long</span><span class="p">],</span>
+                                         <span class="n">returns_status</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="c1"># These are model-specific.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_g08_delay</span> <span class="o">=</span> <span class="n">get_fn</span><span class="p">(</span><span class="s2">&quot;Set_G08_Delay&quot;</span><span class="p">,</span> <span class="p">[</span>
+                <span class="n">c_ulong</span><span class="p">,</span> <span class="n">c_double</span><span class="p">,</span> <span class="n">c_double</span><span class="p">,</span> <span class="n">c_ulong</span><span class="p">,</span> <span class="n">c_ulong</span><span class="p">,</span> <span class="n">c_ulong</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span>
+                <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_long</span>
+            <span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_g08_clock_parameters</span> <span class="o">=</span> <span class="n">get_fn</span><span class="p">(</span>
+                <span class="s2">&quot;Set_G08_ClockParameters&quot;</span><span class="p">,</span>
+                <span class="p">[</span><span class="n">c_bool</span><span class="p">,</span> <span class="n">c_ulong</span><span class="p">,</span> <span class="n">c_ulong</span><span class="p">,</span> <span class="n">c_ulong</span><span class="p">,</span> <span class="n">c_ulong</span><span class="p">,</span> <span class="n">c_long</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_g08_trigger_parameters</span> <span class="o">=</span> <span class="n">get_fn</span><span class="p">(</span><span class="s2">&quot;Set_G08_TriggerParameters&quot;</span><span class="p">,</span> <span class="p">[</span>
+                <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_double</span><span class="p">,</span> <span class="n">c_double</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_double</span><span class="p">,</span> <span class="n">c_double</span><span class="p">,</span> <span class="n">c_ulong</span><span class="p">,</span>
+                <span class="n">c_ulong</span><span class="p">,</span> <span class="n">c_long</span>
+            <span class="p">])</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DelayGenException</span><span class="p">(</span><span class="s2">&quot;Error binding to function from DLL: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Driver.init_single_pci_card"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.Driver.init_single_pci_card">[docs]</a>    <span class="k">def</span> <span class="nf">init_single_pci_card</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For a system with a single delay generator card installed, detect the</span>
+<span class="sd">        parameters of that card and return an interface to it.</span>
+
+<span class="sd">        Currently, only the model BME_SG08p is supported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reserve_dg_data</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># This function is the odd one out in that it returns the numerical</span>
+        <span class="c1"># result and writes the status code to a pointer parameter.</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">c_long</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">device_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_pci_dgs</span><span class="p">(</span><span class="n">byref</span><span class="p">(</span><span class="n">status</span><span class="p">))</span>
+        <span class="n">_check_status</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="c1"># We currently support only one delay generator card, which is a</span>
+        <span class="c1"># gratuitous limitation. To lift it, the API needs to expose the list of</span>
+        <span class="c1"># delay generators to the user and a way of disambiguating between them.</span>
+        <span class="n">DG_IDX</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">device_count</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DelayGenException</span><span class="p">(</span><span class="s2">&quot;No PCI delay generator detected.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">device_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DelayGenException</span><span class="p">(</span><span class="s2">&quot;More than one PCI delay generator &quot;</span>
+                                    <span class="s2">&quot;detected; currently not supported.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">BME_SG08p</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DG_IDX</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ClockSource"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.ClockSource">[docs]</a><span class="nd">@unique</span>
+<span class="k">class</span> <span class="nc">ClockSource</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The main clock for the delay generator card to use.&quot;&quot;&quot;</span>
+
+    <span class="c1">#: Use the on-board 160 MHz oscillator.</span>
+    <span class="n">internal</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+
+    <span class="c1">#: Use an external 80 MHz clock fed to the trigger input.</span>
+    <span class="n">external_80_mhz</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span></div>
+
+
+<div class="viewcode-block" id="OutputGateMode"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode">[docs]</a><span class="nd">@unique</span>
+<span class="k">class</span> <span class="nc">OutputGateMode</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Modes for the delay generator to combine pairs of adjacent channels</span>
+<span class="sd">    instead of directly routing them to the respective outputs.&quot;&quot;&quot;</span>
+
+    <span class="c1">#: Route channels to the respective outputs.</span>
+    <span class="n">direct</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1">#: Combine the two channels with a logical OR and send the result to both</span>
+    <span class="c1">#: outputs.</span>
+    <span class="n">gate_or</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1">#: Combine the two channels with a logical AND and send the result to both</span>
+    <span class="c1">#: outputs.</span>
+    <span class="n">gate_and</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="c1">#: Combine the two channels with an XOR-type operation and send the result</span>
+    <span class="c1">#: to both outputs. Note that this is not an actual XOR which would produce</span>
+    <span class="c1">#: two pulses at the output in the general case. Instead, the hardware seems</span>
+    <span class="c1">#: to do some extra gating to only output a single pulse.</span>
+    <span class="n">gate_xor</span> <span class="o">=</span> <span class="mi">3</span></div>
+
+
+<div class="viewcode-block" id="PulseParameters"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.PulseParameters">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">PulseParameters</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Timing parameters for a single delay channel on the card.&quot;&quot;&quot;</span>
+
+    <span class="c1">#: Whether to generate a pulse on the channel at all.</span>
+    <span class="n">enabled</span><span class="p">:</span> <span class="nb">bool</span>
+
+    <span class="c1">#: The delay of the pulse in microseconds, relative to the sequence start.</span>
+    <span class="n">delay_us</span><span class="p">:</span> <span class="nb">float</span>
+
+    <span class="c1">#: The width of the pulse in microseconds.</span>
+    <span class="n">width_us</span><span class="p">:</span> <span class="nb">float</span></div>
+
+
+<div class="viewcode-block" id="BME_SG08p"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p">[docs]</a><span class="k">class</span> <span class="nc">BME_SG08p</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interface to a BME SG08p delay generator card.</span>
+
+<span class="sd">    Many settings (trigger inputs, etc.) are currently hard-coded to match a</span>
+<span class="sd">    specific application in the Oxford Old Lab, and should be made configurable</span>
+<span class="sd">    for a general-purpose driver.</span>
+
+<span class="sd">    :param driver_lib: A handle to the driver DLL.</span>
+<span class="sd">    :param device_idx: The index of the device to use, as per the DLL&#39;s conception.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CHANNEL_COUNT</span> <span class="o">=</span> <span class="mi">6</span>
+
+    <span class="c1"># By default, the delay generator card is configured to use a 10 MHz clock</span>
+    <span class="c1"># derived from the internal oscillator. The manufacturer suggested using a</span>
+    <span class="c1"># higher clock rate for our application to cut down on various internal</span>
+    <span class="c1"># delays, 40 MHz. The timing values are not automatically rescaled by the</span>
+    <span class="c1"># driver, so we need to manually stretch them.</span>
+    <span class="c1">#</span>
+    <span class="c1"># After a while in continuous use, timing issues occurred with the 40 MHz</span>
+    <span class="c1"># clock, though, causing edges on some channels to be deterministically</span>
+    <span class="c1"># placed incorrectly. For now, a 10 MHz clock is used.</span>
+    <span class="n">CLOCK_FACTOR</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">driver_lib</span><span class="p">,</span> <span class="n">device_idx</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span> <span class="o">=</span> <span class="n">driver_lib</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span> <span class="o">=</span> <span class="n">device_idx</span>
+
+        <span class="n">product_id</span> <span class="o">=</span> <span class="n">c_long</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">slot_id</span> <span class="o">=</span> <span class="n">c_long</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">is_master</span> <span class="o">=</span> <span class="n">c_bool</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">get_pci_dg</span><span class="p">(</span><span class="n">product_id</span><span class="p">,</span> <span class="n">slot_id</span><span class="p">,</span> <span class="n">is_master</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">product_id</span><span class="o">.</span><span class="n">value</span> <span class="o">!=</span> <span class="mi">46</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DelayGenException</span><span class="p">(</span>
+                <span class="s2">&quot;Detected delay generator with invalid &quot;</span>
+                <span class="s2">&quot;product id &#39;</span><span class="si">{}</span><span class="s2">&#39;; currently only BME_SG08p is supported.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">product_id</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_master</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DelayGenException</span><span class="p">(</span><span class="s2">&quot;Detected delay generator is not set to &quot;</span>
+                                    <span class="s2">&quot;master mode&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">initialize_dg</span><span class="p">(</span><span class="n">slot_id</span><span class="p">,</span> <span class="n">product_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<div class="viewcode-block" id="BME_SG08p.reset"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset the card configuration to the default state, with the default</span>
+<span class="sd">        trigger settings, no special gate functions enabled and all the delay</span>
+<span class="sd">        channels being disabled.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deactivate_safely</span><span class="p">()</span>
+
+        <span class="c1"># Set the default hardware configuration. This is application-specific</span>
+        <span class="c1"># and should be made configurable for a proper, comprehensive driver.</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_clock_params</span><span class="p">(</span><span class="n">ClockSource</span><span class="o">.</span><span class="n">internal</span><span class="p">)</span>
+        <span class="c1"># Default to external gating and no inhibit time.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_trigger_params</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_g08_trigger_parameters</span><span class="p">(</span>
+            <span class="kc">True</span><span class="p">,</span>  <span class="c1"># 50Ω-terminate gate input</span>
+            <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># Gate input level, in V</span>
+            <span class="mf">0.0</span><span class="p">,</span>  <span class="c1"># No gate delay</span>
+            <span class="kc">True</span><span class="p">,</span>  <span class="c1"># Ignore gate inputs while trigger inhibited (no memoizing)</span>
+            <span class="kc">False</span><span class="p">,</span>  <span class="c1"># Do not &quot;synchronize&quot; gate (which would use width of pulse</span>
+            <span class="c1"># for secondary trigger)</span>
+            <span class="mf">0.0</span><span class="p">,</span>  <span class="c1"># Do not force re-trigger (time in μs)</span>
+            <span class="mf">0.0</span><span class="p">,</span>  <span class="c1"># No time-list step back (time in μs)</span>
+            <span class="mi">1</span><span class="p">,</span>  <span class="c1"># No burst triggering. Setting this to 0 seems to break external</span>
+            <span class="c1"># triggering.</span>
+            <span class="mh">0xfc</span><span class="p">,</span>  <span class="c1"># Default flags from manual UI (send local primary/force,</span>
+            <span class="c1"># resync pre-scaled m/s clock to input, send step-back/start/</span>
+            <span class="c1"># inhibit/load-data)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span>
+
+        <span class="c1"># All &quot;straight&quot; delay channels, no combining.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_gate_function</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span>
+
+        <span class="c1"># Disable all channels.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CHANNEL_COUNT</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_delay_channel</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">PulseParameters</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">activate_dg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BME_SG08p.set_clock_source"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.set_clock_source">[docs]</a>    <span class="k">def</span> <span class="nf">set_clock_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">ClockSource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deactivate_safely</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_clock_params</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">activate_dg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_set_clock_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">ClockSource</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="n">ClockSource</span><span class="o">.</span><span class="n">internal</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="o">==</span> <span class="n">ClockSource</span><span class="o">.</span><span class="n">external_80_mhz</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DelayGenException</span><span class="p">(</span><span class="s2">&quot;Unrecognised clock source&quot;</span><span class="p">)</span>
+
+        <span class="n">int_divider</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">16</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">CLOCK_FACTOR</span><span class="p">)</span>
+        <span class="n">ext_divider</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">8</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">CLOCK_FACTOR</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_g08_clock_parameters</span><span class="p">(</span>
+            <span class="kc">True</span><span class="p">,</span>  <span class="c1"># Enable clock circuit</span>
+            <span class="n">int_divider</span><span class="p">,</span>  <span class="c1"># Internal oscillator divider (160 MHz base</span>
+            <span class="c1"># frequency)</span>
+            <span class="n">ext_divider</span><span class="p">,</span>  <span class="c1"># Trigger input divider (80 MHz input assumed)</span>
+            <span class="mi">1</span><span class="p">,</span>  <span class="c1"># Trigger input multiplier</span>
+            <span class="n">s</span><span class="p">,</span>  <span class="c1"># 1: crystal, 2: trigger in, 3: trigger in with</span>
+            <span class="c1"># crystal as fallback, 4: master/slave bus</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BME_SG08p.set_trigger"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.set_trigger">[docs]</a>    <span class="k">def</span> <span class="nf">set_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_external_gate</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">inhibit_us</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deactivate_safely</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_trigger_params</span><span class="p">(</span><span class="n">use_external_gate</span><span class="p">,</span> <span class="n">inhibit_us</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">activate_dg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_set_trigger_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_external_gate</span><span class="p">,</span> <span class="n">inhibit_us</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_trigger_parameters</span><span class="p">(</span>
+            <span class="kc">True</span><span class="p">,</span>  <span class="c1"># 50 Ω-terminate trigger input</span>
+            <span class="n">inhibit_us</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">CLOCK_FACTOR</span><span class="p">,</span>  <span class="c1"># Inhibit time</span>
+            <span class="mf">0.0</span><span class="p">,</span>  <span class="c1"># Trigger level ([-2.5, 2.5] V)</span>
+            <span class="mi">0</span><span class="p">,</span>  <span class="c1"># Pre-set trigger counter limit (disabled below)</span>
+            <span class="mi">1</span><span class="p">,</span>  <span class="c1"># Gate divider, 0 for level-sensitive gate</span>
+            <span class="kc">True</span><span class="p">,</span>  <span class="c1"># Trigger on positive external gate edge</span>
+            <span class="kc">True</span><span class="p">,</span>  <span class="c1"># Use internal trigger</span>
+            <span class="kc">False</span><span class="p">,</span>  <span class="c1"># No arming based on internal clock</span>
+            <span class="kc">False</span><span class="p">,</span>  <span class="c1"># No software trigger</span>
+            <span class="kc">False</span><span class="p">,</span>  <span class="c1"># Do not use external trigger (used for clock input)</span>
+            <span class="kc">False</span><span class="p">,</span>  <span class="c1"># Do not stop when pre-set counter value is reached</span>
+            <span class="kc">True</span><span class="p">,</span>  <span class="c1"># Reset all outputs 2 μs after all delays have elapsed</span>
+            <span class="ow">not</span> <span class="n">use_external_gate</span><span class="p">,</span>  <span class="c1"># Whether to always enable trigger regardless</span>
+            <span class="c1"># of the gate signal</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BME_SG08p.set_output_gates"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.set_output_gates">[docs]</a>    <span class="k">def</span> <span class="nf">set_output_gates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">modes</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">OutputGateMode</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mode_ab</span><span class="p">,</span> <span class="n">mode_cd</span><span class="p">,</span> <span class="n">mode_ef</span> <span class="o">=</span> <span class="n">modes</span>
+
+        <span class="c1"># The hardware goes into xor pulse mode if both flags are set.</span>
+        <span class="n">OR</span> <span class="o">=</span> <span class="p">[</span><span class="n">OutputGateMode</span><span class="o">.</span><span class="n">gate_or</span><span class="p">,</span> <span class="n">OutputGateMode</span><span class="o">.</span><span class="n">gate_xor</span><span class="p">]</span>
+        <span class="n">AND</span> <span class="o">=</span> <span class="p">[</span><span class="n">OutputGateMode</span><span class="o">.</span><span class="n">gate_and</span><span class="p">,</span> <span class="n">OutputGateMode</span><span class="o">.</span><span class="n">gate_xor</span><span class="p">]</span>
+
+        <span class="n">flags</span> <span class="o">=</span> <span class="mh">0x0</span>
+        <span class="k">if</span> <span class="n">mode_ab</span> <span class="ow">in</span> <span class="n">OR</span><span class="p">:</span>
+            <span class="n">flags</span> <span class="o">|=</span> <span class="mh">0x10000</span>
+        <span class="k">if</span> <span class="n">mode_ab</span> <span class="ow">in</span> <span class="n">AND</span><span class="p">:</span>
+            <span class="n">flags</span> <span class="o">|=</span> <span class="mh">0x20000</span>
+
+        <span class="k">if</span> <span class="n">mode_cd</span> <span class="ow">in</span> <span class="n">OR</span><span class="p">:</span>
+            <span class="n">flags</span> <span class="o">|=</span> <span class="mh">0x40000</span>
+        <span class="k">if</span> <span class="n">mode_cd</span> <span class="ow">in</span> <span class="n">AND</span><span class="p">:</span>
+            <span class="n">flags</span> <span class="o">|=</span> <span class="mh">0x80000</span>
+
+        <span class="k">if</span> <span class="n">mode_ef</span> <span class="ow">in</span> <span class="n">OR</span><span class="p">:</span>
+            <span class="n">flags</span> <span class="o">|=</span> <span class="mh">0x100000</span>
+        <span class="k">if</span> <span class="n">mode_ef</span> <span class="ow">in</span> <span class="n">AND</span><span class="p">:</span>
+            <span class="n">flags</span> <span class="o">|=</span> <span class="mh">0x200000</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deactivate_safely</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_gate_function</span><span class="p">(</span><span class="n">flags</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">activate_dg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BME_SG08p.set_pulse_parameters"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.set_pulse_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">set_pulse_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PulseParameters</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CHANNEL_COUNT</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DelayGenException</span><span class="p">(</span><span class="s2">&quot;Expected one pulse parameter specification &quot;</span>
+                                    <span class="s2">&quot;for each of the </span><span class="si">{}</span><span class="s2"> channels, not </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">CHANNEL_COUNT</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deactivate_safely</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_delay_channel</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">activate_dg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_deactivate_safely</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deactivate the delay generator without interrupting any currently running</span>
+<span class="sd">        sequences.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># The below procedure is in line with what the BME_G0X help recommends in the</span>
+        <span class="c1"># &quot;Modifying Parameters Synchronuously&quot; [sic] section.</span>
+        <span class="c1">#</span>
+        <span class="c1"># 2020 update to Windows 10 driver: The all_wait_times_elapsed status flag</span>
+        <span class="c1"># seems not be set initially. Therefore, don&#39;t call this method after</span>
+        <span class="c1"># initialisation.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_resetwhendone</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_safe</span><span class="p">():</span>
+            <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">deactivate_dg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_resetwhendone</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_read_status_word</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">read_dg_status</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BME_SG08p.read_status_flags"><a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.read_status_flags">[docs]</a>    <span class="k">def</span> <span class="nf">read_status_flags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="n">StatusFlag</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">status_word</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_status_word</span><span class="p">()</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">StatusFlag</span><span class="p">:</span>
+            <span class="c1"># print(&quot;{}: {}&quot;.format(flag, status_word&amp;flag.value))</span>
+            <span class="k">if</span> <span class="n">status_word</span> <span class="o">&amp;</span> <span class="n">flag</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+    <span class="k">def</span> <span class="nf">_safe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_status_flags</span><span class="p">()</span>
+        <span class="n">active</span> <span class="o">=</span> <span class="n">StatusFlag</span><span class="o">.</span><span class="n">primary_trigger_active</span> <span class="ow">in</span> <span class="n">flags</span>
+        <span class="n">elapsed</span> <span class="o">=</span> <span class="n">StatusFlag</span><span class="o">.</span><span class="n">all_wait_times_elapsed</span> <span class="ow">in</span> <span class="n">flags</span>
+        <span class="k">return</span> <span class="n">elapsed</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">active</span>
+
+    <span class="k">def</span> <span class="nf">_set_delay_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="n">CHANNEL_A_IDX</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lib</span><span class="o">.</span><span class="n">set_g08_delay</span><span class="p">(</span>
+            <span class="n">CHANNEL_A_IDX</span> <span class="o">+</span> <span class="n">idx</span><span class="p">,</span>  <span class="c1"># Channel index</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">delay_us</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">CLOCK_FACTOR</span><span class="p">,</span>  <span class="c1"># Time to first edge, in μs</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">width_us</span> <span class="o">*</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CLOCK_FACTOR</span><span class="p">,</span>  <span class="c1"># Pulse width (first to second edge), in μs</span>
+            <span class="mi">1</span><span class="p">,</span>  <span class="c1"># Modulo counter length</span>
+            <span class="mi">0</span><span class="p">,</span>  <span class="c1"># Modulo counter offset</span>
+            <span class="mh">0x1</span> <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">enabled</span> <span class="k">else</span> <span class="mh">0x0</span><span class="p">,</span>  <span class="c1"># Trigger from local primary if enabled</span>
+            <span class="kc">True</span><span class="p">,</span>  <span class="c1"># Positive polarity</span>
+            <span class="kc">False</span><span class="p">,</span>  <span class="c1"># Do not 50 Ω-terminate internally (for 50 Ω sink)</span>
+            <span class="kc">False</span><span class="p">,</span>  <span class="c1"># Do not disconnect output stage</span>
+            <span class="kc">False</span><span class="p">,</span>  <span class="c1"># Do not connect onto master/slave bus</span>
+            <span class="kc">True</span><span class="p">,</span>  <span class="c1"># Positive input polarity (ignored in output mode)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_device_idx</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2017-2021, Ion Trap Quantum Computing group.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

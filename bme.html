@@ -1,0 +1,681 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Bergmann Messgeräte Entwicklung devices &mdash; oxart-devices  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+    <link rel="canonical" href="https://oxfordiontrapgroup.github.io/oxart-devices/bme.html"/>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="oxart-drivers" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> oxart-devices
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Bergmann Messgeräte Entwicklung devices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-oxart.devices.bme_pulse_picker.bme_delay_gen"><code class="xref py py-mod docutils literal notranslate"><span class="pre">oxart.devices.bme_pulse_picker.bme_pulse_picker</span></code> module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-oxart.devices.bme_pulse_picker.timing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">oxart.devices.bme_pulse_picker.timing</span></code> module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">oxart-devices</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Bergmann Messgeräte Entwicklung devices</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            
+              <a href="https://github.com/OxfordIonTrapGroup/oxart-devices/blob/master/docs/bme.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="bergmann-messgerate-entwicklung-devices">
+<h1>Bergmann Messgeräte Entwicklung devices<a class="headerlink" href="#bergmann-messgerate-entwicklung-devices" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-oxart.devices.bme_pulse_picker.bme_delay_gen">
+<span id="oxart-devices-bme-pulse-picker-bme-pulse-picker-module"></span><h2><code class="xref py py-mod docutils literal notranslate"><span class="pre">oxart.devices.bme_pulse_picker.bme_pulse_picker</span></code> module<a class="headerlink" href="#module-oxart.devices.bme_pulse_picker.bme_delay_gen" title="Permalink to this headline">¶</a></h2>
+<p>Control a BME delay generator PCI cards using the vendor driver DLL.</p>
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.c_bool_p">
+<code class="sig-prename descclassname">oxart.devices.bme_pulse_picker.bme_delay_gen.</code><code class="sig-name descname">c_bool_p</code><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.c_bool_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">oxart.devices.bme_pulse_picker.bme_delay_gen.LP_c_bool</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.c_long_p">
+<code class="sig-prename descclassname">oxart.devices.bme_pulse_picker.bme_delay_gen.</code><code class="sig-name descname">c_long_p</code><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.c_long_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">oxart.devices.bme_pulse_picker.bme_delay_gen.LP_c_long</span></code></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.DelayGenException">
+<em class="property">exception </em><code class="sig-prename descclassname">oxart.devices.bme_pulse_picker.bme_delay_gen.</code><code class="sig-name descname">DelayGenException</code><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#DelayGenException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.DelayGenException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised on passing invalid parameters or hardware communication issues.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag">
+<em class="property">class </em><code class="sig-prename descclassname">oxart.devices.bme_pulse_picker.bme_delay_gen.</code><code class="sig-name descname">StatusFlag</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#StatusFlag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hardware status register flags.</p>
+<p>The definitions can be found in the “Programming BME_SG08P3” chapter of the BME_G0X
+manual, in the “Command register (read)” section.</p>
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.channel_a_active">
+<code class="sig-name descname">channel_a_active</code><em class="property"> = 1</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.channel_a_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel A is active</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.channel_b_active">
+<code class="sig-name descname">channel_b_active</code><em class="property"> = 2</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.channel_b_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel B is active</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.channel_c_active">
+<code class="sig-name descname">channel_c_active</code><em class="property"> = 4</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.channel_c_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel C is active</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.channel_d_active">
+<code class="sig-name descname">channel_d_active</code><em class="property"> = 8</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.channel_d_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel D is active</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.channel_e_active">
+<code class="sig-name descname">channel_e_active</code><em class="property"> = 16</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.channel_e_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel E is active</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.channel_f_active">
+<code class="sig-name descname">channel_f_active</code><em class="property"> = 32</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.channel_f_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>channel F is active</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.primary_trigger_active">
+<code class="sig-name descname">primary_trigger_active</code><em class="property"> = 64</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.primary_trigger_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>primary trigger is active</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.secondary_trigger_active">
+<code class="sig-name descname">secondary_trigger_active</code><em class="property"> = 128</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.secondary_trigger_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>secondary trigger is active</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.force_trigger_active">
+<code class="sig-name descname">force_trigger_active</code><em class="property"> = 256</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.force_trigger_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>force trigger is active</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.terminal_count_reached">
+<code class="sig-name descname">terminal_count_reached</code><em class="property"> = 512</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.terminal_count_reached" title="Permalink to this definition">¶</a></dt>
+<dd><p>terminal count of preset register has been reached</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.external_clock_no_transitions_detected">
+<code class="sig-name descname">external_clock_no_transitions_detected</code><em class="property"> = 1024</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.external_clock_no_transitions_detected" title="Permalink to this definition">¶</a></dt>
+<dd><p>external clock fed via the trigger input connector is used, but no level
+transitions have been detected for the number of periods of the internal clock as
+prescribed by Multipurpose register, byte no. 6</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.all_wait_times_elapsed">
+<code class="sig-name descname">all_wait_times_elapsed</code><em class="property"> = 2048</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.all_wait_times_elapsed" title="Permalink to this definition">¶</a></dt>
+<dd><p>all wait times for the trigger system have elapsed</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.load_command_active">
+<code class="sig-name descname">load_command_active</code><em class="property"> = 131072</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag.load_command_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load command is active</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.Driver">
+<em class="property">class </em><code class="sig-prename descclassname">oxart.devices.bme_pulse_picker.bme_delay_gen.</code><code class="sig-name descname">Driver</code><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#Driver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.Driver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interface to the driver DLL for the delay generator PCI cards by BME
+(Bergmann Messgeräte Entwicklung KG).</p>
+<p>There should typically only be one instance of this class per process. Note
+also that the class does not currently uninitialise and unload the DLL upon
+destruction (although that would be easily fixable), so creating many objects
+would eventually deplete the process handle pool.</p>
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.Driver.init_single_pci_card">
+<code class="sig-name descname">init_single_pci_card</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#Driver.init_single_pci_card"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.Driver.init_single_pci_card" title="Permalink to this definition">¶</a></dt>
+<dd><p>For a system with a single delay generator card installed, detect the
+parameters of that card and return an interface to it.</p>
+<p>Currently, only the model BME_SG08p is supported.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.ClockSource">
+<em class="property">class </em><code class="sig-prename descclassname">oxart.devices.bme_pulse_picker.bme_delay_gen.</code><code class="sig-name descname">ClockSource</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#ClockSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.ClockSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main clock for the delay generator card to use.</p>
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.ClockSource.internal">
+<code class="sig-name descname">internal</code><em class="property"> = (0,)</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.ClockSource.internal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the on-board 160 MHz oscillator.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.ClockSource.external_80_mhz">
+<code class="sig-name descname">external_80_mhz</code><em class="property"> = (1,)</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.ClockSource.external_80_mhz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use an external 80 MHz clock fed to the trigger input.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode">
+<em class="property">class </em><code class="sig-prename descclassname">oxart.devices.bme_pulse_picker.bme_delay_gen.</code><code class="sig-name descname">OutputGateMode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#OutputGateMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modes for the delay generator to combine pairs of adjacent channels
+instead of directly routing them to the respective outputs.</p>
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode.direct">
+<code class="sig-name descname">direct</code><em class="property"> = 0</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode.direct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Route channels to the respective outputs.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode.gate_or">
+<code class="sig-name descname">gate_or</code><em class="property"> = 1</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode.gate_or" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine the two channels with a logical OR and send the result to both
+outputs.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode.gate_and">
+<code class="sig-name descname">gate_and</code><em class="property"> = 2</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode.gate_and" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine the two channels with a logical AND and send the result to both
+outputs.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode.gate_xor">
+<code class="sig-name descname">gate_xor</code><em class="property"> = 3</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode.gate_xor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine the two channels with an XOR-type operation and send the result
+to both outputs. Note that this is not an actual XOR which would produce
+two pulses at the output in the general case. Instead, the hardware seems
+to do some extra gating to only output a single pulse.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.PulseParameters">
+<em class="property">class </em><code class="sig-prename descclassname">oxart.devices.bme_pulse_picker.bme_delay_gen.</code><code class="sig-name descname">PulseParameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">enabled</span><span class="p">:</span> <span class="n">bool</span></em>, <em class="sig-param"><span class="n">delay_us</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">width_us</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#PulseParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.PulseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timing parameters for a single delay channel on the card.</p>
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.PulseParameters.enabled">
+<code class="sig-name descname">enabled</code><em class="property">: bool</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.PulseParameters.enabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether to generate a pulse on the channel at all.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.PulseParameters.delay_us">
+<code class="sig-name descname">delay_us</code><em class="property">: float</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.PulseParameters.delay_us" title="Permalink to this definition">¶</a></dt>
+<dd><p>The delay of the pulse in microseconds, relative to the sequence start.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.PulseParameters.width_us">
+<code class="sig-name descname">width_us</code><em class="property">: float</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.PulseParameters.width_us" title="Permalink to this definition">¶</a></dt>
+<dd><p>The width of the pulse in microseconds.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p">
+<em class="property">class </em><code class="sig-prename descclassname">oxart.devices.bme_pulse_picker.bme_delay_gen.</code><code class="sig-name descname">BME_SG08p</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">driver_lib</span></em>, <em class="sig-param"><span class="n">device_idx</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#BME_SG08p"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interface to a BME SG08p delay generator card.</p>
+<p>Many settings (trigger inputs, etc.) are currently hard-coded to match a
+specific application in the Oxford Old Lab, and should be made configurable
+for a general-purpose driver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>driver_lib</strong> – A handle to the driver DLL.</p></li>
+<li><p><strong>device_idx</strong> – The index of the device to use, as per the DLL’s conception.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#BME_SG08p.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the card configuration to the default state, with the default
+trigger settings, no special gate functions enabled and all the delay
+channels being disabled.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.set_clock_source">
+<code class="sig-name descname">set_clock_source</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.ClockSource" title="oxart.devices.bme_pulse_picker.bme_delay_gen.ClockSource">oxart.devices.bme_pulse_picker.bme_delay_gen.ClockSource</a></span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#BME_SG08p.set_clock_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.set_clock_source" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.set_trigger">
+<code class="sig-name descname">set_trigger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">use_external_gate</span><span class="p">:</span> <span class="n">bool</span></em>, <em class="sig-param"><span class="n">inhibit_us</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#BME_SG08p.set_trigger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.set_trigger" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.set_output_gates">
+<code class="sig-name descname">set_output_gates</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">modes</span><span class="p">:</span> <span class="n">Iterable<span class="p">[</span><a class="reference internal" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode" title="oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode">oxart.devices.bme_pulse_picker.bme_delay_gen.OutputGateMode</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#BME_SG08p.set_output_gates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.set_output_gates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.set_pulse_parameters">
+<code class="sig-name descname">set_pulse_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.PulseParameters" title="oxart.devices.bme_pulse_picker.bme_delay_gen.PulseParameters">oxart.devices.bme_pulse_picker.bme_delay_gen.PulseParameters</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#BME_SG08p.set_pulse_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.set_pulse_parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.read_status_flags">
+<code class="sig-name descname">read_status_flags</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Set<span class="p">[</span><a class="reference internal" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag" title="oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag">oxart.devices.bme_pulse_picker.bme_delay_gen.StatusFlag</a><span class="p">]</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/bme_delay_gen.html#BME_SG08p.read_status_flags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.BME_SG08p.read_status_flags" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-oxart.devices.bme_pulse_picker.timing">
+<span id="oxart-devices-bme-pulse-picker-timing-module"></span><h2><a class="reference internal" href="#module-oxart.devices.bme_pulse_picker.timing" title="oxart.devices.bme_pulse_picker.timing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">oxart.devices.bme_pulse_picker.timing</span></code></a> module<a class="headerlink" href="#module-oxart.devices.bme_pulse_picker.timing" title="Permalink to this headline">¶</a></h2>
+<p>High-level experimentalist’s interface for arming the pulse picker
+setup and specifying its timing parameters.</p>
+<p>Note that there is quite some potential for confusion due to overloaded
+terminology here. In normal experimentalist’s usage, as well as this
+high-level interface, the term “pulse” refers to an optical laser pulse.
+A pulse picker is a device that selects from those pulses. To do that,
+the Pockels cell driver hardware needs to be triggered by a number of
+electronic pulses with certain delays between them, which is how the term
+is also used in the low-level delay generator driver.</p>
+<p>In a similar vein, the two pairs of high-voltage switches (high-side and
+low-side in an H-bridge configuration) are referred to as “on” and “off”
+in the labels and documentation of the pulse picker head, even though they
+do not correspond to optical bright/dark (which is the XOR of their states).</p>
+<p>Currently, only the BME_SG08p delay generator is supported, with its six
+channels connected as following to a BME pulse picker driver head:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>A: OFF A</p></li>
+<li><p>B: &lt;unused&gt;</p></li>
+<li><p>C: OFF B</p></li>
+<li><p>D: &lt;unused&gt;</p></li>
+<li><p>E: ON A</p></li>
+<li><p>F: ON B</p></li>
+</ul>
+</div></blockquote>
+<dl class="py exception">
+<dt id="oxart.devices.bme_pulse_picker.timing.InvalidTimingError">
+<em class="property">exception </em><code class="sig-prename descclassname">oxart.devices.bme_pulse_picker.timing.</code><code class="sig-name descname">InvalidTimingError</code><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#InvalidTimingError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.InvalidTimingError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised when the user specifies a set of parameters that violate the
+hardware timing constraints.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxart.devices.bme_pulse_picker.timing.TimingParams">
+<em class="property">class </em><code class="sig-prename descclassname">oxart.devices.bme_pulse_picker.timing.</code><code class="sig-name descname">TimingParams</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">allow_long_pulses</span><span class="p">:</span> <span class="n">bool</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#TimingParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.TimingParams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores different pulse picker timing parameters. All times in
+microseconds.</p>
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.timing.TimingParams.LASER_PERIOD_US">
+<code class="sig-name descname">LASER_PERIOD_US</code><em class="property"> = 0.0125</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.TimingParams.LASER_PERIOD_US" title="Permalink to this definition">¶</a></dt>
+<dd><p>80 MHz repetition rate</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.timing.TimingParams.MIN_SWITCH_INTERVAL_US">
+<code class="sig-name descname">MIN_SWITCH_INTERVAL_US</code><em class="property"> = 0.15</em><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.TimingParams.MIN_SWITCH_INTERVAL_US" title="Permalink to this definition">¶</a></dt>
+<dd><p>The safe hardware limit is actually 50 us, but with the delay
+generator currently running at 10 MHz, the trigger pulses themselves
+end up being up to ~130 ns long, so be on the safe side.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.timing.TimingParams.offset_on_us">
+<code class="sig-name descname">offset_on_us</code><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.TimingParams.offset_on_us" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timing offset to apply between nominally synchronous pulses to the
+ON switches; positive meaning channel B being later.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.timing.TimingParams.offset_off_us">
+<code class="sig-name descname">offset_off_us</code><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.TimingParams.offset_off_us" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timing offset to apply between nominally synchronous pulses to the
+OFF switches; positive meaning channel B being later.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.timing.TimingParams.pre_open_us">
+<code class="sig-name descname">pre_open_us</code><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.TimingParams.pre_open_us" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait time between initial OFF pulse and ON pair.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.timing.TimingParams.post_open_us">
+<code class="sig-name descname">post_open_us</code><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.TimingParams.post_open_us" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait time between ON pair and second OFF pair.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.timing.TimingParams.open_us">
+<code class="sig-name descname">open_us</code><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.TimingParams.open_us" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time between ON pair (i.e. optical pulse duration).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxart.devices.bme_pulse_picker.timing.TimingParams.align_us">
+<code class="sig-name descname">align_us</code><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.TimingParams.align_us" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extra shift of the ON pair on top of pre_open_us, for useful units
+when calibrating the timing relation to the laser pulse train.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.TimingParams.ensure_valid">
+<code class="sig-name descname">ensure_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#TimingParams.ensure_valid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.TimingParams.ensure_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verify that the timing parameters are sane, raising an error if not.</p>
+<p>This is quite important, as the hardware switches can be damaged by
+triggering them in an inadequate way.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming">
+<em class="property">class </em><code class="sig-prename descclassname">oxart.devices.bme_pulse_picker.timing.</code><code class="sig-name descname">PulsePickerTiming</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">delay_gen</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxart.devices.bme_pulse_picker.bme_delay_gen.Driver" title="oxart.devices.bme_pulse_picker.bme_delay_gen.Driver">oxart.devices.bme_pulse_picker.bme_delay_gen.Driver</a></span></em>, <em class="sig-param"><span class="n">allow_long_pulses</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new high-level interface for using the passed delay generator
+to drive a pulse picker head.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>delay_gen</strong> – The BME_SG08p instance to use. It will be configured
+for the pulse picker head, its outputs initially disabled. None for
+simulation mode.</p></li>
+<li><p><strong>allow_long_pulses</strong> – Whether to allow (optical) pulses that are
+longer than sensible for calibrating single-pulse picking
+(2 * LASER_PERIOD_US).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.disable">
+<code class="sig-name descname">disable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.disable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.disable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disable pulsing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.enable_gated">
+<code class="sig-name descname">enable_gated</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">holdoff_us</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.enable_gated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.enable_gated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable pulsing, triggering one whenever the external gate input is
+signalled.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.enable_free">
+<code class="sig-name descname">enable_free</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_period_us</span><span class="o">=</span><span class="default_value">10.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.enable_free"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.enable_free" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable pulsing in a free-running manner, where pulses are triggered
+whenever the laser sync trigger is asserted, but with a minimum period
+(hold-off/inhibit) of min_period_us.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_offset_on_us">
+<code class="sig-name descname">get_offset_on_us</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.get_offset_on_us"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_offset_on_us" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_offset_on_us">
+<code class="sig-name descname">set_offset_on_us</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.set_offset_on_us"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_offset_on_us" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_offset_off_us">
+<code class="sig-name descname">get_offset_off_us</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.get_offset_off_us"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_offset_off_us" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_offset_off_us">
+<code class="sig-name descname">set_offset_off_us</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.set_offset_off_us"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_offset_off_us" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_pre_open_us">
+<code class="sig-name descname">get_pre_open_us</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.get_pre_open_us"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_pre_open_us" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_pre_open_us">
+<code class="sig-name descname">set_pre_open_us</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.set_pre_open_us"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_pre_open_us" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_post_open_us">
+<code class="sig-name descname">get_post_open_us</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.get_post_open_us"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_post_open_us" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_post_open_us">
+<code class="sig-name descname">set_post_open_us</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.set_post_open_us"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_post_open_us" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_open_us">
+<code class="sig-name descname">get_open_us</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.get_open_us"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_open_us" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_open_us">
+<code class="sig-name descname">set_open_us</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.set_open_us"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_open_us" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_align_us">
+<code class="sig-name descname">get_align_us</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.get_align_us"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_align_us" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_align_us">
+<code class="sig-name descname">set_align_us</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.set_align_us"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_align_us" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.ping">
+<code class="sig-name descname">ping</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/oxart/devices/bme_pulse_picker/timing.html#PulsePickerTiming.ping"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.ping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return true (for ARTIQ controller heartbeat mechanism).</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="index.html" class="btn btn-neutral float-left" title="oxart-drivers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2017-2021, Ion Trap Quantum Computing group.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
