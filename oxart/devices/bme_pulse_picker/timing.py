@@ -225,7 +225,9 @@ class PulsePickerTiming:
 
         self._times.ensure_valid()
 
-        split_neg = lambda x: (-x, 0.0) if x < 0.0 else (0.0, x)
+        def split_neg(x):
+            return (-x, 0.0) if x < 0.0 else (0.0, x)
+
         s_a_off, s_b_off = split_neg(self._times.offset_off_us)
         s_a_on, s_b_on = split_neg(self._times.offset_on_us)
 

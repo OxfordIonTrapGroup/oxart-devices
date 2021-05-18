@@ -58,11 +58,19 @@ class IPCMini:
 
     def _generator(self, win_desc, win_info):
         if win_desc in c.lookups:
-            read_helper = lambda data: c.lookups[win_desc][int(data)]
-            write_helper = lambda value: c.reverse_lookups[win_desc][value]
+
+            def read_helper(data):
+                return c.lookups[win_desc][int(data)]
+
+            def write_helper(value):
+                return c.reverse_lookups[win_desc][value]
         elif win_desc in c.floats:
-            read_helper = lambda data: float(data)
-            write_helper = lambda value: "{:10g}".format(value)
+
+            def read_helper(data):
+                return float(data)
+
+            def write_helper(value):
+                return "{:10g}".format(value)
         else:
             read_helper = None
             write_helper = None

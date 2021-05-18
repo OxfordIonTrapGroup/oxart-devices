@@ -100,8 +100,10 @@ class ChooseROI(EnvExperiment):
 
         roi_clipped = []
         for r in roi:
-            if r > 511: r = 511
-            if r < 0: r = 0
+            if r > 511:
+                r = 511
+            if r < 0:
+                r = 0
             roi_clipped.append(r)
 
         ion_regions = find_ion_regions(im, max_width=int(self.ion_signal_width))

@@ -40,7 +40,7 @@ def main():
     def ping(self):
         # This raise an exception if the camera has been turned off, unplugged,
         # crashed, etc
-        #self.get_temperature()
+        # self.get_temperature()
         return True
 
     logger.info("Initialising cameras...")

@@ -141,7 +141,7 @@ if __name__ == "__main__":
     #g.set_emission_status(1, True)
     #g.set_emission_status(2, True)
     #import time
-    #time.sleep(3)
-    #print(g.read_emission_status(1))
-    #print(g.read_emission_status(2))
-    #print(g.read_pressure(1))
+    # time.sleep(3)
+    # print(g.read_emission_status(1))
+    # print(g.read_emission_status(2))
+    # print(g.read_pressure(1))

@@ -75,12 +75,12 @@ def main():
             return
         if msg["notification_message"] in \
                 ["Saved Vapour Cell Items",
-                "Saved Sprout Items",
-                "Saved Beam Alignment Setup",
-                "Saved Scope Setup",
-                "Saved Stitching Setup",
-                "Saved Wavelength Meter Setup",
-                "Saved Common Items"]:
+                 "Saved Sprout Items",
+                 "Saved Beam Alignment Setup",
+                 "Saved Scope Setup",
+                 "Saved Stitching Setup",
+                 "Saved Wavelength Meter Setup",
+                 "Saved Common Items"]:
             return
         fields = {"title": msg["notification_message"], "tags": args.name}
         write_point(fields, tags={"type": "display_notification"})

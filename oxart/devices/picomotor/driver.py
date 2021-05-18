@@ -17,7 +17,7 @@ class PicomotorController:
         # [takes_channel, takes_argument, arg_min, arg_max]
         self.commands = {
             '*IDN?': [False, False],  # Identification string query
-            '*RCL': [False, True, 0, 1],  #Recall parameters
+            '*RCL': [False, True, 0, 1],  # Recall parameters
             '*RST': [False, False],  # Reset instrument
             'AB': [False, False],  # Abort motion
             'AC': [True, True, 1, 200000],  # Set acceleration

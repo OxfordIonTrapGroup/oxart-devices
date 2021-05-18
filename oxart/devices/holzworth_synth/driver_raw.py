@@ -45,7 +45,7 @@ class HolzworthSynthRaw():
             freq = float(value) * (10**self.suffix_dict[suffix])
         except KeyError as e:
             raise Exception('Invalid suffix "' + e.args[0] + '"')
-        return round(freq, 3)  #rounding as the synth reads to 3 d.p. precision
+        return round(freq, 3)  # rounding as the synth reads to 3 d.p. precision
 
     def set_freq(self, freq):
         """Sets the output frequency of the Holzworth synth"""
@@ -54,13 +54,13 @@ class HolzworthSynthRaw():
             raise Exception("Frequency out of range")
 
         exponent = int(3.0 * np.floor(
-            np.log10(freq) / 3.0))  #find nearest SI suffix exponent (i.e. 0,3,6 or 9)
+            np.log10(freq) / 3.0))  # find nearest SI suffix exponent (i.e. 0,3,6 or 9)
 
         try:
             freq_string = str(
                 round(freq / (10**exponent), exponent + 3)
             ) + self.exponent_dict[
-                exponent]  #rounding to 3 d.p. as otherwise synth can set to the wrong frequency.
+                exponent]  # rounding to 3 d.p. as otherwise synth can set to the wrong frequency.
         except KeyError as e:
             raise Exception('Invalid exponent"' + e.args[0] + '"')
 
@@ -80,7 +80,7 @@ class HolzworthSynthRaw():
         assert (pow_string != 'Invalid Command')
 
         power = float(pow_string.strip(' dBm'))
-        return round(power, 3)  #rounding as the synth reads to 3 d.p. precision
+        return round(power, 3)  # rounding as the synth reads to 3 d.p. precision
 
     def set_pow(self, power):
         """Sets the output power of the Holzworth synth"""

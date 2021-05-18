@@ -1,3 +1,4 @@
+import time
 from driver import *
 
 
@@ -20,7 +21,6 @@ def print_status(h):
     print(status_str)
 
 
-import time
 if __name__ == "__main__":
     h = DDR25("/dev/ttyUSB10", auto_home=False)
 
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     h.home()
     print_status(h)
 
-    #for _ in range(5):
+    # for _ in range(5):
     #    print_status(h)
     #    time.sleep(0.2)
 

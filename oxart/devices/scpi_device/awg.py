@@ -1,8 +1,7 @@
+from oxart.devices.scpi_device.driver import SCPIDevice
 import logging
 
 logger = logging.getLogger(__name__)
-
-from oxart.devices.scpi_device.driver import SCPIDevice
 
 
 class SCPIAWG(SCPIDevice):

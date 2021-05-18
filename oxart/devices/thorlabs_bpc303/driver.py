@@ -129,7 +129,7 @@ class _APTCardSlotDevice:
                                  wait_for=[MGMSG.HW_GET_INFO],
                                  dest=SRC_DEST["RACK_CONTROLLER"].value)
         serial, model, hw_type, firmware, _, hw_version, mod, num_channels = \
-        struct.unpack("=L8sH4s60sHHH", msg.data)
+            struct.unpack("=L8sH4s60sHHH", msg.data)
         return serial
 
     def ping(self):
@@ -172,7 +172,7 @@ class BPC303(_APTCardSlotDevice):
             self.set_enable_feedback(b + 1, enable=self.enable_feedback)
 
     #
-    ### Functions interfacing with the mediator
+    # Functions interfacing with the mediator
     #
     def set_channel(self, channel_char, value):
         """Set one of the axes ('x', 'y', 'z') to a certain value"""
@@ -202,7 +202,7 @@ class BPC303(_APTCardSlotDevice):
             return self.get_voltage(bay_id)
 
     #
-    ### Internal functions
+    # Internal functions
     #
     def set_voltage(self, bay_id, voltage, channel=0):
         """
@@ -306,7 +306,7 @@ class BPC303(_APTCardSlotDevice):
             Message(MGMSG.PZ_SET_PICONSTS, dest=self.bays[bay_id - 1], data=payload))
 
     #
-    ### Safety functions
+    # Safety functions
     #
     def _check_voltage_in_limit(self, voltage):
         """Raises a ValueError if the voltage is not in limit for the current
@@ -328,7 +328,7 @@ class BPC303(_APTCardSlotDevice):
             raise ValueError("Channel must be one of 'x', 'y', or 'z'")
 
     #
-    ### Save file operations
+    # Save file operations
     #
     def _load_setpoints(self):
         """Load setpoints from a file"""
