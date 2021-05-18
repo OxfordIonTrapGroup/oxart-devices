@@ -1,4 +1,4 @@
-"""Control a BME delay generator PCI cards using the vendor driver DLL."""
+"""Control a BME delay generator PCI card using the vendor-supplied driver DLL."""
 from ctypes import byref, cdll, c_bool, c_double, c_long, c_ulong
 from dataclasses import dataclass
 from enum import Enum, unique
