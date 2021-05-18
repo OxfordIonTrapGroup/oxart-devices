@@ -1,7 +1,6 @@
 #!/usr/bin/env python3.5
 
 import argparse
-import sys
 
 from oxart.devices.ophir.driver import OphirPowerMeter
 from sipyco.pc_rpc import simple_server_loop

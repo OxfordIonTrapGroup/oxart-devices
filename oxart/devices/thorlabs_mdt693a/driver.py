@@ -1,8 +1,5 @@
 import logging
 import serial
-import re
-import sys
-import asyncio
 
 import sipyco.pyon as pyon
 

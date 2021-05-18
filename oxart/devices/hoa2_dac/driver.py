@@ -1,7 +1,5 @@
-import time
 import serial
 import logging
-import asyncio
 import numpy as np
 from .pirate_dac import PirateDac
 

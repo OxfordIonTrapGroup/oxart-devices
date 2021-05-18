@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import sys
 
 from oxart.devices.bme_pulse_picker.bme_delay_gen import ClockSource, Driver
 from oxart.devices.bme_pulse_picker.timing import PulsePickerTiming

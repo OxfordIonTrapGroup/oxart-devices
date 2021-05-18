@@ -1,7 +1,5 @@
-import time
 import serial
 import logging
-import asyncio
 import numpy as np
 from sipyco import pyon
 from artiq.language.core import *

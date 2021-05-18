@@ -1,6 +1,5 @@
 from artiq.language.core import *
 import numpy as np
-import time
 
 
 class ShutterWrapper:

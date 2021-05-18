@@ -1,4 +1,3 @@
-import sys
 import serial
 import struct
 import time

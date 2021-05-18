@@ -1,13 +1,11 @@
 """ Driver for current stabilizer """
 
 from collections import OrderedDict
-import argparse
 import asyncio
 import json
 import logging
 import math
 import numpy as np
-import socket
 import sys
 
 logger = logging.getLogger(__name__)

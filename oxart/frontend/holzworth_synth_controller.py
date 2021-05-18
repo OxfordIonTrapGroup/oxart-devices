@@ -1,7 +1,6 @@
 #!/usr/bin/env python3.5
 
 import argparse
-import sys
 
 from oxart.devices.holzworth_synth.driver import HolzworthSynth
 from sipyco.pc_rpc import simple_server_loop

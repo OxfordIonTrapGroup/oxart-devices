@@ -1,7 +1,5 @@
 #!/usr/bin/env python3.5
 import argparse
-import sys
-import time
 import zmq
 import logging
 import types

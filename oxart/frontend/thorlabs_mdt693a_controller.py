@@ -1,7 +1,6 @@
 #!/usr/bin/env python3.5
 
 import argparse
-import sys
 
 from oxart.devices.thorlabs_mdt693a.driver import PiezoController
 from sipyco.pc_rpc import simple_server_loop

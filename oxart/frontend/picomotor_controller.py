@@ -1,7 +1,6 @@
 #!/usr/bin/env python3.5
 
 import argparse
-import sys
 
 from oxart.devices.picomotor.driver import PicomotorController
 from sipyco.pc_rpc import simple_server_loop
