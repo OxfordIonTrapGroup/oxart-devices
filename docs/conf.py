@@ -108,7 +108,7 @@ html_context = {
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'oxartdriversdoc'
+htmlhelp_basename = 'oxartdevicesdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -135,7 +135,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'oxart-drivers.tex', 'oxart-drivers Documentation',
+    (master_doc, 'oxart-devices.tex', 'oxart-devices Documentation',
      'Oxford Ion Trap Quantum Computing group', 'manual'),
 ]
 
@@ -145,7 +145,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'oxart-drivers', 'oxart-drivers Documentation',
+    (master_doc, 'oxart-devices', 'oxart-devices Documentation',
      [author], 1)
 ]
 
@@ -156,8 +156,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'oxart-drivers', 'oxart-drivers Documentation',
-     author, 'oxart-drivers', 'One line description of project.',
+    (master_doc, 'oxart-devices', 'oxart-devices Documentation',
+     author, 'oxart-devices', 'One line description of project.',
      'Miscellaneous'),
 ]
 
