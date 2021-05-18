@@ -3,7 +3,7 @@ package:
   version: {{ environ.get("GIT_DESCRIBE_TAG", "") }}
 
 source:
-  git_url: ../..
+  path: ../..
 
 {% set data = load_setup_py_data() %}
 
@@ -24,6 +24,7 @@ build:
 requirements:
   build:
     - python >=3.8
+    - numpy
     - sipyco
   run:
     - python >=3.8
