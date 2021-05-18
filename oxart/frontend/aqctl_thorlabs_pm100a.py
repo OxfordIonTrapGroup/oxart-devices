@@ -6,7 +6,6 @@ from sipyco.pc_rpc import simple_server_loop
 
 from oxart.devices.thorlabs_pm.driver import ThorlabsPM100A
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -16,7 +15,8 @@ def get_argparser():
 
     # A list of available Thorlabs power meter devices can be obtained via
     # the get_device_names function in module oxart.devices.thorlabs_pm.driver
-    parser.add_argument("-d", "--device",
+    parser.add_argument("-d",
+                        "--device",
                         default="USB0::0x1313::0x8079::P1003876::INSTR",
                         help="Hardware address of device")
     sca.simple_network_args(parser, 4315)
@@ -36,8 +36,8 @@ def main():
 
     try:
         logger.info("Starting server at port {}...".format(args.port))
-        simple_server_loop({"Thorlabs PM100A": dev},
-                           sca.bind_address_from_args(args), args.port)
+        simple_server_loop({"Thorlabs PM100A": dev}, sca.bind_address_from_args(args),
+                           args.port)
     finally:
         dev.close()
 

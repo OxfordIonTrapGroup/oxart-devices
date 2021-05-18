@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 # See https://www.thorlabs.com/Software/Motion%20Control/APT_Communications_Protocol.pdf
 
+
 class MGMSG(IntEnum):
     HW_DISCONNECT = 0x0002
     HW_REQ_INFO = 0x0005
@@ -125,10 +126,11 @@ class MGMSG(IntEnum):
     PZ_SET_OUTPUTMAXVOLTS = 0x0680
     PZ_REQ_OUTPUTMAXVOLTS = 0x0681
     PZ_GET_OUTPUTMAXVOLTS = 0x0682
-    PZ_SET_SLEWRATES = 0x0683 
+    PZ_SET_SLEWRATES = 0x0683
     PZ_REQ_SLEWRATES = 0x0684
     PZ_GET_SLEWRATES = 0x0685
     RESTOREFACTORYSETTINGS = 0x0686
+
 
 class SRC_DEST(IntEnum):
     HOST_CONTROLLER = 0x01
@@ -144,6 +146,7 @@ class SRC_DEST(IntEnum):
     RACK_BAY_8 = 0x29
     RACK_BAY_9 = 0x2A
     GENERIC_USB_HW = 0x50
+
 
 class Status(IntEnum):
     HW_LIM_FORWARD = 0x01
@@ -175,8 +178,14 @@ class LimitSwitch(IntEnum):
 class MsgError(Exception):
     pass
 
+
 class Message:
-    def __init__(self, _id, param1=0, param2=0, dest=SRC_DEST.GENERIC_USB_HW.value, src=SRC_DEST.HOST_CONTROLLER.value,
+    def __init__(self,
+                 _id,
+                 param1=0,
+                 param2=0,
+                 dest=SRC_DEST.GENERIC_USB_HW.value,
+                 src=SRC_DEST.HOST_CONTROLLER.value,
                  data=None):
         if data is not None:
             dest |= 0x80
@@ -189,9 +198,8 @@ class Message:
 
     def __str__(self):
         return ("<Message 0x{:04x} p1=0x{:02x} p2=0x{:02x} "
-                "dest=0x{:02x} src=0x{:02x}>".format(
-                    self._id, self.param1, self.param2,
-                    self.dest, self.src))
+                "dest=0x{:02x} src=0x{:02x}>".format(self._id, self.param1, self.param2,
+                                                     self.dest, self.src))
 
     @staticmethod
     def unpack(data):
@@ -208,10 +216,10 @@ class Message:
     def pack(self):
         if self.has_data:
             return struct.pack("<HHBB", self._id.value, len(self.data),
-                           self.dest | 0x80, self.src) + self.data
+                               self.dest | 0x80, self.src) + self.data
         else:
-            return struct.pack("<HBBBB", self._id.value,
-                           self.param1, self.param2, self.dest, self.src)
+            return struct.pack("<HBBBB", self._id.value, self.param1, self.param2,
+                               self.dest, self.src)
 
     @property
     def has_data(self):
@@ -223,6 +231,7 @@ class Message:
             return self.param1 | (self.param2 << 8)
         else:
             raise ValueError
+
 
 class _APTDevice:
     def __init__(self, port):
@@ -266,11 +275,12 @@ class _APTDevice:
             raise MsgError("Hardware error, please disconnect")
         elif msg_id == MGMSG.HW_RICHRESPONSE:
             (code, ) = struct.unpack("<H", data[2:4])
-            raise MsgError("Hardware error {}: {}"
-                           .format(code,
-                                   data[4:].decode(encoding="ascii")))
-        elif msg_id in [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED,
-                MGMSG.MOT_MOVE_HOMED, MGMSG.MOT_GET_DCSTATUSUPDATE]:
+            raise MsgError("Hardware error {}: {}".format(
+                code, data[4:].decode(encoding="ascii")))
+        elif msg_id in [
+                MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED, MGMSG.MOT_MOVE_HOMED,
+                MGMSG.MOT_GET_DCSTATUSUPDATE
+        ]:
             self._status_update_counter += 1
             if self._status_update_counter > 25:
                 logger.debug("Acking status updates")
@@ -282,8 +292,8 @@ class _APTDevice:
 
     def set_channel_enable(self, enable=True, channel=0):
         active = 1 if enable else 2
-        self._send_message(Message(MGMSG.MOD_SET_CHANENABLESTATE,
-            param1=channel, param2=active))
+        self._send_message(
+            Message(MGMSG.MOD_SET_CHANENABLESTATE, param1=channel, param2=active))
 
     def set_home_params(self, velocity=0, offset=0, channel=0):
         direction = Direction.REVERSE
@@ -296,16 +306,14 @@ class _APTDevice:
         self._send_message(Message(MGMSG.MOT_SET_VELPARAMS, data=payload))
 
     def get_status(self):
-        msg = self._send_request(
-            MGMSG.MOT_REQ_DCSTATUSUPDATE,
-            wait_for=[MGMSG.MOT_GET_DCSTATUSUPDATE])
+        msg = self._send_request(MGMSG.MOT_REQ_DCSTATUSUPDATE,
+                                 wait_for=[MGMSG.MOT_GET_DCSTATUSUPDATE])
         chan, position, velocity, _, status = struct.unpack("=HiHHI", msg.data)
         return chan, position, velocity, status
 
     def get_status_bits(self):
-        msg = self._send_request(
-            MGMSG.MOT_REQ_STATUSBITS,
-            wait_for=[MGMSG.MOT_GET_STATUSBITS])
+        msg = self._send_request(MGMSG.MOT_REQ_STATUSBITS,
+                                 wait_for=[MGMSG.MOT_GET_STATUSBITS])
         _, status = struct.unpack("=HI", msg.data)
         return status
 
@@ -320,27 +328,25 @@ class _APTDevice:
 
     def home(self, channel=0):
         logger.debug("Homing...")
-        self._send_request(
-            MGMSG.MOT_MOVE_HOME, param1=channel,
-            wait_for=[MGMSG.MOT_MOVE_HOMED, MGMSG.MOT_MOVE_STOPPED])
+        self._send_request(MGMSG.MOT_MOVE_HOME,
+                           param1=channel,
+                           wait_for=[MGMSG.MOT_MOVE_HOMED, MGMSG.MOT_MOVE_STOPPED])
         logger.debug("Homed")
 
     def move(self, position, channel=0):
         payload = struct.pack("<Hi", channel, position)
-        self._send_request(
-            MGMSG.MOT_MOVE_ABSOLUTE, data=payload,
-            wait_for=[MGMSG.MOT_MOVE_COMPLETED])
+        self._send_request(MGMSG.MOT_MOVE_ABSOLUTE,
+                           data=payload,
+                           wait_for=[MGMSG.MOT_MOVE_COMPLETED])
 
     def move_relative(self, position_change, channel=0):
         payload = struct.pack("<Hi", channel, position_change)
-        self._send_request(
-            MGMSG.MOT_MOVE_RELATIVE, data=payload,
-            wait_for=[MGMSG.MOT_MOVE_COMPLETED])
+        self._send_request(MGMSG.MOT_MOVE_RELATIVE,
+                           data=payload,
+                           wait_for=[MGMSG.MOT_MOVE_COMPLETED])
 
     def stop(self):
-        self._send_request(
-            MGMSG.MOT_MOVE_STOP,
-            wait_for=[MGMSG.MOT_MOVE_STOPPED])
+        self._send_request(MGMSG.MOT_MOVE_STOP, wait_for=[MGMSG.MOT_MOVE_STOPPED])
 
     def get_position(self):
         _, position, *_ = self.get_status()
@@ -412,15 +418,17 @@ class _APTRotation(_APTDevice):
                 self.check_angle_mu(acceptable_error=acceptable_error)
             except ValueError as e:
                 if auto_retry > 0:
-                    self.set_angle(angle, check_position=check_position,
-                        auto_retry=auto_retry-1, acceptable_error=acceptable_error)
+                    self.set_angle(angle,
+                                   check_position=check_position,
+                                   auto_retry=auto_retry - 1,
+                                   acceptable_error=acceptable_error)
                 else:
                     raise
 
     def get_angle(self):
         """Get current angle in degrees"""
         angle_mu = self.get_position()
-        angle = float(angle_mu)/self.steps_per_degree
+        angle = float(angle_mu) / self.steps_per_degree
         angle = angle % 360
         return angle
 
@@ -433,7 +441,7 @@ class _APTRotation(_APTDevice):
         angle_mu = self.get_position()
         if abs(self._last_angle_mu - angle_mu) > acceptable_error:
             raise ValueError("Last angle set does not match current angle",
-                self._last_angle_mu, angle_mu)
+                             self._last_angle_mu, angle_mu)
         else:
             # if we're off by an acceptable amount, store the actual value
             self._last_angle_mu = angle_mu
@@ -445,6 +453,7 @@ class K10CR1(_APTRotation):
     max_vel = 73300775
     homing_vel = 7300775
     offset = 546133
+
     def setup(self):
         super().setup()
         self.set_power_params(0.05, 0.3)
@@ -468,8 +477,8 @@ class K10CR1(_APTRotation):
         if self._last_angle_mu:
             # We know our last position, so we can do a relative move
             delta = angle_mu - self._last_angle_mu
-            for offset in [360*self.steps_per_degree, -360*self.steps_per_degree]:
-                if abs(delta+offset) < abs(delta):
+            for offset in [360 * self.steps_per_degree, -360 * self.steps_per_degree]:
+                if abs(delta + offset) < abs(delta):
                     delta += offset
             self.move_relative(delta)
         else:
@@ -485,9 +494,7 @@ class _KBD101(_APTRotation):
 
     def req_hw_info(self):
         """This method must be called to receive move completed messages"""
-        msg = self._send_request(
-            MGMSG.HW_REQ_INFO,
-            wait_for=[MGMSG.HW_GET_INFO])
+        msg = self._send_request(MGMSG.HW_REQ_INFO, wait_for=[MGMSG.HW_GET_INFO])
         data = struct.unpack("=l8sH4B48s12sHHH", msg.data)
 
         serial_no = data[0]
@@ -497,8 +504,8 @@ class _KBD101(_APTRotation):
         notes = ', '.join(bs.rstrip(b'\x00').decode() for bs in data[7:9])
         hw_version, modstate, nchs = data[9:]
 
-        return (serial_no, model_no, type_, fw_version, notes, hw_version,
-            modstate, nchs)
+        return (serial_no, model_no, type_, fw_version, notes, hw_version, modstate,
+                nchs)
 
 
 class DDR25(_KBD101):
@@ -507,7 +514,7 @@ class DDR25(_KBD101):
     acc_scale = 2.74878
     max_vel = 48318300
     max_acc = 28799
-    homing_vel = int(48318300/10)
+    homing_vel = int(48318300 / 10)
     offset = 0
 
 
@@ -515,9 +522,7 @@ class DDR05(_KBD101):
     steps_per_degree = 5555.55
     vel_scale = 37282.2
     acc_scale = 3.81775
-    max_vel = int(1800*37282.2)
-    max_acc = int(10477*3.81775)
-    homing_vel = int(180*37282.5)
+    max_vel = int(1800 * 37282.2)
+    max_acc = int(10477 * 3.81775)
+    homing_vel = int(180 * 37282.5)
     offset = 0
-
-

@@ -1,7 +1,7 @@
 from oxart.devices.streams import get_stream
 
-class LakeShore336:
 
+class LakeShore336:
     def __init__(self, device):
         self.stream = get_stream(device)
         assert self.ping()

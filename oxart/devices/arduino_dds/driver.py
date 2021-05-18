@@ -21,8 +21,7 @@ class ProfileDescriptor:
         self.phase_word = phase_word
 
     def __repr__(self):
-        return "({},{},{})".format(self.freq_word, self.amp_word,
-                                   self.phase_word)
+        return "({},{},{})".format(self.freq_word, self.amp_word, self.phase_word)
 
     def __eq__(self, value):
         if value is None:
@@ -52,11 +51,10 @@ class ArduinoDDS:
         self.lsb_freq = clock_freq / (2**32)
         self.clock_freq = clock_freq
         time.sleep(5)
-        logger.info("Connected to ArduinoDDS with ID "
-                    "'{}'".format(self.identity()))
+        logger.info("Connected to ArduinoDDS with ID '{}'".format(self.identity()))
 
         # List of currently set profiles
-        self.current_profiles = [None]*8
+        self.current_profiles = [None] * 8
 
     def send(self, data):
         self.ser.write(data.encode())
@@ -88,14 +86,12 @@ class ArduinoDDS:
             # If it is not present, set it and log it
             self._set_profile_lsb(profile, freq_word, phase_word, amp_word)
             self.current_profiles[profile] = new_profile
-            logger.debug("Setting profile {} with {}".format(profile,
-                                                             new_profile))
+            logger.debug("Setting profile {} with {}".format(profile, new_profile))
 
     def _set_profile_lsb(self, profile, freq, phase, amp):
         """Freq, phase, amp are all in units of lsb"""
         if profile < 0 or profile > 7 or not isinstance(profile, int):
-            raise ValueError("DDS profile should be an integer between "
-                             "0 and 7")
+            raise ValueError("DDS profile should be an integer between 0 and 7")
         if amp > 0x3fff or amp < 0 or not isinstance(amp, int):
             raise ValueError("DDS amplitude word should be an integer "
                              "between 0 and 0x3fff")

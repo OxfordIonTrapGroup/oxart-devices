@@ -6,7 +6,6 @@ from oxart.devices.streams import get_stream
 
 
 class E4405B:
-
     def __init__(self, device, timeout=10):
         self.stream = get_stream(device, timeout=timeout)
         assert self.ping()
@@ -27,10 +26,10 @@ class E4405B:
         """ Returns the index of the point with the highest power in the
         frequency range [f0-window/2.0, f0+window/2.0]. """
 
-        lower_idx = np.argmin(np.abs(freq-(f0-window/2.)))
-        upper_idx = np.argmin(np.abs(freq-(f0+window/2.)))
+        lower_idx = np.argmin(np.abs(freq - (f0 - window / 2.)))
+        upper_idx = np.argmin(np.abs(freq - (f0 + window / 2.)))
 
-        peak = np.argmax(power[lower_idx:(upper_idx+1)]) + lower_idx
+        peak = np.argmax(power[lower_idx:(upper_idx + 1)]) + lower_idx
         return peak
 
     def get_sweep_axis(self):
@@ -120,5 +119,5 @@ class E4405B:
     def get_trace(self):
         """ Returns the current trace in the amplitude units.  """
         self.stream.write(":TRACE? TRACE1\n".encode())
-        return np.array([
-            float(pt) for pt in self.stream.readline().decode().split(',')])
+        return np.array(
+            [float(pt) for pt in self.stream.readline().decode().split(',')])

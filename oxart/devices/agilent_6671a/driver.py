@@ -3,7 +3,6 @@ from oxart.devices.streams import get_stream
 
 class Agilent6671A:
     """Driver for Agilent 6671A power supplies"""
-
     def __init__(self, device, timeout=10):
         # If the Agilent 6671A is connected via a GPIB adapter, the adapter
         # will be pinged as part of the call to get_stream. If no
@@ -96,13 +95,13 @@ class Agilent6671A:
         self.stream.close()
 
     def _get_float(self, cmd):
-        self.stream.write((cmd+"\n").encode())
+        self.stream.write((cmd + "\n").encode())
         return float(self.stream.readline().decode())
 
     def _get_bool(self, cmd):
-        self.stream.write((cmd+"\n").encode())
+        self.stream.write((cmd + "\n").encode())
         return bool(self.stream.readline().decode())
 
     def _get_int(self, cmd):
-        self.stream.write((cmd+"\n").encode())
+        self.stream.write((cmd + "\n").encode())
         return int(self.stream.readline().decode())

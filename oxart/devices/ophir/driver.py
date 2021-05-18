@@ -14,13 +14,11 @@ logger = logging.getLogger(__name__)
 
 class OphirPowerMeter:
     """Interface to Ophir Starlite power meters"""
-
     def __init__(self, serial_number=None, channel=0):
         self.channel = channel
 
         # Initialise Ophir COM library as per the StarLab example code.
-        self.com = win32com.client.Dispatch(
-            "OphirLMMeasurement.CoLMMeasurement")
+        self.com = win32com.client.Dispatch("OphirLMMeasurement.CoLMMeasurement")
 
         com_version = self.com.GetVersion()
         if com_version < 902:
@@ -44,16 +42,15 @@ class OphirPowerMeter:
                     "specify a serial number", device_list)
             self.device_serial_number = device_list[-1]
 
-        logger.info("Connecting to serial number %s...",
-                    self.device_serial_number)
+        logger.info("Connecting to serial number %s...", self.device_serial_number)
         self.device = self.com.OpenUSBDevice(self.device_serial_number)
 
         if not self.com.IsSensorExists(self.device, self.channel):
             raise Exception("No sensor connected to power meter")
-        self.sensor_serial_number, sensor_type, sensor_model = (
-            self.com.GetSensorInfo(self.device, self.channel))
-        logger.info("Connected; %s sensor (%s; serial number %s).",
-                    sensor_type, sensor_model, self.sensor_serial_number)
+        self.sensor_serial_number, sensor_type, sensor_model = (self.com.GetSensorInfo(
+            self.device, self.channel))
+        logger.info("Connected; %s sensor (%s; serial number %s).", sensor_type,
+                    sensor_model, self.sensor_serial_number)
 
     def start_acquisition(self):
         self.com.StartStream(self.device, self.channel)

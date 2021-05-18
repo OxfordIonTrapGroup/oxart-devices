@@ -23,7 +23,7 @@ class PsuWrapper:
         (device, channel) = self._get_dev_channel(logicalChannel)
         return device.get_current_limit(channel=channel)
 
-    def get_current(self,logicalChannel):
+    def get_current(self, logicalChannel):
         (device, channel) = self._get_dev_channel(logicalChannel)
         return device.get_current(channel=channel)
 

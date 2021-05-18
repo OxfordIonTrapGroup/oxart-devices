@@ -11,12 +11,14 @@ from sipyco import pyon
 import shelve
 import os
 
+
 class SURF:
     """SURF Uncomplicated Regional Fields (python driver)"""
     def __init__(self,
                  trap_model_path="/home/ion/scratch/julia_projects/SURF/"
                  "trap_model/comet_model.jld",
-                 cache_path=None, **kwargs):
+                 cache_path=None,
+                 **kwargs):
         """
         :param trap_model_path: path to the SURF trap model file
         :param cache_path: path on which to cache results. None disables cache.
@@ -32,8 +34,12 @@ class SURF:
         self.load_config(trap_model_path, cache_path, **kwargs)
         print("ready")
 
-    def load_config(self, trap_model_path=None, cache_path=None,
-                    omega_rf=None, mass=None, v_rf=None):
+    def load_config(self,
+                    trap_model_path=None,
+                    cache_path=None,
+                    omega_rf=None,
+                    mass=None,
+                    v_rf=None):
         """
         The trap model and default solver settings are (re-)loaded from the
         specified file. The solution cache is set to to the specified path.
@@ -52,14 +58,15 @@ class SURF:
         # create cache directory as needed
         if cache_path is not None:
             cache_path = os.path.join(cache_path,
-                                      "m{}_w{}_v{}".format(mass, omega_rf,
-                                                           v_rf))
+                                      "m{}_w{}_v{}".format(mass, omega_rf, v_rf))
             if not os.path.isdir(cache_path):
                 os.mkdir(cache_path)
         self.cache_path = cache_path
 
-        model = self.jl.eval("SURF.Load.load_model")(
-            self.trap_model_path, omega_rf=omega_rf, mass=mass, v_rf=v_rf)
+        model = self.jl.eval("SURF.Load.load_model")(self.trap_model_path,
+                                                     omega_rf=omega_rf,
+                                                     mass=mass,
+                                                     v_rf=v_rf)
         self.raw_elec_grid, self.raw_field_grid = model[0:2]
         self.elec_fn = self.jl.eval("mk_electrodes_fn")(self.raw_elec_grid)
         self.field_fn = self.jl.eval("mk_field_fn")(self.raw_field_grid)
@@ -80,38 +87,39 @@ class SURF:
 
         # assignment in julia repel main name-space
         julia.Main.last_field_fn = self.field_fn
-        div_grad_phi = self.jl.eval(
-            "last_field_fn.d2\N{Greek Capital Letter Phi}dx2")(z)
-        div_grad_phi += self.jl.eval(
-            "last_field_fn.d2\N{Greek Capital Letter Phi}dy2")(z)
-        div_grad_phi += self.jl.eval(
-            "last_field_fn.d2\N{Greek Capital Letter Phi}dz2")(z)
+        div_grad_phi = self.jl.eval("last_field_fn.d2\N{Greek Capital Letter Phi}dx2")(
+            z)
+        div_grad_phi += self.jl.eval("last_field_fn.d2\N{Greek Capital Letter Phi}dy2")(
+            z)
+        div_grad_phi += self.jl.eval("last_field_fn.d2\N{Greek Capital Letter Phi}dz2")(
+            z)
         return div_grad_phi
-
 
     def get_config(self):
         """Dictionary containing configuration Settings"""
-        conf = {"trap_model_path": self.trap_model_path,
-                "cache_path": self.cache_path,
-                "zs": self.user_defaults["zs"],
-                }
+        conf = {
+            "trap_model_path": self.trap_model_path,
+            "cache_path": self.cache_path,
+            "zs": self.user_defaults["zs"],
+        }
         settings = {
             "static_settings": (
                 self.user_defaults["static_settings"].scale_tup,
                 self.user_defaults["static_settings"].v_weight,
                 self.user_defaults["static_settings"].v_max,
-                ),
+            ),
             "dynamic_settings": (
                 self.user_defaults["dynamic_settings"].scale_tup,
                 self.user_defaults["dynamic_settings"].v_weight,
                 self.user_defaults["dynamic_settings"].v_step_weights,
                 self.user_defaults["dynamic_settings"].v_max,
-                ),
+            ),
             "split_settings": (
                 self.user_defaults["split_settings"].split_scale_tup,
                 self.user_defaults["split_settings"].spectator_scale_tup,
                 self.user_defaults["split_settings"].v_weight,
-                self.user_defaults["split_settings"].v_max,),
+                self.user_defaults["split_settings"].v_max,
+            ),
         }
         conf.update(settings)
         return conf
@@ -145,19 +153,18 @@ class SURF:
         if param_dict.get("static_settings", None) is None:
             settings = self.user_defaults["static_settings"]
         else:
-            settings = self._mk_solver_settings(
-                *param_dict["static_settings"], solver="Static")
+            settings = self._mk_solver_settings(*param_dict["static_settings"],
+                                                solver="Static")
 
         # need to fix argument order!
-        arg_key = pyon.encode((
-            elec_fn.names, zs, param_dict.get("static_settings", None),
-            param_dict["wells"]["z"], param_dict["wells"]["width"],
-            param_dict["wells"]["dphidx"], param_dict["wells"]["dphidy"],
-            param_dict["wells"]["dphidz"], param_dict["wells"]["rx_axial"],
-            param_dict["wells"]["ry_axial"], param_dict["wells"]["phi_radial"],
-            param_dict["wells"]["d2phidaxial2"],
-            param_dict["wells"]["d3phidz3"],
-            param_dict["wells"]["d2phidradial_h2"]))
+        arg_key = pyon.encode(
+            (elec_fn.names, zs, param_dict.get("static_settings",
+                                               None), param_dict["wells"]["z"],
+             param_dict["wells"]["width"], param_dict["wells"]["dphidx"],
+             param_dict["wells"]["dphidy"], param_dict["wells"]["dphidz"],
+             param_dict["wells"]["rx_axial"], param_dict["wells"]["ry_axial"],
+             param_dict["wells"]["phi_radial"], param_dict["wells"]["d2phidaxial2"],
+             param_dict["wells"]["d3phidz3"], param_dict["wells"]["d2phidradial_h2"]))
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "static")) as db:
                 try:
@@ -165,8 +172,7 @@ class SURF:
                 except KeyError:
                     pass  # key not found
 
-        voltages = self._solve_static(wells, elec_grid, field_grid,
-                                      settings)
+        voltages = self._solve_static(wells, elec_grid, field_grid, settings)
 
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "static")) as db:
@@ -208,12 +214,14 @@ class SURF:
         if param_dict.get("split_settings", None) is None:
             settings = self.user_defaults["split_settings"]
         else:
-            settings = self._mk_solver_settings(
-                *param_dict["split_settings"], solver="Split")
+            settings = self._mk_solver_settings(*param_dict["split_settings"],
+                                                solver="Split")
 
         # need to fix argument order!
         arg_key = pyon.encode((
-            elec_fn.names, zs, param_dict.get("split_settings", None),
+            elec_fn.names,
+            zs,
+            param_dict.get("split_settings", None),
             param_dict["scan_start"]["z"],
             param_dict["scan_start"]["width"],
             param_dict["scan_start"]["dphidx"],
@@ -246,7 +254,8 @@ class SURF:
             param_dict["spectators"]["phi_radial"],
             param_dict["spectators"]["d2phidaxial2"],
             param_dict["spectators"]["d3phidz3"],
-            param_dict["spectators"]["d2phidradial_h2"],))
+            param_dict["spectators"]["d2phidradial_h2"],
+        ))
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "split.db")) as db:
                 try:
@@ -254,10 +263,11 @@ class SURF:
                 except KeyError:
                     pass  # key not found
 
-        voltages, sep_vec = self._solve_split(
-            scan_start, scan_end, spectators, param_dict["n_step"],
-            param_dict["n_scan"], elec_fn, self.field_fn,
-            elec_grid, field_grid, settings)
+        voltages, sep_vec = self._solve_split(scan_start, scan_end, spectators,
+                                              param_dict["n_step"],
+                                              param_dict["n_scan"], elec_fn,
+                                              self.field_fn, elec_grid, field_grid,
+                                              settings)
 
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "split.db")) as db:
@@ -300,41 +310,50 @@ class SURF:
         if param_dict.get("dynamic_settings", None) is None:
             settings = self.user_defaults["dynamic_settings"]
         else:
-            settings = self._mk_solver_settings(
-                *param_dict["dynamic_settings"],
-                solver="Dynamic")
+            settings = self._mk_solver_settings(*param_dict["dynamic_settings"],
+                                                solver="Dynamic")
 
         v0 = [param_dict["volt_start"][name] for name in elec_fn.names]
         v1 = [param_dict["volt_end"][name] for name in elec_fn.names]
 
         # need to fix argument order!
         arg_key = pyon.encode((
-            elec_fn.names, zs, param_dict.get("dynamic_settings", None),
-            v0, v1,
-            param_dict["wells0"]["z"], param_dict["wells0"]["width"],
-            param_dict["wells0"]["dphidx"], param_dict["wells0"]["dphidy"],
-            param_dict["wells0"]["dphidz"], param_dict["wells0"]["rx_axial"],
+            elec_fn.names,
+            zs,
+            param_dict.get("dynamic_settings", None),
+            v0,
+            v1,
+            param_dict["wells0"]["z"],
+            param_dict["wells0"]["width"],
+            param_dict["wells0"]["dphidx"],
+            param_dict["wells0"]["dphidy"],
+            param_dict["wells0"]["dphidz"],
+            param_dict["wells0"]["rx_axial"],
             param_dict["wells0"]["ry_axial"],
             param_dict["wells0"]["phi_radial"],
             param_dict["wells0"]["d2phidaxial2"],
             param_dict["wells0"]["d3phidz3"],
             param_dict["wells0"]["d2phidradial_h2"],
-            param_dict["wells1"]["z"], param_dict["wells1"]["width"],
-            param_dict["wells1"]["dphidx"], param_dict["wells1"]["dphidy"],
-            param_dict["wells1"]["dphidz"], param_dict["wells1"]["rx_axial"],
+            param_dict["wells1"]["z"],
+            param_dict["wells1"]["width"],
+            param_dict["wells1"]["dphidx"],
+            param_dict["wells1"]["dphidy"],
+            param_dict["wells1"]["dphidz"],
+            param_dict["wells1"]["rx_axial"],
             param_dict["wells1"]["ry_axial"],
             param_dict["wells1"]["phi_radial"],
             param_dict["wells1"]["d2phidaxial2"],
             param_dict["wells1"]["d3phidz3"],
-            param_dict["wells1"]["d2phidradial_h2"],))
+            param_dict["wells1"]["d2phidradial_h2"],
+        ))
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "dynamic.db")) as db:
                 try:
                     return db[arg_key]
                 except KeyError:
                     pass  # key not found
-        voltages = self._solve_dynamic(
-            trajectory, v0, v1, elec_grid, field_grid, settings)
+        voltages = self._solve_dynamic(trajectory, v0, v1, elec_grid, field_grid,
+                                       settings)
 
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "dynamic.db")) as db:
@@ -348,9 +367,8 @@ class SURF:
         """Return a list of all electrode names defined in the trap model"""
         return self.elec_fn.names
 
-    def _mk_wells(self, z, width, dphidx, dphidy, dphidz,
-                  rx_axial, ry_axial, phi_radial,
-                  d2phidaxial2, d3phidz3, d2phidradial_h2, **kwargs):
+    def _mk_wells(self, z, width, dphidx, dphidy, dphidz, rx_axial, ry_axial,
+                  phi_radial, d2phidaxial2, d3phidz3, d2phidradial_h2, **kwargs):
         """Struct, characterising target potential wells at a specific time.
 
         For n coexisting wells:
@@ -371,9 +389,9 @@ class SURF:
         :param d3phidz3: cubic z-field term (for splitting)
         :param d2phidradial_h2: horizontal radial mode frequency
         :param **kwargs: additional kwargs are ignored"""
-        return self.jl.eval("PotentialWells")(
-            z, width, dphidx, dphidy, dphidz, rx_axial, ry_axial, phi_radial,
-            d2phidaxial2, d3phidz3, d2phidradial_h2)
+        return self.jl.eval("PotentialWells")(z, width, dphidx, dphidy, dphidz,
+                                              rx_axial, ry_axial, phi_radial,
+                                              d2phidaxial2, d3phidz3, d2phidradial_h2)
 
     def _mk_trajectory(self, wells_start, wells_end, n_step):
         """Trajectory smoothly evolving wells_start to wells_end.
@@ -385,8 +403,7 @@ class SURF:
 
         returns trajectory (Tuple of n_step wells structs)
         """
-        return self.jl.eval(
-            "SURF.ModelTrajectories.create_shuttle_trajectory")(
+        return self.jl.eval("SURF.ModelTrajectories.create_shuttle_trajectory")(
             wells_start, wells_end, n_step)
 
     def _mk_grids(self, zs, elec_fn, field_fn):
@@ -403,7 +420,7 @@ class SURF:
         return self.jl.eval("select_electrodes")(elec, indices)
 
     def _mk_solver_settings(self, *args, solver="Static"):
-        return self.jl.eval("SURF."+solver+".Settings")(*args)
+        return self.jl.eval("SURF." + solver + ".Settings")(*args)
 
     def _solve_static(self, wells, elec_grid, field_grid, settings):
         """Find voltages to best produce target wells
@@ -422,13 +439,14 @@ class SURF:
         cost_fn = self.jl.eval("SURF.Static.cost_function")
         constraint_fn = self.jl.eval("SURF.Static.constraint")
 
-        volt_set = self.jl.eval("SURF.Static.solver")(
-            wells, elec_grid, field_grid, weights_fn, cull_fn, calc_target_fn,
-            cost_fn, constraint_fn, settings)
+        volt_set = self.jl.eval("SURF.Static.solver")(wells, elec_grid, field_grid,
+                                                      weights_fn, cull_fn,
+                                                      calc_target_fn, cost_fn,
+                                                      constraint_fn, settings)
         return np.ascontiguousarray(np.array(volt_set))
 
-    def _solve_dynamic(self, trajectory, v_set_start, v_set_end,
-                       elec_grid, field_grid, settings):
+    def _solve_dynamic(self, trajectory, v_set_start, v_set_end, elec_grid, field_grid,
+                       settings):
         """Find voltages to best produce target trajectory (fixed start & end).
 
         :param trajectory: as returned by mk_trajectory
@@ -448,14 +466,15 @@ class SURF:
         cost_fn = self.jl.eval("SURF.Dynamic.cost_function")
         constraint_fn = self.jl.eval("SURF.Dynamic.constraint")
 
-        volt_set = self.jl.eval("SURF.Dynamic.solver")(
-            trajectory, elec_grid, field_grid, v_set_start, v_set_end,
-            weights_fn, cull_fn, calc_target_fn, cost_fn, constraint_fn,
-            settings)
+        volt_set = self.jl.eval("SURF.Dynamic.solver")(trajectory, elec_grid,
+                                                       field_grid, v_set_start,
+                                                       v_set_end, weights_fn, cull_fn,
+                                                       calc_target_fn, cost_fn,
+                                                       constraint_fn, settings)
         return np.ascontiguousarray(np.array(volt_set))
 
-    def _solve_split(self, scan_start, scan_end, spectator, n_step, n_scan,
-                     elec_fn, field_fn, elec_grid, field_grid, settings):
+    def _solve_split(self, scan_start, scan_end, spectator, n_step, n_scan, elec_fn,
+                     field_fn, elec_grid, field_grid, settings):
         """Find voltages for splitting/merging a well with spectator wells.
 
         The solver operates on a single well. This well evolves from well_start
@@ -480,8 +499,7 @@ class SURF:
         volt_set, sep_vec = self.jl.eval("SURF.Split.solver")(
             scan_start, scan_end, spectator, n_step, n_scan, elec_fn, field_fn,
             elec_grid, field_grid, weights_fn, cull_fn, settings)
-        return (np.ascontiguousarray(np.array(volt_set)),
-                np.array(sep_vec))
+        return (np.ascontiguousarray(np.array(volt_set)), np.array(sep_vec))
 
     def ping(self):
         return True
@@ -507,7 +525,6 @@ class SURF:
             "d4phidz4": self._calc_model_field(zs, volt_dict, "d4phidz4"),
         }
 
-
     def _calc_model_field(self, zs, volt_dict, field="dphidz"):
         """Return a list of trap model values for desired property"""
         names = volt_dict.keys()
@@ -531,14 +548,11 @@ class SURF:
 if __name__ == "__main__":
     print("setting up solver")
 
-    driver = SURF("Comet",
-                  "C:\\Users\\Marius\\scratch\\SURF\\src\\UserTraps\\")
+    driver = SURF("Comet", "C:\\Users\\Marius\\scratch\\SURF\\src\\UserTraps\\")
     tmp = 6.333873616858256e8
-    wells = driver.mk_wells([0.], [2e-5], [0.], [0.], [0.], [0.], [0.], [0.],
-                            [tmp/6], [0], [1.05 * tmp])
-    grids = driver.mk_grids(driver.user_defaults["zs"], driver.elec_fn,
-                            driver.field_fn)
+    wells = driver.mk_wells([0.], [2e-5], [0.], [0.], [0.], [0.], [0.], [0.], [tmp / 6],
+                            [0], [1.05 * tmp])
+    grids = driver.mk_grids(driver.user_defaults["zs"], driver.elec_fn, driver.field_fn)
     print("calling solver")
-    volt = driver.solve_static(wells, *grids,
-                               driver.user_defaults["static_settings"])
+    volt = driver.solve_static(wells, *grids, driver.user_defaults["static_settings"])
     print(volt)

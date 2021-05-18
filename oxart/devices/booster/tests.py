@@ -36,8 +36,8 @@ args = None
 # "socket://10.255.6.123:5025" --meter "10.255.6.125" --p_min -15.00 --p_max
 # -5.00
 
-class TestBooster(unittest.TestCase):
 
+class TestBooster(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.dev = Booster(args.booster)
@@ -71,8 +71,7 @@ class TestBooster(unittest.TestCase):
         num_measurements = 100
         cls.I29V = np.zeros((8, num_measurements))
         cls.I6V = np.zeros((8, num_measurements))
-        print("Initial current measurements ({} samples)..."
-              .format(num_measurements))
+        print("Initial current measurements ({} samples)...".format(num_measurements))
 
         for measurement in range(num_measurements):
             for channel in range(8):
@@ -86,30 +85,22 @@ class TestBooster(unittest.TestCase):
 
             print("Channel {}...".format(channel))
             print("29V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
-                  "std {:.3f} mA".format(np.mean(I29V*1e3),
-                                         np.min(I29V*1e3),
-                                         np.max(I29V*1e3),
-                                         np.std(I29V*1e3)))
+                  "std {:.3f} mA".format(np.mean(I29V * 1e3), np.min(I29V * 1e3),
+                                         np.max(I29V * 1e3), np.std(I29V * 1e3)))
             print("6V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
-                  "std {:.3f} mA".format(np.mean(I6V*1e3),
-                                         np.min(I6V*1e3),
-                                         np.max(I6V*1e3),
-                                         np.std(I6V*1e3)))
+                  "std {:.3f} mA".format(np.mean(I6V * 1e3), np.min(I6V * 1e3),
+                                         np.max(I6V * 1e3), np.std(I6V * 1e3)))
 
         cls.I29V = np.mean(cls.I29V, axis=1)
         cls.I6V = np.mean(cls.I6V, axis=1)
 
         print("Global statistics:")
         print("29V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
-              "std {:.3f} mA".format(np.mean(cls.I29V*1e3),
-                                     np.min(cls.I29V*1e3),
-                                     np.max(cls.I29V*1e3),
-                                     np.std(cls.I29V*1e3)))
+              "std {:.3f} mA".format(np.mean(cls.I29V * 1e3), np.min(cls.I29V * 1e3),
+                                     np.max(cls.I29V * 1e3), np.std(cls.I29V * 1e3)))
         print("6V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
-              "std {:.3f} mA".format(np.mean(cls.I6V*1e3),
-                                     np.min(cls.I6V*1e3),
-                                     np.max(cls.I6V*1e3),
-                                     np.std(cls.I6V*1e3)))
+              "std {:.3f} mA".format(np.mean(cls.I6V * 1e3), np.min(cls.I6V * 1e3),
+                                     np.max(cls.I6V * 1e3), np.std(cls.I6V * 1e3)))
 
         # get baseline measurement of amplifier gain and detector accuracy
         cls.dev.set_interlock(args.chan, 37)
@@ -131,21 +122,19 @@ class TestBooster(unittest.TestCase):
         detector_err_max = cls.dev.get_output_power(args.chan) - Po
         in_detector_err_max = cls.dev.get_input_power(args.chan) - args.p_max
 
-        cls.gain = 0.5*(gain_min+gain_max)
-        cls.detector_err = 0.5*(detector_err_max + detector_err_min)
-        cls.in_detector_err = 0.5*(in_detector_err_max + in_detector_err_min)
+        cls.gain = 0.5 * (gain_min + gain_max)
+        cls.detector_err = 0.5 * (detector_err_max + detector_err_min)
+        cls.in_detector_err = 0.5 * (in_detector_err_max + in_detector_err_min)
 
         cls.synth.set_rf_on(False)
         time.sleep(cls.t_settle)
 
-        print("Amp gain: {} dB (min {} dB, max {} dB)"
-              .format(cls.gain, gain_min, gain_max))
-        print("Input detector error: {} dB ({} db - {} dB)"
-              .format(cls.in_detector_err,
-                      in_detector_err_min,
-                      in_detector_err_max))
-        print("Output detector error: {} dB ({} db - {} dB)"
-              .format(cls.detector_err, detector_err_min, detector_err_max))
+        print("Amp gain: {} dB (min {} dB, max {} dB)".format(
+            cls.gain, gain_min, gain_max))
+        print("Input detector error: {} dB ({} db - {} dB)".format(
+            cls.in_detector_err, in_detector_err_min, in_detector_err_max))
+        print("Output detector error: {} dB ({} db - {} dB)".format(
+            cls.detector_err, detector_err_min, detector_err_max))
 
     def assertRange(self, val, min, max):
         self.assertTrue(val >= min and val <= max)
@@ -156,7 +145,7 @@ class TestBooster(unittest.TestCase):
         self.assertTrue(abs(a - b) < eps)
 
     def _cmd(self, cmd):
-        self.dev.dev.write((cmd+'\n').encode())
+        self.dev.dev.write((cmd + '\n').encode())
         resp = self.dev.dev.readline().decode().strip().lower()
         if "?" in cmd:
             return resp
@@ -186,14 +175,12 @@ class TestBooster(unittest.TestCase):
     def test_channel_validation(self):
         for chan in [0.1, -1, 8, "test", False, "1e0"]:
             self.dev.dev.write("CHAN:ENAB? {}\n".format(chan).encode())
-            self.assertTrue("error" in self.dev.dev.readline().decode()
-                                           .lower())
+            self.assertTrue("error" in self.dev.dev.readline().decode().lower())
 
             # test a command that doesn't accept 'all', as this follows a
             # slightly different code path in firmware
             self.dev.dev.write("CHAN:DIAG? {}\n".format(chan).encode())
-            self.assertTrue("error" in self.dev.dev.readline().decode()
-                                           .lower())
+            self.assertTrue("error" in self.dev.dev.readline().decode().lower())
 
     @check_errors
     def test_enable(self):
@@ -246,16 +233,13 @@ class TestBooster(unittest.TestCase):
             self.assertEqual(status.detected, dev.get_detected(chan))
             self.assertEqual(status.enabled, dev.get_enabled(chan))
             self.assertEqual(status.interlock, dev.get_interlock_tripped(chan))
-            self.assertEqual(status.error_occurred,
-                             dev.get_error_occurred(chan))
+            self.assertEqual(status.error_occurred, dev.get_error_occurred(chan))
             self.assertApproxEq(status.temp, dev.get_temperature(chan), 2)
             self.assertApproxEq(status.fan_speed, dev.get_fan_speed(), 2)
-            self.assertApproxEq(status.output_power,
-                                dev.get_output_power(chan), 0.25)
-            self.assertApproxEq(status.input_power,
-                                dev.get_input_power(chan), 0.25)
-            self.assertApproxEq(status.reflected_power,
-                                dev.get_reflected_power(chan), 0.25)
+            self.assertApproxEq(status.output_power, dev.get_output_power(chan), 0.25)
+            self.assertApproxEq(status.input_power, dev.get_input_power(chan), 0.25)
+            self.assertApproxEq(status.reflected_power, dev.get_reflected_power(chan),
+                                0.25)
 
             if status.enabled:
                 self.assertRange(status.V5VMP, 4.9, 5.1)
@@ -270,8 +254,8 @@ class TestBooster(unittest.TestCase):
             P_synth = random.uniform(args.p_min, args.p_max)
             offset = -1.5
 
-            self.dev.set_interlock(args.chan, P_synth+self.gain)
-            self.synth.set_power(P_synth+offset)
+            self.dev.set_interlock(args.chan, P_synth + self.gain)
+            self.synth.set_power(P_synth + offset)
 
             time.sleep(0.2)
             self.dev.clear_interlock(args.chan)
@@ -279,7 +263,7 @@ class TestBooster(unittest.TestCase):
 
             while not self.dev.get_interlock_tripped(args.chan):
                 offset += 0.1
-                self.synth.set_power(P_synth+offset)
+                self.synth.set_power(P_synth + offset)
                 time.sleep(0.2)
                 if offset > 1.5:
                     break
@@ -322,13 +306,14 @@ class TestBooster(unittest.TestCase):
 
     def test_fuzz(self):
         skip = ["test_fuzz"]
-        tests = [method_name for method_name in dir(self) if (
-            callable(getattr(self, method_name))
-            and method_name.startswith("test_")
-            and method_name not in skip)]
+        tests = [
+            method_name for method_name in dir(self)
+            if (callable(getattr(self, method_name)) and method_name.startswith("test_")
+                and method_name not in skip)
+        ]
         num_iterations = 10000
         for test_num in range(num_iterations):
-            test_idx = random.randint(0, len(tests)-1)
+            test_idx = random.randint(0, len(tests) - 1)
             test = tests[test_idx]
             print("fuzz {} of {}: {}".format(test_num, num_iterations,
                                              tests[test_idx][5:]))

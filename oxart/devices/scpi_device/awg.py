@@ -4,11 +4,10 @@ logger = logging.getLogger(__name__)
 
 from oxart.devices.scpi_device.driver import SCPIDevice
 
-class SCPIAWG(SCPIDevice):
 
+class SCPIAWG(SCPIDevice):
     def set_waveform(self, waveform, channel=1):
-        waveforms = ("SIN", "SQU", "TRI", "RAMP", "PULS", "PSRB", "NOIS",
-                     "ARB", "DC")
+        waveforms = ("SIN", "SQU", "TRI", "RAMP", "PULS", "PSRB", "NOIS", "ARB", "DC")
         if waveform not in waveforms:
             raise ValueError("Waveform '{}' not recognised".format(waveform))
         self.send("SOUR{}:FUNC {}".format(channel, waveform))
@@ -30,4 +29,4 @@ class SCPIAWG(SCPIDevice):
             en_str = "ON"
         else:
             en_str = "OFF"
-        self.send("OUTP{} {}".format(channel,en_str))
+        self.send("OUTP{} {}".format(channel, en_str))

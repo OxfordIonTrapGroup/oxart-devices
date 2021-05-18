@@ -4,6 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class PicomotorController:
     """ Picomotor Controller Driver """
     def __init__(self, device_ip):
@@ -15,54 +16,54 @@ class PicomotorController:
         # dict containing commands as keys and a list with entries
         # [takes_channel, takes_argument, arg_min, arg_max]
         self.commands = {
-            '*IDN?': [False, False], # Identification string query
-            '*RCL': [False, True, 0, 1], #Recall parameters
-            '*RST': [False, False], # Reset instrument
-            'AB': [False, False], # Abort motion
-            'AC': [True, True, 1, 200000], # Set acceleration
-            'AC?': [True, False], # Get acceleration
-            'DH': [True, True, -2147483648, 2147483647], # Define home position
-            'DH?': [True, False], # Get home position
-            'MC': [False, False], # Motor check
-            'MD?': [True, False], # Get motion done status
-            'MV': [True, True, '-', '+'], # Move indefinitely
-            'MV?': [True, False], # Get motion direction
-            'PA': [True, True,  -2147483648, 2147483647],
-                                                    # Move to a target position
-            'PA?': [True, False], # Get destination position
-            'PR': [True, True,  -2147483648, 2147483647], # Move relative
-            'PR?': [True, False], # Get destination position
-            'QM': [True, True, 0, 3], # Set motor type
-            'QM?': [True, False], # Get motor type
-            'RS': [False, False], # Reset the controller
-            'SA': [False, True, 1, 31], # Set controller address
-            'SA?': [False, False], # Get controller address
-            'SC': [False, True, 0, 2], # Scan RS-485 network
-            'SC?': [False, False], # Get RS-485 network controller addresses
-            'SD?': [False, False], # Get scan status
-            'SM': [False, False], # Save to non-volatile memory
-            'ST': [True, False], # Stop motion
-            'TB?': [False, False], # Get error message
-            'TE?': [False, False], # Get error number
-            'TP?': [True, False], # Get position
-            'VA': [True, True, 1, 2000], # Set velocity
-            'VA?': [True, False], # Get velocity
-            'VE?': [False, False], # Firmware version string query
-            'XX': [False, False], # Purge memory
-            'ZZ': [False, True, None], # Set configuration register
-            'ZZ?': [False, False], # Get configuration register
-            'GATEWAY': [False, False], # Default gateway address
-            'GATEWAY?': [False, False], # Default gateway address query
-            'HOSTNAME': [False, True, None], # Hostname
-            'HOSTNAME?': [False, False], # Hostname query
-            'IPADDR': [False, True, None], # IP address
-            'IPADDR?': [False, False], # IP address query
-            'IPMODE': [False, True, 0, 1], # IP mode
-            'IPMODE?': [False, False], # IP mode query
-            'MACADDR?': [False, False], # MAC address query
-            'NETMASK': [False, True, None], # Network mask address
-            'NETMASK?': [False, False] # Network mask address query
-            }
+            '*IDN?': [False, False],  # Identification string query
+            '*RCL': [False, True, 0, 1],  #Recall parameters
+            '*RST': [False, False],  # Reset instrument
+            'AB': [False, False],  # Abort motion
+            'AC': [True, True, 1, 200000],  # Set acceleration
+            'AC?': [True, False],  # Get acceleration
+            'DH': [True, True, -2147483648, 2147483647],  # Define home position
+            'DH?': [True, False],  # Get home position
+            'MC': [False, False],  # Motor check
+            'MD?': [True, False],  # Get motion done status
+            'MV': [True, True, '-', '+'],  # Move indefinitely
+            'MV?': [True, False],  # Get motion direction
+            'PA': [True, True, -2147483648, 2147483647],
+            # Move to a target position
+            'PA?': [True, False],  # Get destination position
+            'PR': [True, True, -2147483648, 2147483647],  # Move relative
+            'PR?': [True, False],  # Get destination position
+            'QM': [True, True, 0, 3],  # Set motor type
+            'QM?': [True, False],  # Get motor type
+            'RS': [False, False],  # Reset the controller
+            'SA': [False, True, 1, 31],  # Set controller address
+            'SA?': [False, False],  # Get controller address
+            'SC': [False, True, 0, 2],  # Scan RS-485 network
+            'SC?': [False, False],  # Get RS-485 network controller addresses
+            'SD?': [False, False],  # Get scan status
+            'SM': [False, False],  # Save to non-volatile memory
+            'ST': [True, False],  # Stop motion
+            'TB?': [False, False],  # Get error message
+            'TE?': [False, False],  # Get error number
+            'TP?': [True, False],  # Get position
+            'VA': [True, True, 1, 2000],  # Set velocity
+            'VA?': [True, False],  # Get velocity
+            'VE?': [False, False],  # Firmware version string query
+            'XX': [False, False],  # Purge memory
+            'ZZ': [False, True, None],  # Set configuration register
+            'ZZ?': [False, False],  # Get configuration register
+            'GATEWAY': [False, False],  # Default gateway address
+            'GATEWAY?': [False, False],  # Default gateway address query
+            'HOSTNAME': [False, True, None],  # Hostname
+            'HOSTNAME?': [False, False],  # Hostname query
+            'IPADDR': [False, True, None],  # IP address
+            'IPADDR?': [False, False],  # IP address query
+            'IPMODE': [False, True, 0, 1],  # IP mode
+            'IPMODE?': [False, False],  # IP mode query
+            'MACADDR?': [False, False],  # MAC address query
+            'NETMASK': [False, True, None],  # Network mask address
+            'NETMASK?': [False, False]  # Network mask address query
+        }
         # dict containing all error code messages
         self.error_codes = {
             0: "NO ERROR DETECTED",
@@ -102,25 +103,25 @@ class PicomotorController:
             214: "AXIS 2 MOTION IN PROGRESS",
             314: "AXIS 3 MOTION IN PROGRESS",
             414: "AXIS 4 MOTION IN PROGRESS",
-            }
+        }
 
         self._motor_detect_and_save_velocities()
-        self.sock.recv(16) # receiving nonsense first message
+        self.sock.recv(16)  # receiving nonsense first message
         logger.info("Connected to Picomotor Controller")
 
-    def send_command(self, command, axis = None, argument = None):
+    def send_command(self, command, axis=None, argument=None):
         c = command
 
         assert (command in self.commands), "Invalid Command"
         if self.commands[command][0]:
-            assert self._is_valid_axis(axis),"Invalid Axis"
+            assert self._is_valid_axis(axis), "Invalid Axis"
             c = str(axis) + c
         if self.commands[command][1]:
-            assert self._is_valid_argument(command,argument),"Invalid Argument"
+            assert self._is_valid_argument(command, argument), "Invalid Argument"
             c = c + str(argument)
 
         logger.info("Sending command: {}".format(c))
-        self.sock.send(str.encode(c+"\n"))
+        self.sock.send(str.encode(c + "\n"))
 
     def receive(self):
         m = self.sock.recv(64).strip().decode()
@@ -128,7 +129,7 @@ class PicomotorController:
         return m
 
     def _is_valid_axis(self, ch):
-        return ch in [1,2,3,4]
+        return ch in [1, 2, 3, 4]
 
     def _is_valid_argument(self, com, arg):
         if self.commands[com][2] is None:
@@ -217,7 +218,7 @@ class PicomotorController:
     def print_error_messages(self):
         errors = self.get_errors()
         for err in errors:
-            print("{}: {}".format(err,self.get_error_message(err)))
+            print("{}: {}".format(err, self.get_error_message(err)))
 
     def get_device_ip(self):
         return self.ip_addr

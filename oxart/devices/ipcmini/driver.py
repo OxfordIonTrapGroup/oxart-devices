@@ -69,9 +69,7 @@ class IPCMini:
 
         docstring = win_info.get('docstring', None)
 
-        get_fn = self._proto_get(win_info['win'],
-                                 win_info['type'],
-                                 helper=read_helper)
+        get_fn = self._proto_get(win_info['win'], win_info['type'], helper=read_helper)
         if docstring is not None:
             get_fn.__doc__ = "Get " + docstring
         get_fn.__name__ = "get_{}".format(win_desc)

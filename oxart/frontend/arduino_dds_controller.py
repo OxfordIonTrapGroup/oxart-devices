@@ -11,13 +11,18 @@ from oxart.tools import add_common_args
 
 def get_argparser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--device", default=None,
+    parser.add_argument("-d",
+                        "--device",
+                        default=None,
                         help="serial device. See documentation for how to "
-                             "specify a USB Serial Number.")
-    parser.add_argument("--simulation", action="store_true",
+                        "specify a USB Serial Number.")
+    parser.add_argument("--simulation",
+                        action="store_true",
                         help="Put the driver in simulation mode, even if "
-                             "--device is used.")
-    parser.add_argument("--clockfreq", default=1e9, type=float,
+                        "--device is used.")
+    parser.add_argument("--clockfreq",
+                        default=1e9,
+                        type=float,
                         help="clock frequency provided to DDS")
 
     simple_network_args(parser, 2000)

@@ -63,7 +63,6 @@ class CameraSetup(EnvExperiment):
 
 class ChooseROI(EnvExperiment):
     """Set camera ROI"""
-
     def build(self):
         self.setattr_device("core")
         self.setattr_device("camera")

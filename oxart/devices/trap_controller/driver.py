@@ -9,10 +9,8 @@ from artiq.language.core import *
 logger = logging.getLogger(__name__)
 
 
-
 class TrapController:
     """A mediation layer to sanitise control of trap RF and DC voltages"""
-
     def __init__(self, dmgr, dc_config_file=None, rf_config=None):
         """dc_config: configuration dictionary for dc electrodes
         rf_config: configuration dictionary for rf electrodes
@@ -56,9 +54,8 @@ class TrapController:
         if update_hw:
             # For each channel, set the voltage
             for i, voltage in enumerate(self._dc_physical_voltages):
-                self._dc_hw_devices_lut[i].set_voltage(
-                    self._dc_hw_channels_lut[i], voltage)
-
+                self._dc_hw_devices_lut[i].set_voltage(self._dc_hw_channels_lut[i],
+                                                       voltage)
 
     def set_dc_voltage(self, logical_electrode, value, update_hw=True):
         """Set the value of a given logical dc electrode. Value is a float
@@ -66,9 +63,8 @@ class TrapController:
         """
 
         # Find the index of the logical electrode, given its name
-        logical_index = self._dc_logical_channel_names.index(
-            logical_electrode)
-        
+        logical_index = self._dc_logical_channel_names.index(logical_electrode)
+
         # Set the new logical value
         self._dc_logical_voltages[logical_index] = value
 
@@ -80,9 +76,8 @@ class TrapController:
         """
 
         # Find the index of the logical electrode, given its name
-        logical_index = self._dc_logical_channel_names.index(
-            logical_electrode)
-        
+        logical_index = self._dc_logical_channel_names.index(logical_electrode)
+
         # Return the value
         return self._dc_logical_voltages[logical_index]
 
@@ -96,25 +91,20 @@ class TrapController:
         """
 
         # Produce a list of names of the logical channels
-        self._dc_logical_channel_names = list(
-            dc_config["logical_channels"])
+        self._dc_logical_channel_names = list(dc_config["logical_channels"])
 
-        self._dc_physical_channel_names = list(
-            dc_config["physical_channels"].keys())
+        self._dc_physical_channel_names = list(dc_config["physical_channels"].keys())
 
         # An array containing the last set logical voltages
-        self._dc_logical_voltages = np.zeros(
-            len(self._dc_logical_channel_names))
+        self._dc_logical_voltages = np.zeros(len(self._dc_logical_channel_names))
 
         # An array containing the last set physical voltages
-        self._dc_physical_voltages = np.zeros(
-            len(self._dc_physical_channel_names))
+        self._dc_physical_voltages = np.zeros(len(self._dc_physical_channel_names))
 
         # The matrix converting between logical and phyiscal
         # voltages
-        self._dc_translation_matrix = np.zeros((
-            len(self._dc_physical_channel_names),
-            len(self._dc_logical_channel_names)))
+        self._dc_translation_matrix = np.zeros(
+            (len(self._dc_physical_channel_names), len(self._dc_logical_channel_names)))
 
         # Populate the matrix.
         for i, physical_name in enumerate(self._dc_physical_channel_names):
@@ -122,7 +112,7 @@ class TrapController:
 
             for logical_name in components.keys():
                 j = self._dc_logical_channel_names.index(logical_name)
-                self._dc_translation_matrix[i,j] = components[logical_name] 
+                self._dc_translation_matrix[i, j] = components[logical_name]
 
         # Make a list of devices and channels indexed by physical
         # channel index. This is done to simplify looking through
@@ -134,7 +124,6 @@ class TrapController:
             self._dc_hw_devices_lut.append(dmgr.get(device_name))
             self._dc_hw_channels_lut.append(
                 dc_config["physical_channels"][name]["channel_id"])
-
 
         # Get the list of trap settings
         self._dc_trap_settings = {}
@@ -148,7 +137,6 @@ class TrapController:
 
         # Store the default trap setting
         self._dc_default_trap_setting = dc_config["default_trap_setting"]
-
 
 
 # Example config dictionary
@@ -166,7 +154,7 @@ class TrapController:
 #     # physical_channels: <dictionary of physical channel descriptors>
 #     #   "electrode_name": {
 #     #       "device": <name of artiq device channel is controlled by>,
-#     #       "channel_id": <id used to identify channel on device> 
+#     #       "channel_id": <id used to identify channel on device>
 #     #   }
 #     "physical_channels": {
 #         "left_rf": {"device":"trap_dac", "channel_id":1},
@@ -193,7 +181,7 @@ class TrapController:
 #         "center_control": {
 #             "endcap": -8449.2,
 #             "x_disp": 0.7475,
-#             "y_comp": -0.2843,   
+#             "y_comp": -0.2843,
 #             "mode_tilt": 0.0795,
 #         },
 #         "right_rf": {
@@ -269,4 +257,4 @@ class TrapController:
 #     },
 #    # The default trap setting to load when initialising
 #    "default_trap_setting": "normal",
-# }        
+# }

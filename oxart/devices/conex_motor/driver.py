@@ -7,19 +7,17 @@ import time
 
 logger = logging.getLogger(__name__)
 
-StateType = Enum("StateType", ["NotReferenced", "Homing", "Moving", "Ready", "Disable", "Other"])
-
+StateType = Enum("StateType",
+                 ["NotReferenced", "Homing", "Moving", "Ready", "Disable", "Other"])
 
 
 class Conex:
     """Driver for Newport CONEX motor controller."""
-
     def __init__(self, serial_addr, position_limit=None, auto_home=True):
-        self.port = serial.Serial(
-            serial_addr,
-            baudrate=921600,
-            timeout=0.1,
-            write_timeout=0.1)
+        self.port = serial.Serial(serial_addr,
+                                  baudrate=921600,
+                                  timeout=0.1,
+                                  write_timeout=0.1)
 
         if auto_home:
             s = self.get_status()
@@ -40,7 +38,7 @@ class Conex:
 
     def _send_command(self, cmd):
         try:
-            self.port.write(("1"+cmd+"\r\n").encode())
+            self.port.write(("1" + cmd + "\r\n").encode())
         except serial.SerialTimeoutException as e:
             logger.exception("Serial write timeout: Force exit")
             # This is hacky but makes the server exit
@@ -101,8 +99,7 @@ class Conex:
         try:
             pos = float(pos_str)
         except ValueError:
-            raise ValueError("Could not interpret response '{}'".
-                                                        format(pos_str))
+            raise ValueError("Could not interpret response '{}'".format(pos_str))
         return pos
 
     def set_upper_limit(self, limit):
@@ -126,7 +123,6 @@ class Conex:
         elif state_code in ["3c", "3d", "3e", "3f"]:
             st = StateType.Disable
         return st
-
 
     def ping(self):
         return True

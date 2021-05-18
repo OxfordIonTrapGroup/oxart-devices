@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 
 class ArduinoDAC:
-
     def __init__(self, serial_name, n_channels=16, v_min=-10, v_max=10):
         """serial_name : serial port name
         n_channels : clock frequency in Hz
@@ -22,8 +21,7 @@ class ArduinoDAC:
         self.v_max = v_max
 
         time.sleep(3)
-        logger.info("Connected to ArduinoDAC with ID "
-                    "'{}'".format(self.identity()))
+        logger.info("Connected to ArduinoDAC with ID '{}'".format(self.identity()))
 
         # Array of the last set voltages
         self._voltages = np.zeros(n_channels)
@@ -32,7 +30,7 @@ class ArduinoDAC:
 
     def _send_command(self, command):
         try:
-            self.port.write((command+'\n').encode())
+            self.port.write((command + '\n').encode())
         except serial.SerialTimeoutException as e:
             logger.exception("Serial write timeout: Force exit")
             # This is hacky but makes the server exit
@@ -69,7 +67,6 @@ class ArduinoDAC:
         else:
             return True
 
-
     def set_voltage(self, channel, voltage, update=True):
         """Set the voltage on the given channel. Voltage is a float with 
         units of volts. Update determines whether to the output should be
@@ -94,8 +91,7 @@ class ArduinoDAC:
 
         self._voltages[channel] = voltage
 
-        logger.info("Setting voltage channel {} to {}".format(
-            channel, voltage))
+        logger.info("Setting voltage channel {} to {}".format(channel, voltage))
 
     def get_voltage(self, channel):
         """Reads the voltage on the given channel
@@ -122,7 +118,6 @@ class ArduinoDAC:
 
         # return value
 
-    
     def reset(self):
         self._send_command("reset")
 
@@ -132,4 +127,3 @@ class ArduinoDAC:
 
     def ping(self):
         return True
-

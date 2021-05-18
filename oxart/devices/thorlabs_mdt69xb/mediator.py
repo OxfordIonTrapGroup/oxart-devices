@@ -39,7 +39,7 @@ class PiezoWrapper:
             else:
                 sgn = np.sign(value - current)
                 while abs(value - current) > step:
-                    current += sgn*step
+                    current += sgn * step
                     device.set_channel(channel, current)
                     time.sleep(0.01)
         device.set_channel(channel, value)

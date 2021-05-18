@@ -3,8 +3,10 @@
 import socket
 import json
 
+
 class CommandError(Exception):
     pass
+
 
 class Thermostat:
     def __init__(self, host, port=23, timeout=10):
@@ -147,7 +149,6 @@ class Thermostat:
               'pid_output': 0.14770870320992324}]
         """
         return self._get_conf("report")
-
 
     def report_mode(self):
         """Start reporting measurement values

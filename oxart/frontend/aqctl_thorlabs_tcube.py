@@ -12,15 +12,20 @@ from sipyco import common_args
 
 def get_argparser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-P", "--product", required=True,
+    parser.add_argument("-P",
+                        "--product",
+                        required=True,
                         help="type of the Thorlabs T-Cube device to control: "
-                             "tdc001/tpz001")
-    parser.add_argument("-d", "--device", default=None,
+                        "tdc001/tpz001")
+    parser.add_argument("-d",
+                        "--device",
+                        default=None,
                         help="serial device. See documentation for how to "
-                             "specify a USB Serial Number.")
-    parser.add_argument("--simulation", action="store_true",
+                        "specify a USB Serial Number.")
+    parser.add_argument("--simulation",
+                        action="store_true",
                         help="Put the driver in simulation mode, even if "
-                             "--device is used.")
+                        "--device is used.")
     common_args.simple_network_args(parser, 3255)
     common_args.verbosity_args(parser)
     return parser
@@ -61,10 +66,11 @@ def main():
             sys.exit(1)
 
     try:
-        simple_server_loop({product: dev},
-                           common_args.bind_address_from_args(args), args.port)
+        simple_server_loop({product: dev}, common_args.bind_address_from_args(args),
+                           args.port)
     finally:
         dev.close()
+
 
 if __name__ == "__main__":
     main()

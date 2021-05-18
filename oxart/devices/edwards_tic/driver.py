@@ -1,7 +1,7 @@
 from oxart.devices.streams import get_stream
 
-class Turbo:
 
+class Turbo:
     def __init__(self, device):
         self.stream = get_stream(device)
         assert self.ping()
@@ -23,7 +23,7 @@ class Turbo:
         """
         self._send_cmd("?V913")
         reply = self._read()
-        pressure = float(reply.split(" ")[1].split(";")[0])/100
+        pressure = float(reply.split(" ")[1].split(";")[0]) / 100
         return pressure
 
     def switch_on(self):

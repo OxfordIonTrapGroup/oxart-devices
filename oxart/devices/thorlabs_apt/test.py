@@ -1,5 +1,6 @@
 from driver import *
 
+
 def print_status(h):
     h._send_message(MsgMotReqDcStatus())
     msg = h._wait_for_message(ID_MSG_DCSTATUSUPDATE)
@@ -37,9 +38,7 @@ if __name__ == "__main__":
     #    print_status(h)
     #    time.sleep(0.2)
 
-
     print("Moving ...")
     for i in range(1, 37):
-        h.set_angle(i*10)
+        h.set_angle(i * 10)
         time.sleep(0.2)
-

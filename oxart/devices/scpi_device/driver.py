@@ -12,7 +12,7 @@ class SCPIDevice:
     def __init__(self, addr, port=5025, serial_number=None):
         # addr : IP address of *device*
         self.addr = addr
-        
+
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((self.addr, port))
 
@@ -68,4 +68,3 @@ class SCPIDevice:
     def reset(self):
         """Reset values to default"""
         self.send("*RST")
-

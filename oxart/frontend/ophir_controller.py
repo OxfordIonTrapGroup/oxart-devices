@@ -8,11 +8,14 @@ from sipyco.pc_rpc import simple_server_loop
 from sipyco.common_args import simple_network_args, init_logger_from_args, bind_address_from_args
 from oxart.tools import add_common_args
 
+
 def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller for the "
-                                    "Ophir power meter")
+                                     "Ophir power meter")
     simple_network_args(parser, 4000)
-    parser.add_argument("-d", "--device", default=None,
+    parser.add_argument("-d",
+                        "--device",
+                        default=None,
                         help="Device serial number. This is the unit no., "
                         "not that of the sensor")
     add_common_args(parser)

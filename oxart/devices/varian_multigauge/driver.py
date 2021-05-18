@@ -1,7 +1,9 @@
 import serial
 
+
 class VarianError(Exception):
     pass
+
 
 class VarianIonGauge:
     """Varian ion-gauge driver"""
@@ -19,8 +21,8 @@ class VarianIonGauge:
 
         response = self._read_response()
         if response[0] != ord(b">"):
-           raise VarianError("Received error response from gauge: " +
-               response.decode())
+            raise VarianError("Received error response from gauge: " +
+                              response.decode())
 
         return response[1:]
 
@@ -106,7 +108,7 @@ class VarianIonGauge:
         return pressure
 
     def set_emission_current(self, channel, current):
-        "Current in mA."""
+        """Set emission current in mA."""
         command = "53I{:01d}{:.3f}".format(channel, current)
         self._send_command(command)
 

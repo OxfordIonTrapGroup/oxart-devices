@@ -16,7 +16,8 @@ def get_argparser():
                         default="/home/ion/scratch/julia_projects/"
                         "SURF/trap_model/comet_model.jld",
                         help="path to the SURF trap model file")
-    parser.add_argument("--cache_path", default=None,
+    parser.add_argument("--cache_path",
+                        default=None,
                         help="path on which to cache results. `None` (default)"
                         " disables the cache.")
     return parser

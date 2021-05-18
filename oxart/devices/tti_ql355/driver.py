@@ -17,11 +17,8 @@ class QL355:
 
     Default TCP/IP port is port=9221
     """
-
     def __init__(self, device):
-        self.stream = get_stream(device,
-                                 baudrate=19200,
-                                 timeout=0.1)
+        self.stream = get_stream(device, baudrate=19200, timeout=0.1)
         self._purge()
         assert self.ping()
 
@@ -55,8 +52,7 @@ class QL355:
         is_enable is True if we want to check if this channel is valid
         only for enable commands"""
 
-        ex = ValueError("Channel number {} not valid for {}".format(channel,
-                                                                    self.type))
+        ex = ValueError("Channel number {} not valid for {}".format(channel, self.type))
         if self.type is PsuType.QL355P:
             if channel != 0:
                 raise ex
@@ -69,14 +65,14 @@ class QL355:
         self._check_valid_channel(channel)
         if voltage < 0:
             raise ValueError("Voltage limit must be positive")
-        self.stream.write("V{} {}\n".format(channel+1, voltage).encode())
+        self.stream.write("V{} {}\n".format(channel + 1, voltage).encode())
 
     def get_voltage_limit(self, channel=0):
         """Returns the voltage limit for channel in volts"""
         self._check_valid_channel(channel)
-        self.stream.write("V{}?\n".format(channel+1).encode())
+        self.stream.write("V{}?\n".format(channel + 1).encode())
         response = self.stream.readline().decode().split()
-        if response[0] != "V{}".format(channel+1):
+        if response[0] != "V{}".format(channel + 1):
             raise Exception("Device responded incorrectly")
         return float(response[1])
 
@@ -85,33 +81,32 @@ class QL355:
         self._check_valid_channel(channel)
         if current < 0:
             raise ValueError("Current limit must be positive")
-        self.stream.write("I{} {}\n".format(channel+1, current).encode())
+        self.stream.write("I{} {}\n".format(channel + 1, current).encode())
 
     def get_current_limit(self, channel=0):
         """Returns the current limit for channel in amps"""
         self._check_valid_channel(channel)
-        self.stream.write("I{}?\n".format(channel+1).encode())
+        self.stream.write("I{}?\n".format(channel + 1).encode())
         response = self.stream.readline().decode().split()
-        if response[0] != "I{}".format(channel+1):
+        if response[0] != "I{}".format(channel + 1):
             raise Exception("Device responded incorrectly")
         return float(response[1])
 
     def set_output_enable(self, enable, channel=0):
         """Enable / disable a channel"""
         self._check_valid_channel(channel, is_enable=True)
-        self.stream.write("OP{} {}\n".format(
-            channel+1, int(bool(enable))).encode())
+        self.stream.write("OP{} {}\n".format(channel + 1, int(bool(enable))).encode())
 
     def get_voltage(self, channel=0):
         """Returns the actual (measured) output voltage in volts"""
         self._check_valid_channel(channel)
-        self.stream.write("V{}O?\n".format(channel+1).encode())
+        self.stream.write("V{}O?\n".format(channel + 1).encode())
         return float(self.stream.readline().decode().rstrip()[:-1])
 
     def get_current(self, channel=0):
         """Returns the actual (measured) output current in amps"""
         self._check_valid_channel(channel)
-        self.stream.write("I{}O?\n".format(channel+1).encode())
+        self.stream.write("I{}O?\n".format(channel + 1).encode())
         return float(self.stream.readline().decode().rstrip()[:-1])
 
     def identify(self):

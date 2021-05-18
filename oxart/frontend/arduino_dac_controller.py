@@ -11,9 +11,11 @@ from oxart.tools import add_common_args
 
 def get_argparser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--device", default=None,
+    parser.add_argument("-d",
+                        "--device",
+                        default=None,
                         help="serial device. See documentation for how to "
-                             "specify a USB Serial Number.")
+                        "specify a USB Serial Number.")
 
     simple_network_args(parser, 2030)
     add_common_args(parser)
@@ -28,7 +30,6 @@ def main():
         print("You need to specify -d/--device "
               "argument. Use --help for more information.")
         sys.exit(1)
-
 
     dev = ArduinoDAC(serial_name=args.device)
 

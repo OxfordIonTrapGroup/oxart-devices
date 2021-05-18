@@ -3,6 +3,7 @@ from ctypes import byref, cdll, c_bool, c_double, c_long, c_ulong
 from enum import Enum, unique
 
 import ctypes
+
 c_bool_p = ctypes.POINTER(c_bool)
 c_long_p = ctypes.POINTER(c_long)
 
@@ -30,13 +31,13 @@ def _check_status(code):
         5: "Delay time too long",
         6: "Invalid output level",
         7: "Invalid clock source",
-        8: "New calibration file created", # XXX: Not an error?!
+        8: "New calibration file created",  # XXX: Not an error?!
         9: "Error writing to file",
         10: "File not found",
         11: "Low-level driver (PLX) command failed",
         12: "Communication with delay generator could not be established",
         12: "Improper ribbon cable connection to delay generator",
-        13: "Proper ribbon cable connection to delay generator", # XXX: Not an error?!
+        13: "Proper ribbon cable connection to delay generator",  # XXX: Not an error?!
     }
 
     msg = messages.get(code, None)
@@ -62,9 +63,13 @@ class StatusFlag(Enum):
     primary_trigger_active = (1 << 6)  #: primary trigger is active
     secondary_trigger_active = (1 << 7)  #: secondary trigger is active
     force_trigger_active = (1 << 8)  #: force trigger is active
-    terminal_count_reached = (1 << 9)  #: terminal count of preset register has been reached
-    external_clock_no_transitions_detected = (1 << 10)  #: external clock fed via the trigger input connector is used, but no level transitions have been detected for the number of periods of the internal clock as prescribed by Multipurpose register, byte no. 6
-    all_wait_times_elapsed = (1 << 11)  #: all wait times for the trigger system have elapsed
+    terminal_count_reached = (1 << 9
+                              )  #: terminal count of preset register has been reached
+    external_clock_no_transitions_detected = (
+        1 << 10
+    )  #: external clock fed via the trigger input connector is used, but no level transitions have been detected for the number of periods of the internal clock as prescribed by Multipurpose register, byte no. 6
+    all_wait_times_elapsed = (1 << 11
+                              )  #: all wait times for the trigger system have elapsed
     load_command_active = (1 << 17)  #: Load command is active
 
 
@@ -100,29 +105,33 @@ class Driver:
         try:
             self.reserve_dg_data = get_fn("Reserve_DG_Data", [c_long])
             self.detect_pci_dgs = get_fn("DetectPciDelayGenerators", [c_long_p],
-                returns_status=False)
-            self.get_pci_dg = get_fn("GetPciDelayGenerator", [c_long_p, c_long_p,
-                c_bool_p, c_long])
+                                         returns_status=False)
+            self.get_pci_dg = get_fn("GetPciDelayGenerator",
+                                     [c_long_p, c_long_p, c_bool_p, c_long])
             self.initialize_dg = get_fn("Initialize_DG_BME", [c_long, c_long, c_long])
             self.deactivate_dg = get_fn("Deactivate_DG_BME", [c_long])
             self.activate_dg = get_fn("Activate_DG_BME", [c_long])
             self.set_gate_function = get_fn("Set_GateFunction", [c_ulong, c_long])
             self.set_trigger_parameters = get_fn("Set_TriggerParameters", [
-                c_bool, c_double, c_double, c_ulong, c_ulong, c_bool, c_bool,
-                c_bool, c_bool, c_bool, c_bool, c_bool, c_bool, c_long])
+                c_bool, c_double, c_double, c_ulong, c_ulong, c_bool, c_bool, c_bool,
+                c_bool, c_bool, c_bool, c_bool, c_bool, c_long
+            ])
             self.set_resetwhendone = get_fn("Set_ResetWhenDone", [c_bool, c_long])
             self.read_dg_status = get_fn("Read_DG_Status", [c_long],
-                returns_status=False)
+                                         returns_status=False)
 
             # These are model-specific.
-            self.set_g08_delay = get_fn("Set_G08_Delay", [c_ulong, c_double,
-                c_double, c_ulong, c_ulong, c_ulong, c_bool, c_bool, c_bool,
-                c_bool, c_bool, c_long])
-            self.set_g08_clock_parameters = get_fn("Set_G08_ClockParameters", [c_bool,
-                c_ulong, c_ulong, c_ulong, c_ulong, c_long])
-            self.set_g08_trigger_parameters = get_fn("Set_G08_TriggerParameters",
-                [c_bool, c_double, c_double, c_bool, c_bool, c_double, c_double,
-                c_ulong, c_ulong, c_long])
+            self.set_g08_delay = get_fn("Set_G08_Delay", [
+                c_ulong, c_double, c_double, c_ulong, c_ulong, c_ulong, c_bool, c_bool,
+                c_bool, c_bool, c_bool, c_long
+            ])
+            self.set_g08_clock_parameters = get_fn(
+                "Set_G08_ClockParameters",
+                [c_bool, c_ulong, c_ulong, c_ulong, c_ulong, c_long])
+            self.set_g08_trigger_parameters = get_fn("Set_G08_TriggerParameters", [
+                c_bool, c_double, c_double, c_bool, c_bool, c_double, c_double, c_ulong,
+                c_ulong, c_long
+            ])
         except Exception as e:
             raise DelayGenException("Error binding to function from DLL: {}".format(e))
 
@@ -151,7 +160,7 @@ class Driver:
             raise DelayGenException("No PCI delay generator detected.")
         elif device_count > 1:
             raise DelayGenException("More than one PCI delay generator "
-                "detected; currently not supported.")
+                                    "detected; currently not supported.")
         return BME_SG08p(self, DG_IDX)
 
 
@@ -191,7 +200,6 @@ class OutputGateMode(Enum):
 
 class PulseParameters:
     """Timing parameters for a single delay channel on the card."""
-
     def __init__(self, enabled, delay_us, width_us):
         self.enabled = enabled
         self.delay_us = delay_us
@@ -229,12 +237,13 @@ class BME_SG08p:
         is_master = c_bool(False)
         self._lib.get_pci_dg(product_id, slot_id, is_master, self._device_idx)
         if product_id.value != 46:
-            raise DelayGenException("Detected delay generator with invalid "
-                "product id '{}'; currently only BME_SG08p is supported."
-                .format(product_id))
+            raise DelayGenException(
+                "Detected delay generator with invalid "
+                "product id '{}'; currently only BME_SG08p is supported.".format(
+                    product_id))
         if not is_master:
             raise DelayGenException("Detected delay generator is not set to "
-                "master mode")
+                                    "master mode")
         self._lib.initialize_dg(slot_id, product_id, self._device_idx)
         self.reset()
 
@@ -246,7 +255,7 @@ class BME_SG08p:
         """
 
         self._deactivate_safely()
-        
+
         # Set the default hardware configuration. This is application-specific
         # and should be made configurable for a proper, comprehensive driver.
 
@@ -254,19 +263,19 @@ class BME_SG08p:
         # Default to external gating and no inhibit time.
         self._set_trigger_params(True, 0.0)
         self._lib.set_g08_trigger_parameters(
-            True, # 50Ω-terminate gate input
-            1.0, # Gate input level, in V
-            0.0, # No gate delay
-            True, # Ignore gate inputs while trigger inhibited (no memoizing)
-            False, # Do not "synchronize" gate (which would use width of pulse
-                   # for secondary trigger)
-            0.0, # Do not force re-trigger (time in μs)
-            0.0, # No time-list step back (time in μs)
-            1, # No burst triggering. Setting this to 0 seems to break external
-               # triggering.
-            0xfc, # Default flags from manual UI (send local primary/force,
-                  # resync pre-scaled m/s clock to input, send step-back/start/
-                  # inhibit/load-data)
+            True,  # 50Ω-terminate gate input
+            1.0,  # Gate input level, in V
+            0.0,  # No gate delay
+            True,  # Ignore gate inputs while trigger inhibited (no memoizing)
+            False,  # Do not "synchronize" gate (which would use width of pulse
+            # for secondary trigger)
+            0.0,  # Do not force re-trigger (time in μs)
+            0.0,  # No time-list step back (time in μs)
+            1,  # No burst triggering. Setting this to 0 seems to break external
+            # triggering.
+            0xfc,  # Default flags from manual UI (send local primary/force,
+            # resync pre-scaled m/s clock to input, send step-back/start/
+            # inhibit/load-data)
             self._device_idx)
 
         # All "straight" delay channels, no combining.
@@ -294,13 +303,13 @@ class BME_SG08p:
         int_divider = int(16 / self.CLOCK_FACTOR)
         ext_divider = int(8 / self.CLOCK_FACTOR)
         return self._lib.set_g08_clock_parameters(
-            True,         # Enable clock circuit
+            True,  # Enable clock circuit
             int_divider,  # Internal oscillator divider (160 MHz base
-                          # frequency)
+            # frequency)
             ext_divider,  # Trigger input divider (80 MHz input assumed)
-            1,            # Trigger input multiplier
-            s,            # 1: crystal, 2: trigger in, 3: trigger in with
-                          # crystal as fallback, 4: master/slave bus
+            1,  # Trigger input multiplier
+            s,  # 1: crystal, 2: trigger in, 3: trigger in with
+            # crystal as fallback, 4: master/slave bus
             self._device_idx)
 
     def set_trigger(self, use_external_gate, inhibit_us):
@@ -310,20 +319,20 @@ class BME_SG08p:
 
     def _set_trigger_params(self, use_external_gate, inhibit_us):
         return self._lib.set_trigger_parameters(
-            True, # 50 Ω-terminate trigger input
-            inhibit_us * self.CLOCK_FACTOR, # Inhibit time
-            0.0, # Trigger level ([-2.5, 2.5] V)
-            0, # Pre-set trigger counter limit (disabled below)
-            1, # Gate divider, 0 for level-sensitive gate
-            True, # Trigger on positive external gate edge
-            True, # Use internal trigger
-            False, # No arming based on internal clock
-            False, # No software trigger
-            False, # Do not use external trigger (used for clock input)
-            False, # Do not stop when pre-set counter value is reached
-            True, # Reset all outputs 2 μs after all delays have elapsed
-            not use_external_gate, # Whether to always enable trigger regardless
-                                   # of the gate signal
+            True,  # 50 Ω-terminate trigger input
+            inhibit_us * self.CLOCK_FACTOR,  # Inhibit time
+            0.0,  # Trigger level ([-2.5, 2.5] V)
+            0,  # Pre-set trigger counter limit (disabled below)
+            1,  # Gate divider, 0 for level-sensitive gate
+            True,  # Trigger on positive external gate edge
+            True,  # Use internal trigger
+            False,  # No arming based on internal clock
+            False,  # No software trigger
+            False,  # Do not use external trigger (used for clock input)
+            False,  # Do not stop when pre-set counter value is reached
+            True,  # Reset all outputs 2 μs after all delays have elapsed
+            not use_external_gate,  # Whether to always enable trigger regardless
+            # of the gate signal
             self._device_idx)
 
     def set_output_gates(self, modes):
@@ -356,8 +365,8 @@ class BME_SG08p:
     def set_pulse_parameters(self, params):
         if len(params) != self.CHANNEL_COUNT:
             raise DelayGenException("Expected one pulse parameter specification "
-                "for each of the {} channels, not {}".format(
-                self.CHANNEL_COUNT, len(params)))
+                                    "for each of the {} channels, not {}".format(
+                                        self.CHANNEL_COUNT, len(params)))
 
         self._deactivate_safely()
         for i, p in enumerate(params):
@@ -373,7 +382,7 @@ class BME_SG08p:
         # "Modifying Parameters Synchronuously" [sic] section.
         #
         # 2020 update to Windows 10 driver: The all_wait_times_elapsed status flag
-        # seems not be set initially. Therefore, don't call this method after 
+        # seems not be set initially. Therefore, don't call this method after
         # initialisation.
         self._lib.set_resetwhendone(False, self._device_idx)
         while not self._safe():
@@ -404,15 +413,16 @@ class BME_SG08p:
     def _set_delay_channel(self, idx, params):
         CHANNEL_A_IDX = 2
         return self._lib.set_g08_delay(
-            CHANNEL_A_IDX + idx, # Channel index
-            params.delay_us * self.CLOCK_FACTOR, # Time to first edge, in μs
-            params.width_us * self.CLOCK_FACTOR, # Pulse width (first to second edge), in μs
-            1, # Modulo counter length
-            0, # Modulo counter offset
-            0x1 if params.enabled else 0x0, # Trigger from local primary if enabled
-            True, # Positive polarity
-            False, # Do not 50 Ω-terminate internally (for 50 Ω sink)
-            False, # Do not disconnect output stage
-            False, # Do not connect onto master/slave bus
-            True, # Positive input polarity (ignored in output mode)
+            CHANNEL_A_IDX + idx,  # Channel index
+            params.delay_us * self.CLOCK_FACTOR,  # Time to first edge, in μs
+            params.width_us *
+            self.CLOCK_FACTOR,  # Pulse width (first to second edge), in μs
+            1,  # Modulo counter length
+            0,  # Modulo counter offset
+            0x1 if params.enabled else 0x0,  # Trigger from local primary if enabled
+            True,  # Positive polarity
+            False,  # Do not 50 Ω-terminate internally (for 50 Ω sink)
+            False,  # Do not disconnect output stage
+            False,  # Do not connect onto master/slave bus
+            True,  # Positive input polarity (ignored in output mode)
             self._device_idx)

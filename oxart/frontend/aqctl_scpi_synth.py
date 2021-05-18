@@ -12,8 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_argparser():
-    parser = argparse.ArgumentParser(description="ARTIQ controller for "
-                                     "SCPI Synths")
+    parser = argparse.ArgumentParser(description="ARTIQ controller for SCPI Synths")
     parser.add_argument("-d", "--device", help="device's hardware address")
     simple_network_args(parser, 4300)
     add_common_args(parser)

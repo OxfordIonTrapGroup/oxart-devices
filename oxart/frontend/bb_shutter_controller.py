@@ -8,8 +8,10 @@ from sipyco.pc_rpc import simple_server_loop
 from sipyco.common_args import simple_network_args, init_logger_from_args
 from oxart.tools import add_common_args
 
+
 def get_argparser():
-    parser = argparse.ArgumentParser(description="ARTIQ controller for the BeagleBone 4-channel shutter driver")
+    parser = argparse.ArgumentParser(
+        description="ARTIQ controller for the BeagleBone 4-channel shutter driver")
     simple_network_args(parser, 4000)
     add_common_args(parser)
     return parser

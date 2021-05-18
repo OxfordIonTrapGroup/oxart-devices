@@ -10,9 +10,9 @@ def to_nsd(data, t_axis):
 
     Normalization ensures that rms(data) = sum()
     """
-    num_bins = int(len(data)/2)
-    amplitudes = np.fft.fft(data)[0:num_bins]/num_bins
-    nsd = amplitudes/np.sqrt(2)
+    num_bins = int(len(data) / 2)
+    amplitudes = np.fft.fft(data)[0:num_bins] / num_bins
+    nsd = amplitudes / np.sqrt(2)
 
     freq_ax = np.fft.fftfreq(len(data), t_axis[1] - t_axis[0])
 
@@ -35,9 +35,8 @@ class MSO_S:
         commands for that).
         """
         self.dev.write(":WAV:DATA?\n".encode())
-        return np.array(
-            self.dev.readline().decode().strip('\n,\r ').split(','),
-            dtype=np.float32)
+        return np.array(self.dev.readline().decode().strip('\n,\r ').split(','),
+                        dtype=np.float32)
 
     def get_x_axis(self):
         """ Returns an x-axis with a given number of points """
@@ -49,4 +48,4 @@ class MSO_S:
         self.dev.write(":WAV:XINC?\n".encode())
         inc = float(self.dev.readline().strip())
 
-        return np.arange(num_pts)*inc + origin
+        return np.arange(num_pts) * inc + origin

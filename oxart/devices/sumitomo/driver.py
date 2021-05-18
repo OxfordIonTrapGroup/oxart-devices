@@ -1,12 +1,12 @@
 import serial
 
+
 class Sumitomo:
     """
     Driver for the sumitomo cryo compressor
     """
     def __init__(self, device):
-        self.dev = serial.serial_for_url("socket://{}:9001".format(device),
-                                            timeout=1)
+        self.dev = serial.serial_for_url("socket://{}:9001".format(device), timeout=1)
         assert self.ping()
 
     def close(self):

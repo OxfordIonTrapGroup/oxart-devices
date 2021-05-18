@@ -18,11 +18,12 @@ def _wrap_function(func_name, func, channel_arg_idx=None):
             if got_channel_kwarg:
                 kwargs[self._channel_arg] = channel_num
             else:
-                args = args[:idx] + (channel_num, ) + args[idx+1:]
+                args = args[:idx] + (channel_num, ) + args[idx + 1:]
         elif not got_channel_kwarg:
             args = args[1:]
 
         return getattr(dev, func_name)(*args, **kwargs)
+
     return wrapper
 
 
@@ -56,8 +57,9 @@ def multi_channel_dev_mediator(mediator_cls):
         setattr(mediator_cls, "_channel_arg", "channel")
 
     funcs = [
-        (func_name, func) for (func_name, func)
-        in inspect.getmembers(mediator_cls._driver_cls, inspect.isfunction)
+        (func_name, func)
+        for (func_name,
+             func) in inspect.getmembers(mediator_cls._driver_cls, inspect.isfunction)
         if func_name[0] != '_'
     ]
 
@@ -73,9 +75,10 @@ def multi_channel_dev_mediator(mediator_cls):
             params[idx] = params[idx].replace(name="channel_name")
             wrapper = _wrap_function(func_name, func, idx)
         else:
-            params.insert(1, inspect.Parameter(
-                name="channel_name",
-                kind=inspect.Parameter.POSITIONAL_OR_KEYWORD))
+            params.insert(
+                1,
+                inspect.Parameter(name="channel_name",
+                                  kind=inspect.Parameter.POSITIONAL_OR_KEYWORD))
             wrapper = _wrap_function(func_name, func)
         wrapper.__signature__ = sig.replace(parameters=params)
         setattr(mediator_cls, func_name, wrapper)

@@ -7,8 +7,8 @@ from .pirate_dac import PirateDac
 
 logger = logging.getLogger(__name__)
 
-
 N_CHANNELS = 4
+
 
 class HOA2Dac:
     def __init__(self, serial_name):
@@ -27,7 +27,7 @@ class HOA2Dac:
         self.sr_trap_freq = 1e6
 
     def write_raw_voltages(self, voltages):
-        assert(len(voltages)==N_CHANNELS)
+        assert (len(voltages) == N_CHANNELS)
         for ch, v in enumerate(voltages):
             self.dac.set_channel(v, ch=ch, update=False)
         self.dac.pulse_ldac()
@@ -36,22 +36,22 @@ class HOA2Dac:
         return [self.dac.read_channel(ch) for ch in range(4)]
 
     def update_voltages(self):
-        voltages = [0]*4
+        voltages = [0] * 4
 
         # Axial trapping term
-        freq_scaling = (88/170) * (self.sr_trap_freq/700e3)**2
+        freq_scaling = (88 / 170) * (self.sr_trap_freq / 700e3)**2
         voltages[0] += -1 * freq_scaling
         voltages[1] += +1 * freq_scaling
         voltages[2] += -0.445 * freq_scaling
         voltages[3] += -0.442 * freq_scaling
 
         # Y compensation term
-        voltages[2] += -0.987 * self.y_comp/1000
-        voltages[3] += +0.985 * self.y_comp/1000
+        voltages[2] += -0.987 * self.y_comp / 1000
+        voltages[3] += +0.985 * self.y_comp / 1000
 
         # Z compensation term
-        voltages[2] += -0.777 * self.z_comp/1000
-        voltages[3] += -0.775 * self.z_comp/1000
+        voltages[2] += -0.777 * self.z_comp / 1000
+        voltages[3] += -0.775 * self.z_comp / 1000
 
         logger.debug("Setting voltages :", voltages)
         self.write_raw_voltages(voltages)
@@ -81,4 +81,3 @@ class HOA2Dac:
         # TODO: write a proper ping that checks if the PirateDac is alive,
         # without toggling any gates on the DAC itself
         return True
-

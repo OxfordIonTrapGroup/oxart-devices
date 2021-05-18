@@ -6,7 +6,6 @@ import asyncio
 
 import sipyco.pyon as pyon
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -16,8 +15,7 @@ class PiezoController:
     fully counter-clockwise) before using the driver to set the voltages.
     """
     def __init__(self, device):
-        self.dev = serial.serial_for_url("socket://{}:9001".format(device),
-                                            timeout=1)
+        self.dev = serial.serial_for_url("socket://{}:9001".format(device), timeout=1)
         assert self.ping()
 
     def close(self):
@@ -36,7 +34,7 @@ class PiezoController:
         return self.dev.readline().decode()
 
     def read_voltage(self, ch):
-        msg = ch+"R??"
+        msg = ch + "R??"
         self._send_cmd(msg)
         reply = self._read_line()
         voltage = reply
@@ -44,5 +42,5 @@ class PiezoController:
         return voltage
 
     def set_voltage(self, ch, voltage):
-        msg = ch+"V"+str(voltage)
+        msg = ch + "V" + str(voltage)
         self._send_cmd(msg)

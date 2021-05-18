@@ -6,11 +6,11 @@ import serial
 Version = collections.namedtuple(
     "Version", ["fw_rev", "fw_hash", "fw_build_date", "device_id", "hw_rev"])
 
-Status = collections.namedtuple(
-    "Status", ["detected", "enabled", "interlock", "output_power_mu",
-               "reflected_power_mu", "I29V", "I6V", "V5VMP", "temp",
-               "output_power", "reflected_power", "input_power",
-               "fan_speed", "error_occurred", "hw_id", "i2c_error_count"])
+Status = collections.namedtuple("Status", [
+    "detected", "enabled", "interlock", "output_power_mu", "reflected_power_mu", "I29V",
+    "I6V", "V5VMP", "temp", "output_power", "reflected_power", "input_power",
+    "fan_speed", "error_occurred", "hw_id", "i2c_error_count"
+])
 
 
 class Booster:
@@ -27,7 +27,7 @@ class Booster:
             raise ValueError("invalid channel number {}".format(channel))
 
         if channel is None and arg is None:
-            cmd = (cmd+'\n')
+            cmd = (cmd + '\n')
         elif arg is None:
             cmd = "{} {}\n".format(cmd, channel)
         else:
@@ -41,8 +41,7 @@ class Booster:
             self.dev.readline()  # blank response from extra write
             if response == '':
                 raise serial.SerialTimeoutException(
-                    "Timeout while waiting for response to '{}'"
-                    .format(cmd.strip()))
+                    "Timeout while waiting for response to '{}'".format(cmd.strip()))
         response = response.lower().strip()
 
         if '?' in cmd and "error" not in response:
@@ -50,8 +49,7 @@ class Booster:
         elif response == "ok":
             return
 
-        raise Exception(
-            "Unrecognised response to '{}': '{}'".format(cmd, response))
+        raise Exception("Unrecognised response to '{}': '{}'".format(cmd, response))
 
     def _query_bool(self, cmd, channel, arg=None):
         resp = self._cmd(cmd, channel, arg)
@@ -60,16 +58,14 @@ class Booster:
         elif resp == "1":
             return True
         else:
-            raise Exception(
-                "Unrecognised response to {}: '{}'".format(cmd, resp))
+            raise Exception("Unrecognised response to {}: '{}'".format(cmd, resp))
 
     def _query_float(self, cmd, channel, arg=None):
         resp = self._cmd(cmd, channel, arg)
         try:
             return float(resp)
         except ValueError:
-            raise Exception(
-                "Unrecognised response to {}: '{}'".format(cmd, resp))
+            raise Exception("Unrecognised response to {}: '{}'".format(cmd, resp))
 
     def get_version(self):
         """ Returns the device version information as a named tuple """
@@ -78,12 +74,9 @@ class Booster:
 
         idn[0] = idn[0].split(" ")
 
-        if (idn[0][0] != "rfpa"
-           or not idn[1].startswith(" built ")
-           or not idn[2].startswith(" id ")
-           or not idn[3].startswith(" hw rev ")):
-            raise Exception(
-                "Unrecognised device identity string: {}".format(idn))
+        if (idn[0][0] != "rfpa" or not idn[1].startswith(" built ")
+                or not idn[2].startswith(" id ") or not idn[3].startswith(" hw rev ")):
+            raise Exception("Unrecognised device identity string: {}".format(idn))
 
         return Version(fw_rev=idn[0][1],
                        fw_hash=idn[0][2],
@@ -155,16 +148,14 @@ class Booster:
         resp = self._cmd("CHAN:DIAG?", channel).split(',')
 
         if len(resp) != 22:
-            raise Exception("Unrecognised response to 'CHAN:DIAG?': {}".format(
-                resp))
+            raise Exception("Unrecognised response to 'CHAN:DIAG?': {}".format(resp))
 
         def _bool(value_str):
             if value_str == "1":
                 return True
             elif value_str == "0":
                 return False
-            raise Exception("Unrecognised response to 'CHAN:DIAG?': {}".format(
-                resp))
+            raise Exception("Unrecognised response to 'CHAN:DIAG?': {}".format(resp))
 
         return Status(detected=_bool(resp[0]),
                       enabled=_bool(resp[1]),

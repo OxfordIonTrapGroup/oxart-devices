@@ -6,7 +6,6 @@ class UWaveDDSWrapper:
     logical frequencies (detunings from zero field) rather than the
     physical frequencies that are the input to the mixup chain
     """
-
     def __init__(self, dmgr, device, lo_frequency):
         self.core = dmgr.get("core")
         self.dds = dmgr.get(device)
@@ -16,7 +15,7 @@ class UWaveDDSWrapper:
 
         # To get the DDS frequency, subtract off target frequency from
         # this offset frequency
-        self.offset_frequency = - lo_frequency + zero_field_frequency
+        self.offset_frequency = -lo_frequency + zero_field_frequency
 
     def set_profile(self, profile, freq, phase=0.0, amp=1.0):
         freqDDS = self.offset_frequency + freq

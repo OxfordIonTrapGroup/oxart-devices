@@ -7,6 +7,7 @@ from influxdb import InfluxDBClient
 
 from toptica.lasersdk.asyncio.dlcpro.v2_0_1 import Client, NetworkConnection
 
+
 def get_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-s",
@@ -34,6 +35,7 @@ def get_argparser():
         "considered faulty and program exits")
     return parser
 
+
 def main():
     args = get_argparser().parse_args()
     loop = asyncio.get_event_loop()
@@ -52,25 +54,25 @@ def main():
     async def run():
         # Dictionary containing location of parameters in dlc
         parameters = {
-            "dl-current-act" : "laser1:dl:cc:current-act",
-            "dl-voltage-act" : "laser1:dl:cc:voltage-act",
-            "dl-temp-act" : "laser1:dl:tc:temp-act",
-            "amp-current-act" : "laser1:amp:cc:current-act",
-            "amp-voltage-act" : "laser1:amp:cc:voltage-act",
-            "amp-temp-act" : "laser1:amp:tc:temp-act",
-            "amp-seed-power" : "laser1:amp:pd:seed:power",
-            "amp-power" : "laser1:amp:pd:amp:power",
-            "shg-temp-act" : "laser1:nlo:shg:tc:temp-act",
-            "shg-power" : "laser1:nlo:pd:shg:power"
+            "dl-current-act": "laser1:dl:cc:current-act",
+            "dl-voltage-act": "laser1:dl:cc:voltage-act",
+            "dl-temp-act": "laser1:dl:tc:temp-act",
+            "amp-current-act": "laser1:amp:cc:current-act",
+            "amp-voltage-act": "laser1:amp:cc:voltage-act",
+            "amp-temp-act": "laser1:amp:tc:temp-act",
+            "amp-seed-power": "laser1:amp:pd:seed:power",
+            "amp-power": "laser1:amp:pd:amp:power",
+            "shg-temp-act": "laser1:nlo:shg:tc:temp-act",
+            "shg-power": "laser1:nlo:pd:shg:power"
         }
-        msg = {key : None for key in parameters.keys()}
+        msg = {key: None for key in parameters.keys()}
         async with Client(NetworkConnection(args.server)) as dlc:
             while True:
                 time.sleep(args.poll)
                 for key in parameters.keys():
                     try:
                         msg[key] = await wait_for(dlc.get(parameters[key], float),
-                                                    timeout = args.timeout)
+                                                  timeout=args.timeout)
                     except:
                         print('Error: Is DLC pro connected to network?')
                 write_point(msg)

@@ -3,7 +3,6 @@ import struct
 import time
 import logging as log
 
-
 CMD_SEND_ONE_DATA = 0x31
 CMD_READ_VAR_INT16 = 0x61
 CMD_WRITE_VAR_INT16 = 0x62
@@ -58,7 +57,7 @@ class Brooks4850:
         n_bytes"""
         n_read = 0
         data = bytes()
-        while(n_read < n_bytes):
+        while (n_read < n_bytes):
 
             new_data = self.c.read(n_bytes)
 
@@ -91,7 +90,7 @@ class Brooks4850:
         command, payload = self._read_response(4)
 
         flow = struct.unpack(">H", payload)[0]
-        real_flow = self.max_flow*flow/10000.
+        real_flow = self.max_flow * flow / 10000.
         return real_flow
 
     def read_temperature(self):
@@ -100,7 +99,7 @@ class Brooks4850:
         command, payload = self._read_response(4)
 
         adc_temp = struct.unpack(">H", payload)[0]
-        temperature = 100*((adc_temp/65535.) - 1 + (5/6.))
+        temperature = 100 * ((adc_temp / 65535.) - 1 + (5 / 6.))
         return temperature
 
     def read_gas_info(self):
@@ -140,8 +139,7 @@ class Brooks4850:
             self._send_command(CMD_READ_VAR_INT16, struct.pack("B", 4))
             command, payload = self._read_response(4)
             new_zero = struct.unpack(">H", payload)[0]
-            log.info("Flowmeter successfully zeroed, new zero = "
-                     + str(new_zero))
+            log.info("Flowmeter successfully zeroed, new zero = " + str(new_zero))
 
     def reset_zero(self):
         """Reset the flow controller zero to the default value"""
@@ -172,7 +170,7 @@ class Brooks4850:
         command, payload = self._read_response(4)
 
         setpoint_raw = struct.unpack(">H", payload)[0]
-        setpoint = self.max_flow*setpoint_raw/65535.
+        setpoint = self.max_flow * setpoint_raw / 65535.
 
         return setpoint
 
@@ -180,10 +178,9 @@ class Brooks4850:
         """set the current flow rate setpoint in sccm"""
         if setpoint > self.max_flow or setpoint < 0:
             raise ValueError("Setpoint {} is out of range (0,{})!".format(
-                                 setpoint, self.max_flow))
-        setpoint_raw = int(65535*setpoint/self.max_flow)
-        self._send_command(CMD_WRITE_VAR_INT16,
-                           struct.pack(">BH", 20, setpoint_raw))
+                setpoint, self.max_flow))
+        setpoint_raw = int(65535 * setpoint / self.max_flow)
+        self._send_command(CMD_WRITE_VAR_INT16, struct.pack(">BH", 20, setpoint_raw))
 
         self._read_response(1)
         return setpoint
@@ -197,7 +194,7 @@ if __name__ == "__main__":
     print("Temperature (C) = ", t)
 
     flow = f.read_flow()
-    print("Flow rate (sccm) = ", flow*100.)
+    print("Flow rate (sccm) = ", flow * 100.)
 
     max_flow, gas_id, gas_density = f.read_gas_info()
     print("max_flow = ", max_flow)

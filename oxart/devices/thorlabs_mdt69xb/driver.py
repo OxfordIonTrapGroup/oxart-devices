@@ -6,7 +6,6 @@ import asyncio
 
 import sipyco.pyon as pyon
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -16,11 +15,10 @@ class PiezoController:
     Tested with firmware versions 1.06 and 1.09.
     """
     def __init__(self, serial_addr):
-        self.port = serial.Serial(
-            serial_addr,
-            baudrate=115200,
-            timeout=0.1,
-            write_timeout=0.1)
+        self.port = serial.Serial(serial_addr,
+                                  baudrate=115200,
+                                  timeout=0.1,
+                                  write_timeout=0.1)
 
         self.echo = None
         self._purge()
@@ -35,8 +33,7 @@ class PiezoController:
             self._get = self._get_1_09
             self._reset_input = self._reset_input_1_09
         else:
-            raise DriverError(
-                "Firmware version '{}' not recognised".format(firmware))
+            raise DriverError("Firmware version '{}' not recognised".format(firmware))
 
         self._set_echo(False)
         self.v_limit = self.get_voltage_limit()
@@ -305,8 +302,8 @@ class PiezoController:
         """Raises a ValueError if the voltage is not in limit for the current
         controller settings"""
         if voltage > self.v_limit or voltage < 0:
-            raise ValueError(
-                "Voltage must be between 0 and vlimit={}".format(self.v_limit))
+            raise ValueError("Voltage must be between 0 and vlimit={}".format(
+                self.v_limit))
 
     def _strip_brackets(self, line):
         """Take string enclosed in square brackets and return string"""
@@ -322,17 +319,14 @@ class PiezoController:
         """Load setpoints from a file"""
         try:
             self.channels = pyon.load_file(self.fname)
-            logger.info(
-                "Loaded '{}', channels: {}".format(self.fname, self.channels))
+            logger.info("Loaded '{}', channels: {}".format(self.fname, self.channels))
         except FileNotFoundError:
-            logger.warning(
-                "Couldn't find '{}', no setpoints loaded".format(self.fname))
+            logger.warning("Couldn't find '{}', no setpoints loaded".format(self.fname))
 
     def _save_setpoints(self):
         """Write the setpoints out to file"""
         pyon.store_file(self.fname, self.channels)
-        logger.debug(
-            "Saved '{}', channels: {}".format(self.fname, self.channels))
+        logger.debug("Saved '{}', channels: {}".format(self.fname, self.channels))
 
     def save_setpoints(self):
         """Deprecated: setpoints are saved internally on every set command"""

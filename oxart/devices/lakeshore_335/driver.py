@@ -68,7 +68,8 @@ class LakeShore335:
                                 0 = powerup enable off, 1 = powerup enable on.
         : return: output, mode, channel, powerup_enable
         """
-        self.stream.write("OUTMODE {},{},{},{}\n".format(output, mode, channel, powerup_enable).encode())
+        self.stream.write("OUTMODE {},{},{},{}\n".format(output, mode, channel,
+                                                         powerup_enable).encode())
         return output, mode, channel, powerup_enable
 
     def get_heater_range(self, output=1):
@@ -140,8 +141,8 @@ class LakeShore335:
                          2 = power
         : return: output, out_type, htr_res, I_max, I_max_user, display
         """
-        self.stream.write("HTRSET {},{},{},{},{},{}\n".format(output, out_type, htr_res, 
-                                                            I_max, I_max_user, display).encode())
+        self.stream.write("HTRSET {},{},{},{},{},{}\n".format(
+            output, out_type, htr_res, I_max, I_max_user, display).encode())
         return output, out_type, htr_res, I_max, I_max_user, display
 
     def get_heater_setup(self, output=1):

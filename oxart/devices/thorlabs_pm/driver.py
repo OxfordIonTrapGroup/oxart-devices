@@ -1,7 +1,6 @@
-from ctypes import (c_bool, c_char_p, c_double, c_int, c_int16, c_long,
-    c_uint32, c_voidp, byref, cdll, create_string_buffer, sizeof)
+from ctypes import (c_bool, c_char_p, c_double, c_int, c_int16, c_long, c_uint32,
+                    c_voidp, byref, cdll, create_string_buffer, sizeof)
 import logging
-
 
 # The following constants are taken from the TLPM.h header file in the
 # directory of the driver files provided by Thorlabs (usually installed into
@@ -18,7 +17,6 @@ TLPM_ERR_DESCR_BUFFER_SIZE = 512
 
 TLPM_POWER_UNIT_WATT = 0
 TLPM_POWER_UNIT_DBM = 1
-
 
 logger = logging.getLogger(__name__)
 
@@ -100,9 +98,9 @@ class _TLPM:
         if hasattr(device_name, "encode"):
             device_name = device_name.encode()
 
-        pInvokeResult = self.dll.TLPM_init(
-            create_string_buffer(device_name), c_bool(query_id),
-            c_bool(reset_device), byref(self.dev_session))
+        pInvokeResult = self.dll.TLPM_init(create_string_buffer(device_name),
+                                           c_bool(query_id), c_bool(reset_device),
+                                           byref(self.dev_session))
         self._testForError(pInvokeResult)
 
     def close(self):
@@ -127,8 +125,7 @@ class _TLPM:
                 supported by this driver.
         """
         device_count = c_uint32()
-        pInvokeResult = self.dll.TLPM_findRsrc(
-            self.dev_session, byref(device_count))
+        pInvokeResult = self.dll.TLPM_findRsrc(self.dev_session, byref(device_count))
         self._testForError(pInvokeResult)
         return device_count.value
 
@@ -151,8 +148,7 @@ class _TLPM:
             name of device at given index
         """
         buff = create_string_buffer(1024)
-        pInvokeResult = self.dll.TLPM_getRsrcName(
-            self.dev_session, c_int(index), buff)
+        pInvokeResult = self.dll.TLPM_getRsrcName(self.dev_session, c_int(index), buff)
         self._testForError(pInvokeResult)
         return c_char_p(buff.raw).value.decode()
 
@@ -191,9 +187,9 @@ class _TLPM:
         manufacturer = create_string_buffer(TLPM_BUFFER_SIZE)
         available = c_int16()
 
-        pInvokeResult = self.dll.TLPM_getRsrcInfo(
-            self.dev_session, c_int(index), model_name, serial_number,
-            manufacturer, byref(available))
+        pInvokeResult = self.dll.TLPM_getRsrcInfo(self.dev_session, c_int(index),
+                                                  model_name, serial_number,
+                                                  manufacturer, byref(available))
         self._testForError(pInvokeResult)
 
         info_dict = {
@@ -230,8 +226,8 @@ class _TLPM:
         Returns:
             int: The return value, 0 is for success
         """
-        pInvokeResult = self.dll.TLPM_selfTest(
-            self.dev_session, selfTestResult, description)
+        pInvokeResult = self.dll.TLPM_selfTest(self.dev_session, selfTestResult,
+                                               description)
         self._testForError(pInvokeResult)
         return pInvokeResult
 
@@ -255,13 +251,13 @@ class _TLPM:
         Returns:
             int: The return value, 0 is for success
         """
-        pInvokeResult = self.dll.TLPM_revisionQuery(
-            self.dev_session, instrumentDriverRevision, firmwareRevision)
+        pInvokeResult = self.dll.TLPM_revisionQuery(self.dev_session,
+                                                    instrumentDriverRevision,
+                                                    firmwareRevision)
         self._testForError(pInvokeResult)
         return pInvokeResult
 
-    def query_id(self, manufacturerName, deviceName, serialNumber,
-                            firmwareRevision):
+    def query_id(self, manufacturerName, deviceName, serialNumber, firmwareRevision):
         """
         This function returns the device identification information.
 
@@ -289,9 +285,10 @@ class _TLPM:
         Returns:
             int: The return value, 0 is for success
         """
-        pInvokeResult = self.dll.TLPM_identificationQuery(
-            self.dev_session, manufacturerName, deviceName, serialNumber,
-            firmwareRevision)
+        pInvokeResult = self.dll.TLPM_identificationQuery(self.dev_session,
+                                                          manufacturerName, deviceName,
+                                                          serialNumber,
+                                                          firmwareRevision)
         self._testForError(pInvokeResult)
         return pInvokeResult
 
@@ -306,8 +303,8 @@ class ThorlabsPM100A(_TLPM):
         """
         Set wavelength in nanometers to use for measurements.
         """
-        pInvokeResult = self.dll.TLPM_setWavelength(
-            self.dev_session, c_double(wavelength))
+        pInvokeResult = self.dll.TLPM_setWavelength(self.dev_session,
+                                                    c_double(wavelength))
         self._testForError(pInvokeResult)
 
     def get_wavelength(self):
@@ -315,8 +312,9 @@ class ThorlabsPM100A(_TLPM):
         Return the wavelength in nanometers currently set for measurements.
         """
         wavelength = c_double()
-        pInvokeResult = self.dll.TLPM_getWavelength(
-            self.dev_session, c_int16(TLPM_ATTR_SET_VAL), byref(wavelength))
+        pInvokeResult = self.dll.TLPM_getWavelength(self.dev_session,
+                                                    c_int16(TLPM_ATTR_SET_VAL),
+                                                    byref(wavelength))
         self._testForError(pInvokeResult)
         return wavelength.value
 
@@ -328,8 +326,7 @@ class ThorlabsPM100A(_TLPM):
             Watts. This is converted to a suitable range by the device
             automatically.
         """
-        pInvokeResult = self.dll.TLPM_setPowerRange(
-            self.dev_session, c_double(power))
+        pInvokeResult = self.dll.TLPM_setPowerRange(self.dev_session, c_double(power))
         self._testForError(pInvokeResult)
 
     def get_power_range(self):
@@ -337,8 +334,9 @@ class ThorlabsPM100A(_TLPM):
         Return the power range currently set for measurements.
         """
         pow_range = c_double()
-        pInvokeResult = self.dll.TLPM_getPowerRange(
-            self.dev_session, c_int16(TLPM_ATTR_SET_VAL), byref(pow_range))
+        pInvokeResult = self.dll.TLPM_getPowerRange(self.dev_session,
+                                                    c_int16(TLPM_ATTR_SET_VAL),
+                                                    byref(pow_range))
         self._testForError(pInvokeResult)
         return pow_range.value
 
@@ -350,8 +348,7 @@ class ThorlabsPM100A(_TLPM):
         """
         u = TLPM_POWER_UNIT_WATT if unit == "W" else TLPM_POWER_UNIT_DBM
 
-        pInvokeResult = self.dll.TLPM_setPowerUnit(
-            self.dev_session, c_int16(u))
+        pInvokeResult = self.dll.TLPM_setPowerUnit(self.dev_session, c_int16(u))
         self._testForError(pInvokeResult)
 
     def get_power_reading(self):
@@ -362,8 +359,7 @@ class ThorlabsPM100A(_TLPM):
         power unit, which can be changed via :meth set_power_unit:.
         """
         power = c_double()
-        pInvokeResult = self.dll.TLPM_measPower(
-            self.dev_session, byref(power))
+        pInvokeResult = self.dll.TLPM_measPower(self.dev_session, byref(power))
         self._testForError(pInvokeResult)
         return power.value
 
@@ -377,8 +373,7 @@ class ThorlabsPM100A(_TLPM):
         so
             dBm_measurement = dBm_raw + att
         """
-        pInvokeResult = self.dll.TLPM_setAttenuation(
-            self.dev_session, c_double(att))
+        pInvokeResult = self.dll.TLPM_setAttenuation(self.dev_session, c_double(att))
         self._testForError(pInvokeResult)
 
     def get_device_info(self):
@@ -399,5 +394,3 @@ class ThorlabsPM100A(_TLPM):
 
     def ping(self):
         return True
-
-

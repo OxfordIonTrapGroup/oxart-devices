@@ -24,8 +24,7 @@ class BoosterVCP:
             resp = resp[1:]
         if resp.strip() != cmd:
             print(resp)
-            raise Exception("Unexpected response to '{}': '{}'".format(
-                cmd, resp))
+            raise Exception("Unexpected response to '{}': '{}'".format(cmd, resp))
 
         if termination is not None:
             resp = []
@@ -40,7 +39,7 @@ class BoosterVCP:
         if lines == 1:
             return self.dev.readline().decode().strip()
 
-        resp = [""]*lines
+        resp = [""] * lines
         for line in range(lines):
             resp[line] = self.dev.readline().decode().strip()
         return resp
@@ -68,6 +67,7 @@ class BoosterVCP:
 
     def close(self):
         self.dev.close()
+
 
 # from oxart.devices.booster.vcp_driver import BoosterVCP
 # dev = BoosterVCP('/dev/ttyACM0')

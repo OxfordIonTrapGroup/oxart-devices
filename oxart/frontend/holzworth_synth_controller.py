@@ -10,7 +10,9 @@ from oxart.tools import add_common_args
 
 
 def get_argparser():
-    parser = argparse.ArgumentParser(description="ARTIQ controller for the Holzworth synth on the Quadrupole laser system")
+    parser = argparse.ArgumentParser(
+        description=
+        "ARTIQ controller for the Holzworth synth on the Quadrupole laser system")
     simple_network_args(parser, 4000)
     add_common_args(parser)
     return parser
@@ -20,7 +22,7 @@ def main():
     args = get_argparser().parse_args()
     init_logger_from_args(args)
 
-    dev = HolzworthSynth() # Starts frequency update loop to track cavity drift
+    dev = HolzworthSynth()  # Starts frequency update loop to track cavity drift
 
     try:
         simple_server_loop({"HolzworthSynth": dev}, args.bind, args.port)
