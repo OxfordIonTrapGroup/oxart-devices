@@ -255,6 +255,8 @@ class SURF:
             param_dict["spectators"]["d2phidaxial2"],
             param_dict["spectators"]["d3phidz3"],
             param_dict["spectators"]["d2phidradial_h2"],
+            param_dict["n_step"],
+            param_dict["n_scan"],
         ))
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "split.db")) as db:
@@ -345,6 +347,7 @@ class SURF:
             param_dict["wells1"]["d2phidaxial2"],
             param_dict["wells1"]["d3phidz3"],
             param_dict["wells1"]["d2phidradial_h2"],
+            param_dict["n_step"],
         ))
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "dynamic.db")) as db:
