@@ -291,6 +291,11 @@ class SURFMediator:
 
         new_wells = deepcopy(wave.fixed_wells[-1])
         for name, param_dict in change_dict.items():
+            if "f_rad_x" in param_dict:
+                param_dict["d2phidradial_h2"] = self.f_to_field(param_dict.pop("f_rad_x"))
+            if "f_axial" in param_dict:
+                param_dict["d2phidaxial2"] = self.f_to_field(param_dict.pop("f_axial"))
+
             idx = new_wells.name.index(name)
             for param, value in param_dict.items():
                 # exploit mutability of list
