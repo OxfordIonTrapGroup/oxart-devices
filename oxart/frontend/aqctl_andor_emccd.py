@@ -5,8 +5,7 @@ import logging
 import types
 
 from sipyco.pc_rpc import simple_server_loop
-from sipyco.common_args import simple_network_args, init_logger_from_args
-from oxart.tools import add_common_args
+import sipyco.common_args as sca
 import andorEmccd
 
 logger = logging.getLogger(__name__)
@@ -14,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 def get_argparser():
     parser = argparse.ArgumentParser()
-    simple_network_args(parser, 4000)
-    add_common_args(parser)
+    sca.simple_network_args(parser, 4000)
+    sca.verbosity_args(parser)
     parser.add_argument("--temp", default=-80, type=int)
     parser.add_argument("--broadcast-images", action="store_true")
     parser.add_argument("--zmq-bind", default="*")
@@ -33,7 +32,7 @@ def create_zmq_server(bind="*", port=5555):
 
 def main():
     args = get_argparser().parse_args()
-    init_logger_from_args(args)
+    sca.init_logger_from_args(args)
 
     def ping(self):
         # This raise an exception if the camera has been turned off, unplugged,
