@@ -26,8 +26,10 @@ requirements:
     - python >=3.8
     - numpy
     - sipyco
+    - appdirs
   run:
     - python >=3.8
     - numpy
     - sipyco
+    - appdirs
     - pyzmq

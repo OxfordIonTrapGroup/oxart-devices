@@ -42,7 +42,7 @@ setup(
     author="Oxford Ion Trap Quantum Computing Group",
     packages=find_packages(),
     entry_points={"console_scripts": scripts},
-    install_requires=["sipyco"],
+    install_requires=["sipyco", "appdirs"],
     # zip_safe=False apparently improves compatibility for namespace packages:
     # https://github.com/pypa/sample-namespace-packages/issues/6
     zip_safe=False,
