@@ -5,8 +5,7 @@ import sys
 
 from oxart.devices.hoa2_dac.driver import HOA2Dac
 from sipyco.pc_rpc import simple_server_loop
-from sipyco.common_args import simple_network_args, init_logger_from_args
-from oxart.tools import add_common_args
+import sipyco.common_args as sca
 
 
 def get_argparser():
@@ -17,14 +16,14 @@ def get_argparser():
                         help="serial device. See documentation for how to "
                         "specify a USB Serial Number.")
 
-    simple_network_args(parser, 2030)
-    add_common_args(parser)
+    sca.simple_network_args(parser, 2030)
+    sca.verbosity_args(parser)
     return parser
 
 
 def main():
     args = get_argparser().parse_args()
-    init_logger_from_args(args)
+    sca.init_logger_from_args(args)
 
     if args.device is None:
         print("You need to specify -d/--device "
