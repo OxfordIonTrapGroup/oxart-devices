@@ -4,7 +4,7 @@ from datetime import datetime
 import time
 import influxdb
 
-from sipyco.common_args import add_common_args, init_logger_from_args
+import sipyco.common_args as sca
 from sipyco.pc_rpc import Client
 
 logger = logging.getLogger(__name__)
@@ -28,13 +28,13 @@ def get_argparser():
                         help="address of flow controller",
                         default="10.255.6.178")
     parser.add_argument("-p", "--port", help="port for flow controller", default="9001")
-    add_common_args(parser)  # This adds the -q and -v handling
+    sca.verbosity_args(parser)  # This adds the -q and -v handling
     return parser
 
 
 def main():
     args = get_argparser().parse_args()
-    init_logger_from_args(args)
+    sca.init_logger_from_args(args)
 
     while True:
         try:
