@@ -24,10 +24,10 @@ class Conex:
             if s == StateType.NotReferenced:
                 self.home()
 
-        # At this point we should be in the READY state
-        s = self.get_status()
-        if s != StateType.Ready:
-            raise Exception("Controller in unexpected state {}".format(s))
+            # At this point we should be in the READY state
+            s = self.get_status()
+            if s != StateType.Ready:
+                raise Exception("Controller in unexpected state {}".format(s))
 
         if position_limit:
             self.set_upper_limit(position_limit)
