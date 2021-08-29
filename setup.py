@@ -23,6 +23,7 @@ scripts = [
     "hoa2_dac_controller=oxart.frontend.hoa2_dac_controller:main",
     "holzworth_synth_controller=oxart.frontend.holzworth_synth_controller:main",
     "logger_solstis=oxart.frontend.logger_solstis:main",
+    "log_kasli_health=oxart.frontend.log_kasli_health:main",
     "ophir_controller=oxart.frontend.ophir_controller:main",
     "picomotor_controller=oxart.frontend.picomotor_controller:main",
     "scpi_awg_controller=oxart.frontend.scpi_awg_controller:main",
