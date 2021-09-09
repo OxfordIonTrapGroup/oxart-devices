@@ -18,7 +18,10 @@ def get_argparser():
                                      " power supplies")
     simple_network_args(parser, 4006)
     verbosity_args(parser)
-    parser.add_argument("-d", "--device", help="device's hardware address")
+    parser.add_argument("-d",
+                        "--device",
+                        help="device's hardware address",
+                        required=True)
     return parser
 
 
