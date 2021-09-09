@@ -61,7 +61,12 @@ class QL355:
                 raise ex
 
     def set_voltage_limit(self, voltage, channel=0):
-        """Sets the voltage limit for channel in volts"""
+        """Sets the voltage limit for channel, in volts.
+
+        Note that this the "limit" in the sense that the effectively lower of this and
+        the current setpoint determine the power supply mode (constant voltage/current),
+        and not related to the over-voltage protection functionality.
+        """
         self._check_valid_channel(channel)
         if voltage < 0:
             raise ValueError("Voltage limit must be positive")
@@ -77,7 +82,12 @@ class QL355:
         return float(response[1])
 
     def set_current_limit(self, current, channel=0):
-        """Sets the current limit for channel in amps"""
+        """Sets the current limit for channel, in amperes.
+
+        Note that this the "limit" in the sense that the effectively lower of this and
+        the voltage setpoint determine the power supply mode (constant current/voltage),
+        and not related to the over-current protection functionality.
+        """
         self._check_valid_channel(channel)
         if current < 0:
             raise ValueError("Current limit must be positive")
