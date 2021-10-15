@@ -415,7 +415,7 @@ class SURFMediator:
         scan_end.d2phidaxial2[0] = scan_curv_end
 
         split_params = {
-            "electrodes": wave.el_vec,
+            "electrodes": tuple(el for el in wave.el_vec),
             "zs": z_grid,
             "scan_start": scan_start._asdict(),
             "scan_end": scan_end._asdict(),
@@ -587,7 +587,7 @@ class SURFMediator:
 
         # solve splitting dynamics
         volt_merge, merge_el, sep_vec = self.driver.split(**split_params)
-        volt_merge = [volt_merge[:, -i] for i in range(n_step)]
+        volt_merge = [volt_merge[:, i] for i in range(n_step - 1, -1, -1)]
 
         if prepare_wells:
             # move wells to be separated by one electrode
@@ -625,7 +625,7 @@ class SURFMediator:
         wave.voltage_vec_list.extend(volt_merge)
 
         wave.voltage_vec_list.extend(
-            self._interpolate(wave.voltage_vec_list[-1], final_volt, n_itpl))
+            self._interpolate(volt_merge[-1], final_volt, n_itpl))
 
         wave.fixed_wells.append(final_wells)
         wave.wells_idx.append(len(wave.voltage_vec_list) - 1)
