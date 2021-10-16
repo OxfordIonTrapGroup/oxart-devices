@@ -511,41 +511,41 @@ class SURF:
         pass
 
     def get_model_fields(self, zs, volt_dict):
-        "get a dict of trap fields at specified positions for given voltages"
+        """get a dict of trap fields at specified positions for given voltages"""
+        el_vec = list(volt_dict.keys())
+        volt_vec_list = [list(volt_dict.values())]
         return {
             "zs": zs,
-            "phi": self._calc_model_field(zs, volt_dict, "phi"),
-            "dphidx": self._calc_model_field(zs, volt_dict, "dphidx"),
-            "dphidy": self._calc_model_field(zs, volt_dict, "dphidy"),
-            "dphidz": self._calc_model_field(zs, volt_dict, "dphidz"),
-            "d2phidx2": self._calc_model_field(zs, volt_dict, "d2phidx2"),
-            "d2phidy2": self._calc_model_field(zs, volt_dict, "d2phidy2"),
-            "d2phidz2": self._calc_model_field(zs, volt_dict, "d2phidz2"),
-            "d2phidxdy": self._calc_model_field(zs, volt_dict, "d2phidxdy"),
-            "d2phidxdz": self._calc_model_field(zs, volt_dict, "d2phidxdz"),
-            "d2phidydz": self._calc_model_field(zs, volt_dict, "d2phidydz"),
-            "d3phidz3": self._calc_model_field(zs, volt_dict, "d3phidz3"),
-            "d4phidz4": self._calc_model_field(zs, volt_dict, "d4phidz4"),
+            "phi": self.get_model_field(zs, volt_vec_list, el_vec, "phi"),
+            "dphidx": self.get_model_field(zs, volt_vec_list, el_vec, "dphidx"),
+            "dphidy": self.get_model_field(zs, volt_vec_list, el_vec, "dphidy"),
+            "dphidz": self.get_model_field(zs, volt_vec_list, el_vec, "dphidz"),
+            "d2phidx2": self.get_model_field(zs, volt_vec_list, el_vec, "d2phidx2"),
+            "d2phidy2": self.get_model_field(zs, volt_vec_list, el_vec, "d2phidy2"),
+            "d2phidz2": self.get_model_field(zs, volt_vec_list, el_vec, "d2phidz2"),
+            "d2phidxdy": self.get_model_field(zs, volt_vec_list, el_vec, "d2phidxdy"),
+            "d2phidxdz": self.get_model_field(zs, volt_vec_list, el_vec, "d2phidxdz"),
+            "d2phidydz": self.get_model_field(zs, volt_vec_list, el_vec, "d2phidydz"),
+            "d3phidz3": self.get_model_field(zs, volt_vec_list, el_vec, "d3phidz3"),
+            "d4phidz4": self.get_model_field(zs, volt_vec_list, el_vec, "d4phidz4"),
         }
 
-    def _calc_model_field(self, zs, volt_dict, field="dphidz"):
-        """Return a list of trap model values for desired property"""
-        names = volt_dict.keys()
-        elec_fn = self._select_elec(self.elec_fn, names)
+    def get_model_field(self, zs, volt_vec_list, el_vec, field="phi"):
+        """Get `field` at axial positions `zs` for all rows in `volt_vec_list`
+
+        :param `el_vec`: vector matching electrode names to voltages
+        """
+        elec_fn = self._select_elec(self.elec_fn, el_vec)
         elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
-        volt_vec = [volt_dict[name] for name in elec_fn.names]
+        order = np.array([el_vec.index(el) for el in elec_fn.names])
         # assignment in julia repel main name-space
         julia.Main.positions = zs
         julia.Main.field_grid = field_grid
         julia.Main.elec_grid = elec_grid
-        julia.Main.volt_vec = volt_vec
-        # convert to unicode identifiers
+        julia.Main.volt_vec_list = [np.array(vs)[order] for vs in volt_vec_list]
         field = field.replace("phi", "\N{Greek Capital Letter Phi}")
-        field_list = self.jl.eval(
-            # matrix(zs, elec)    mat_mul   electrode voltage vector
-            "(elec_grid." + field + " * " + "volt_vec)"
-            " + field_grid." + field)
-        return field_list
+        return self.jl.eval(
+            f"(elec_grid.{field} * hcat(volt_vec_list...) .+ field_grid.{field})'")
 
 
 if __name__ == "__main__":

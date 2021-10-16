@@ -95,6 +95,17 @@ class SURFMediator:
                         wells_idx=[0])
         return wave
 
+    def concatenate(self, *waves):
+        """Concatenate waveforms"""
+        concat_wave = deepcopy(waves[0])
+        for wave in waves[1:]:
+            assert concat_wave.el_vec == wave.el_vec
+            offset = len(concat_wave.voltage_vec_list)
+            concat_wave.wells_idx.extend([offset + i for i in wave.wells_idx])
+            concat_wave.voltage_vec_list.extend(wave.voltage_vec_list)
+            concat_wave.fixed_wells.extend(wave.fixed_wells)
+        return concat_wave
+
     def _volt_from_wells(self,
                          wells,
                          electrodes=None,
@@ -136,6 +147,18 @@ class SURFMediator:
             unspecified voltages are assumed to be zero.
         """
         return self.driver.get_model_fields(zs, volt_dict)
+
+    def get_model_field(self, zs, wave: Waveform, field="dphidz"):
+        """Get `field` at axial positions `zs` at each step in `waveform`
+
+        :param zs: list of z-positions to evaluate [in m]
+        :param wave: Waveform object
+        :param field: Quantity of trap model to evaluate: 'phi', 'dphidx',
+            'dphidy', 'dphidz', 'd2phidx2', 'd2phidy2', 'd2phidz2', 'd2phidxdy',
+            'd2phidxdz', 'd2phidydz', 'd3phidz3', or 'd4phidz4'.
+        :returns: Matrix of field values
+        """
+        return self.driver.get_model_field(zs, wave.voltage_vec_list, wave.el_vec, field)
 
     def get_all_electrode_names(self):
         """Return a list of all electrode names defined in the trap model"""
