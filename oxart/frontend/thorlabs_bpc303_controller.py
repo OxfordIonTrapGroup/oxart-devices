@@ -4,15 +4,14 @@ import argparse
 
 from oxart.devices.thorlabs_bpc303.driver import BPC303
 from sipyco.pc_rpc import simple_server_loop
-from sipyco.common_args import simple_network_args, init_logger_from_args
-from oxart.tools import add_common_args
+import sipyco.common_args as sca
 
 
 def get_argparser():
     parser = argparse.ArgumentParser(
         description="ARTIQ controller for the "
         "Thorlabs BPC303 3 channel closed-loop piezo controller")
-    simple_network_args(parser, 5004)
+    sca.simple_network_args(parser, 5004)
     parser.add_argument("-d",
                         "--device",
                         default=None,
@@ -23,13 +22,13 @@ def get_argparser():
                         "--closedloop",
                         action="store_true",
                         help="Use in closed-loop mode?")
-    add_common_args(parser)
+    sca.verbosity_args(parser)
     return parser
 
 
 def main():
     args = get_argparser().parse_args()
-    init_logger_from_args(args)
+    sca.init_logger_from_args(args)
 
     dev = BPC303(args.device, args.closedloop)
 

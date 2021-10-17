@@ -95,6 +95,17 @@ class SURFMediator:
                         wells_idx=[0])
         return wave
 
+    def concatenate(self, *waves):
+        """Concatenate waveforms"""
+        concat_wave = deepcopy(waves[0])
+        for wave in waves[1:]:
+            assert concat_wave.el_vec == wave.el_vec
+            offset = len(concat_wave.voltage_vec_list)
+            concat_wave.wells_idx.extend([offset + i for i in wave.wells_idx])
+            concat_wave.voltage_vec_list.extend(wave.voltage_vec_list)
+            concat_wave.fixed_wells.extend(wave.fixed_wells)
+        return concat_wave
+
     def _volt_from_wells(self,
                          wells,
                          electrodes=None,
@@ -136,6 +147,18 @@ class SURFMediator:
             unspecified voltages are assumed to be zero.
         """
         return self.driver.get_model_fields(zs, volt_dict)
+
+    def get_model_field(self, zs, wave: Waveform, field="dphidz"):
+        """Get `field` at axial positions `zs` at each step in `waveform`
+
+        :param zs: list of z-positions to evaluate [in m]
+        :param wave: Waveform object
+        :param field: Quantity of trap model to evaluate: 'phi', 'dphidx',
+            'dphidy', 'dphidz', 'd2phidx2', 'd2phidy2', 'd2phidz2', 'd2phidxdy',
+            'd2phidxdz', 'd2phidydz', 'd3phidz3', or 'd4phidz4'.
+        :returns: Matrix of field values
+        """
+        return self.driver.get_model_field(zs, wave.voltage_vec_list, wave.el_vec, field)
 
     def get_all_electrode_names(self):
         """Return a list of all electrode names defined in the trap model"""
@@ -291,6 +314,12 @@ class SURFMediator:
 
         new_wells = deepcopy(wave.fixed_wells[-1])
         for name, param_dict in change_dict.items():
+            if "f_rad_x" in param_dict:
+                param_dict["d2phidradial_h2"] = self.f_to_field(
+                    param_dict.pop("f_rad_x"))
+            if "f_axial" in param_dict:
+                param_dict["d2phidaxial2"] = self.f_to_field(param_dict.pop("f_axial"))
+
             idx = new_wells.name.index(name)
             for param, value in param_dict.items():
                 # exploit mutability of list
@@ -411,7 +440,7 @@ class SURFMediator:
         scan_end.d2phidaxial2[0] = scan_curv_end
 
         split_params = {
-            "electrodes": wave.el_vec,
+            "electrodes": tuple(el for el in wave.el_vec),
             "zs": z_grid,
             "scan_start": scan_start._asdict(),
             "scan_end": scan_end._asdict(),
@@ -586,7 +615,7 @@ class SURFMediator:
 
         # solve splitting dynamics
         volt_merge, merge_el, sep_vec = self.driver.split(**split_params)
-        volt_merge = [volt_merge[:, -i] for i in range(n_step)]
+        volt_merge = [volt_merge[:, i] for i in range(n_step - 1, -1, -1)]
 
         if prepare_wells:
             # move wells to be separated by one electrode
@@ -624,7 +653,7 @@ class SURFMediator:
         wave.voltage_vec_list.extend(volt_merge)
 
         wave.voltage_vec_list.extend(
-            self._interpolate(wave.voltage_vec_list[-1], final_volt, n_itpl))
+            self._interpolate(volt_merge[-1], final_volt, n_itpl))
 
         wave.fixed_wells.append(final_wells)
         wave.wells_idx.append(len(wave.voltage_vec_list) - 1)
