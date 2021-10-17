@@ -342,6 +342,7 @@ class SURFMediator:
               scan_curv_start=None,
               scan_curv_end=None,
               well_separation=None,
+              axial_tilt=None,
               electrodes=None,
               z_grid=None,
               static_settings=None,
@@ -363,6 +364,8 @@ class SURFMediator:
             [in V m^-2]. `None` uses the default
         :param well_separation: The separation between wells after
             splitting. `None` uses the default
+        :param axial_tilt: The axial tilt [in V m^-1] during the split.
+            `None` uses dphidz of the last well in `wave`.
         :param electrodes: Name electrodes that may be used in the new wells.
             If `None` the all electrodes in `wave` are used.
         :param z_grid: vector of z-axis grid points to use for optimisation.
@@ -400,12 +403,11 @@ class SURFMediator:
         scan_start.rx_axial[0] = 0.
         scan_start.ry_axial[0] = 0.
         scan_start.phi_radial[0] = 0.
+        if axial_tilt is not None:
+            scan_start.dphidz[0] = axial_tilt
         scan_start.d2phidaxial2[0] = scan_curv_start
 
-        scan_end = deepcopy(target_well)
-        scan_end.rx_axial[0] = 0.
-        scan_end.ry_axial[0] = 0.
-        scan_end.phi_radial[0] = 0.
+        scan_end = deepcopy(scan_start)
         scan_end.d2phidaxial2[0] = scan_curv_end
 
         split_params = {
@@ -479,6 +481,7 @@ class SURFMediator:
               scan_curv_start=None,
               scan_curv_end=None,
               well_separation=None,
+              axial_tilt=None,
               merge_pos=None,
               electrodes=None,
               z_grid=None,
@@ -505,6 +508,8 @@ class SURFMediator:
             [in V m^-2]. `None` uses the default
         :param well_separation: The separation between wells before
             merging. `None` uses the default
+        :param axial_tilt: The axial tilt [in V m^-1] during the merge.
+            `None` uses the average dphidz of the wells `name0` and `name1`.
         :param merge_pos: Position where the wells should be merged. [in m]
             If `None` the nearest `default_split_positions` is used.
         :param electrodes: Name electrodes that may be used in the new wells.
@@ -556,7 +561,7 @@ class SURFMediator:
             width=[np.mean(target_well.width)],
             dphidx=[np.mean(target_well.dphidx)],
             dphidy=[np.mean(target_well.dphidy)],
-            dphidz=[np.mean(target_well.dphidz)],
+            dphidz=[np.mean(target_well.dphidz) if axial_tilt is None else axial_tilt],
             rx_axial=[0.],
             ry_axial=[0.],
             phi_radial=[0.],
