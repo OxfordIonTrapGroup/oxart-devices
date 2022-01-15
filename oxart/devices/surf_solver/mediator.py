@@ -158,7 +158,8 @@ class SURFMediator:
             'd2phidxdz', 'd2phidydz', 'd3phidz3', or 'd4phidz4'.
         :returns: Matrix of field values
         """
-        return self.driver.get_model_field(zs, wave.voltage_vec_list, wave.el_vec, field)
+        return self.driver.get_model_field(zs, wave.voltage_vec_list, wave.el_vec,
+                                           field)
 
     def get_all_electrode_names(self):
         """Return a list of all electrode names defined in the trap model"""

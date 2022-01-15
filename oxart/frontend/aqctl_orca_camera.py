@@ -2,7 +2,6 @@
 import argparse
 import zmq
 import logging
-import types
 
 from sipyco.pc_rpc import simple_server_loop
 import sipyco.common_args as sca
@@ -39,7 +38,7 @@ def main():
     logger.info("Initialising cameras...")
 
     roi = [int(x) for x in args.roi.split(",")]
-    assert(len(roi) == 4)
+    assert (len(roi) == 4)
 
     dev = OrcaFusion()
     dev.open(camera_index=0, framebuffer_len=1000)
@@ -49,6 +48,7 @@ def main():
 
     if args.broadcast_images:
         socket = create_zmq_server(args.zmq_bind, args.zmq_port)
+
         def frame_callback(im):
             # We send a multi-part message with first part the serial number
             # this allows the subscriber to filter out unwanted images
@@ -64,6 +64,7 @@ def main():
     finally:
         logger.info("Shutting down camera ...")
         dev.close()
+
 
 if __name__ == "__main__":
     main()
