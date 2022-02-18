@@ -14,12 +14,14 @@ def get_argparser():
     parser = argparse.ArgumentParser()
     sca.simple_network_args(parser, 4000)
     sca.verbosity_args(parser)
-    parser.add_argument("--broadcast-images", action="store_true")
+    parser.add_argument("--broadcast-images", default=True, action="store_true")
     parser.add_argument("--zmq-bind", default="*")
     parser.add_argument("--zmq-port", default=5555, type=int)
-
-    parser.add_argument("--roi", default="1012,96,1040,12")
-    parser.add_argument("--speed", default=3, type=int)
+    parser.add_argument("--roi", default="884,200,956,48")
+    parser.add_argument("--speed",
+                        default=3,
+                        type=int,
+                        help="integer value - (0: QUIET, 1: STANDARD, 2: FAST)")
     return parser
 
 
