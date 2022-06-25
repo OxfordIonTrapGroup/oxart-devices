@@ -35,7 +35,10 @@ def main():
     fb, ff = loop.run_until_complete(open_connections(args.device))
     dev = Stabilizer(fb, ff)
 
-    simple_server_loop({"stabilizer_current_sense": dev}, args.bind, args.port)
+    simple_server_loop({"stabilizer_current_sense": dev},
+                       args.bind,
+                       args.port,
+                       loop=loop)
 
 
 if __name__ == "__main__":
