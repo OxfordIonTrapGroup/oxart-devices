@@ -67,7 +67,7 @@ def main():
 
     try:
         simple_server_loop({product: dev}, common_args.bind_address_from_args(args),
-                           args.port)
+                           args.port,loop=asyncio.get_event_loop())
     finally:
         dev.close()
 
