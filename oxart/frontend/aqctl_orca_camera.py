@@ -18,6 +18,7 @@ def get_argparser():
     parser.add_argument("--zmq-bind", default="*")
     parser.add_argument("--zmq-port", default=5555, type=int)
     parser.add_argument("--roi", default="884,200,956,48")
+    parser.add_argument("--buffer-size", default=10000, type=int)
     parser.add_argument("--speed",
                         default=3,
                         type=int,
@@ -43,7 +44,7 @@ def main():
     assert (len(roi) == 4)
 
     dev = OrcaFusion()
-    dev.open(camera_index=0, framebuffer_len=1000)
+    dev.open(camera_index=0, framebuffer_len=args.buffer_size)
     dev.set_subarray(*roi)
     dev.set_readout_speed(args.speed)
     dev.start_capture()
