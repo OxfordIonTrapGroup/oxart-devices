@@ -24,10 +24,10 @@ class PiezoController:
     Tested with firmware versions 1.06 and 1.09.
     """
     def __init__(self, serial_addr):
-        self.port = serial.Serial(serial_addr,
-                                  baudrate=115200,
-                                  timeout=0.1,
-                                  write_timeout=0.1)
+        self.port = serial.serial_for_url(serial_addr,
+                                          baudrate=115200,
+                                          timeout=0.1,
+                                          write_timeout=0.1)
 
         self.echo = None
         self._purge()
