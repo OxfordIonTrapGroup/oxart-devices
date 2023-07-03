@@ -15,8 +15,10 @@ def get_argparser():
     parser.add_argument("-d",
                         "--device",
                         default=None,
-                        help="serial device. See documentation for how to "
-                        "specify a USB Serial Number.")
+                        help="serial device. Likely in the form of 'COM[X]' where '[X]' is some number"
+                        " according to how it appears in the GUI about page or Windows Device Manager. "
+                        "Otherwise see Conex documentation for how to "
+                        "specify a USB Serial Number. ")
     parser.add_argument("--no-auto-home",
                         action="store_true",
                         help="Do not home (reset to mechanical zero) on \
