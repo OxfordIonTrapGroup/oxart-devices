@@ -21,6 +21,7 @@ scripts = [
     "bme_pulse_picker_timing_controller=oxart.frontend.bme_pulse_picker_timing_controller:main",  # noqa
     "camera_viewer=oxart.frontend.camera_viewer:main",
     "conex_motor_controller=oxart.frontend.conex_motor_controller:main",
+    "conex_agap=oxart.frontend.conex_agap:main",
     "hoa2_dac_controller=oxart.frontend.hoa2_dac_controller:main",
     "holzworth_synth_controller=oxart.frontend.holzworth_synth_controller:main",
     "logger_solstis=oxart.frontend.logger_solstis:main",
