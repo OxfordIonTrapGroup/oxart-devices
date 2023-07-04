@@ -27,7 +27,7 @@ def get_device_names():
     """
     driver = _TLPM()
     device_count = driver.find_devices()
-    # print("Thorlabs power meter devices found: {}".format(device_count))
+    print("Thorlabs power meter devices found: {}".format(device_count))
 
     device_names = []
     for i in range(device_count):
@@ -97,7 +97,6 @@ class _TLPM:
         # Need to convert to byte string, if it is not one already
         if hasattr(device_name, "encode"):
             device_name = device_name.encode()
-
         pInvokeResult = self.dll.TLPM_init(create_string_buffer(device_name),
                                            c_bool(query_id), c_bool(reset_device),
                                            byref(self.dev_session))
