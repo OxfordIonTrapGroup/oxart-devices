@@ -4,6 +4,7 @@ import sys
 import asyncio
 from enum import Enum
 import time
+from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -123,6 +124,14 @@ class Conex:
         elif state_code in ["3c", "3d", "3e", "3f"]:
             st = StateType.Disable
         return st
+    
+    def get_status_remote(self) -> Tuple[str, int]:
+        """Get the status value for PYON serializability.
+
+        Returns:
+            tuple: Status Enum Name and Value
+        """
+        return (self.get_status().name, self.get_status().value)
 
     def ping(self):
         return True
