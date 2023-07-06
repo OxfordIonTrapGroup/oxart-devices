@@ -30,8 +30,7 @@ def main():
     sca.init_logger_from_args(args)
     logger.debug("Trying to establish connection to Thorlabs PM100A "
                  "power meter at {}...".format(args.device))
-
-    dev = ThorlabsPM100A(args.device, False, False)
+    dev = ThorlabsPM100A(args.device, True, False)
     logger.debug("Connection established.")
 
     try:
