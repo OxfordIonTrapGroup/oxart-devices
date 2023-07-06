@@ -50,7 +50,7 @@ def main():
     # A: We don't want to try to close the serial if sys.exit() is called,
     #    and sys.exit() isn't caught by Exception
     try:
-        print('Running conex server')
+        print('Running conex motor server')
         simple_server_loop({"conex_waveguide_objective": dev}, sca.bind_address_from_args(args), args.port)
     except Exception:
         dev.close()

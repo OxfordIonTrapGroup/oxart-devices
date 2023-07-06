@@ -2,6 +2,7 @@ import logging
 import serial
 from enum import Enum
 import time
+from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +103,14 @@ class ConexMirror:
         elif state_code == '46':
             st = StateType.Jogging
         return st
+    
+    def get_status_remote(self) -> Tuple[str, int]:
+        """Get the status value for PYON serializability.
+
+        Returns:
+            tuple: Status Enum Name and Value
+        """
+        return (self.get_status().name, self.get_status().value)
 
 
     def ping(self):

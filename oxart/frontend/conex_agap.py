@@ -21,6 +21,7 @@ def main():
 
     dev = ConexMirror(args.id, args.device)
     try:
+        print('Running conex agap server')
         simple_server_loop({'conex_agap': dev}, bind_address_from_args(args),
                            args.port)
     finally:
