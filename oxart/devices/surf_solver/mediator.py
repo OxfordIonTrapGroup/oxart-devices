@@ -172,6 +172,17 @@ class SURFMediator:
         else:
             return self.default_electrodes
 
+    def get_z_grid(self, custom_spacing=None):
+        """Z grid points with optional custom spacing with same range as user default
+
+        :param custom_spacing: Grid spacing. If not specified, the user default is used.
+        """
+        user_default = self.driver.get_config()["zs"]
+        if custom_spacing is None:
+            return user_default
+        else:
+            return np.arange(np.min(user_default), np.max(user_default), custom_spacing)
+
     def get_sum_square_freq(self, z):
         """Return the single ion sum of square mode frequencies of the model
 
