@@ -95,6 +95,17 @@ class SURFMediator:
                         wells_idx=[0])
         return wave
 
+    def concatenate(self, *waves):
+        """Concatenate waveforms"""
+        concat_wave = deepcopy(waves[0])
+        for wave in waves[1:]:
+            assert concat_wave.el_vec == wave.el_vec
+            offset = len(concat_wave.voltage_vec_list)
+            concat_wave.wells_idx.extend([offset + i for i in wave.wells_idx])
+            concat_wave.voltage_vec_list.extend(wave.voltage_vec_list)
+            concat_wave.fixed_wells.extend(wave.fixed_wells)
+        return concat_wave
+
     def _volt_from_wells(self,
                          wells,
                          electrodes=None,
@@ -137,6 +148,19 @@ class SURFMediator:
         """
         return self.driver.get_model_fields(zs, volt_dict)
 
+    def get_model_field(self, zs, wave: Waveform, field="dphidz"):
+        """Get `field` at axial positions `zs` at each step in `waveform`
+
+        :param zs: list of z-positions to evaluate [in m]
+        :param wave: Waveform object
+        :param field: Quantity of trap model to evaluate: 'phi', 'dphidx',
+            'dphidy', 'dphidz', 'd2phidx2', 'd2phidy2', 'd2phidz2', 'd2phidxdy',
+            'd2phidxdz', 'd2phidydz', 'd3phidz3', or 'd4phidz4'.
+        :returns: Matrix of field values
+        """
+        return self.driver.get_model_field(zs, wave.voltage_vec_list, wave.el_vec,
+                                           field)
+
     def get_all_electrode_names(self):
         """Return a list of all electrode names defined in the trap model"""
         return self.driver.get_all_electrode_names()
@@ -147,6 +171,17 @@ class SURFMediator:
             return self.get_all_electrode_names()
         else:
             return self.default_electrodes
+
+    def get_z_grid(self, custom_spacing=None):
+        """Z grid points with optional custom spacing with same range as user default
+
+        :param custom_spacing: Grid spacing. If not specified, the user default is used.
+        """
+        user_default = self.driver.get_config()["zs"]
+        if custom_spacing is None:
+            return user_default
+        else:
+            return np.arange(np.min(user_default), np.max(user_default), custom_spacing)
 
     def get_sum_square_freq(self, z):
         """Return the single ion sum of square mode frequencies of the model
@@ -348,6 +383,7 @@ class SURFMediator:
               scan_curv_start=None,
               scan_curv_end=None,
               well_separation=None,
+              axial_tilt=None,
               electrodes=None,
               z_grid=None,
               static_settings=None,
@@ -369,6 +405,8 @@ class SURFMediator:
             [in V m^-2]. `None` uses the default
         :param well_separation: The separation between wells after
             splitting. `None` uses the default
+        :param axial_tilt: The axial tilt [in V m^-1] during the split.
+            `None` uses dphidz of the last well in `wave`.
         :param electrodes: Name electrodes that may be used in the new wells.
             If `None` the all electrodes in `wave` are used.
         :param z_grid: vector of z-axis grid points to use for optimisation.
@@ -406,16 +444,15 @@ class SURFMediator:
         scan_start.rx_axial[0] = 0.
         scan_start.ry_axial[0] = 0.
         scan_start.phi_radial[0] = 0.
+        if axial_tilt is not None:
+            scan_start.dphidz[0] = axial_tilt
         scan_start.d2phidaxial2[0] = scan_curv_start
 
-        scan_end = deepcopy(target_well)
-        scan_end.rx_axial[0] = 0.
-        scan_end.ry_axial[0] = 0.
-        scan_end.phi_radial[0] = 0.
+        scan_end = deepcopy(scan_start)
         scan_end.d2phidaxial2[0] = scan_curv_end
 
         split_params = {
-            "electrodes": wave.el_vec,
+            "electrodes": tuple(el for el in wave.el_vec),
             "zs": z_grid,
             "scan_start": scan_start._asdict(),
             "scan_end": scan_end._asdict(),
@@ -485,6 +522,7 @@ class SURFMediator:
               scan_curv_start=None,
               scan_curv_end=None,
               well_separation=None,
+              axial_tilt=None,
               merge_pos=None,
               electrodes=None,
               z_grid=None,
@@ -511,6 +549,8 @@ class SURFMediator:
             [in V m^-2]. `None` uses the default
         :param well_separation: The separation between wells before
             merging. `None` uses the default
+        :param axial_tilt: The axial tilt [in V m^-1] during the merge.
+            `None` uses the average dphidz of the wells `name0` and `name1`.
         :param merge_pos: Position where the wells should be merged. [in m]
             If `None` the nearest `default_split_positions` is used.
         :param electrodes: Name electrodes that may be used in the new wells.
@@ -562,7 +602,7 @@ class SURFMediator:
             width=[np.mean(target_well.width)],
             dphidx=[np.mean(target_well.dphidx)],
             dphidy=[np.mean(target_well.dphidy)],
-            dphidz=[np.mean(target_well.dphidz)],
+            dphidz=[np.mean(target_well.dphidz) if axial_tilt is None else axial_tilt],
             rx_axial=[0.],
             ry_axial=[0.],
             phi_radial=[0.],
@@ -587,7 +627,7 @@ class SURFMediator:
 
         # solve splitting dynamics
         volt_merge, merge_el, sep_vec = self.driver.split(**split_params)
-        volt_merge = [volt_merge[:, -i] for i in range(n_step)]
+        volt_merge = [volt_merge[:, i] for i in range(n_step - 1, -1, -1)]
 
         if prepare_wells:
             # move wells to be separated by one electrode
@@ -625,7 +665,7 @@ class SURFMediator:
         wave.voltage_vec_list.extend(volt_merge)
 
         wave.voltage_vec_list.extend(
-            self._interpolate(wave.voltage_vec_list[-1], final_volt, n_itpl))
+            self._interpolate(volt_merge[-1], final_volt, n_itpl))
 
         wave.fixed_wells.append(final_wells)
         wave.wells_idx.append(len(wave.voltage_vec_list) - 1)

@@ -1,12 +1,21 @@
 import logging
 import serial
+import os
 import re
 import sys
 import asyncio
+import appdirs
 
 import sipyco.pyon as pyon
 
 logger = logging.getLogger(__name__)
+
+
+def _get_data_dir():
+    """Get the name of the data directory and create it if necessary"""
+    dir_ = appdirs.user_data_dir("oxart-devices", "oitg")
+    os.makedirs(dir_, exist_ok=True)
+    return dir_
 
 
 class PiezoController:
@@ -15,10 +24,10 @@ class PiezoController:
     Tested with firmware versions 1.06 and 1.09.
     """
     def __init__(self, serial_addr):
-        self.port = serial.Serial(serial_addr,
-                                  baudrate=115200,
-                                  timeout=0.1,
-                                  write_timeout=0.1)
+        self.port = serial.serial_for_url(serial_addr,
+                                          baudrate=115200,
+                                          timeout=0.1,
+                                          write_timeout=0.1)
 
         self.echo = None
         self._purge()
@@ -39,7 +48,9 @@ class PiezoController:
         self.v_limit = self.get_voltage_limit()
         logger.info("Device vlimit is {}".format(self.v_limit))
 
-        self.fname = "piezo_{}.pyon".format(self.get_serial())
+        self.data_dir = _get_data_dir()
+        self.filename = "piezo_{}.pyon".format(self.get_serial())
+        self.abs_filename = os.path.join(self.data_dir, self.filename)
         self.channels = {'x': -1, 'y': -1, 'z': -1}
         self._load_setpoints()
 
@@ -318,15 +329,17 @@ class PiezoController:
     def _load_setpoints(self):
         """Load setpoints from a file"""
         try:
-            self.channels = pyon.load_file(self.fname)
-            logger.info("Loaded '{}', channels: {}".format(self.fname, self.channels))
+            self.channels = pyon.load_file(self.abs_filename)
+            logger.info("Loaded '{}', channels: {}".format(self.filename,
+                                                           self.channels))
         except FileNotFoundError:
-            logger.warning("Couldn't find '{}', no setpoints loaded".format(self.fname))
+            logger.warning("Couldn't find '{}' in '{}', no setpoints loaded".format(
+                self.filename, self.data_dir))
 
     def _save_setpoints(self):
         """Write the setpoints out to file"""
-        pyon.store_file(self.fname, self.channels)
-        logger.debug("Saved '{}', channels: {}".format(self.fname, self.channels))
+        pyon.store_file(self.abs_filename, self.channels)
+        logger.debug("Saved '{}', channels: {}".format(self.filename, self.channels))
 
     def save_setpoints(self):
         """Deprecated: setpoints are saved internally on every set command"""

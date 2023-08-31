@@ -5,15 +5,13 @@ import sys
 
 from oxart.devices.conex_motor.driver import Conex
 from sipyco.pc_rpc import simple_server_loop
-from sipyco.common_args import (simple_network_args, init_logger_from_args,
-                                bind_address_from_args)
-from oxart.tools import add_common_args
+import sipyco.common_args as sca
 
 
 def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller for "
                                      "Newport CONEX motorised micrometer")
-    simple_network_args(parser, 4000)
+    sca.simple_network_args(parser, 4000)
     parser.add_argument("-d",
                         "--device",
                         default=None,
@@ -29,13 +27,13 @@ def get_argparser():
                         type=float,
                         help="Maximum extension of micrometer (limit loaded \
                         into hardware")
-    add_common_args(parser)
+    sca.verbosity_args(parser)
     return parser
 
 
 def main():
     args = get_argparser().parse_args()
-    init_logger_from_args(args)
+    sca.init_logger_from_args(args)
 
     if args.device is None:
         print("You need to specify a -d/--device "
@@ -50,7 +48,7 @@ def main():
     # A: We don't want to try to close the serial if sys.exit() is called,
     #    and sys.exit() isn't caught by Exception
     try:
-        simple_server_loop({"conex": dev}, bind_address_from_args(args), args.port)
+        simple_server_loop({"conex": dev}, sca.bind_address_from_args(args), args.port)
     except Exception:
         dev.close()
     else:
