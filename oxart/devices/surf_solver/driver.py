@@ -160,10 +160,6 @@ class SURF:
         if zs is None:
             zs = self.user_defaults["zs"]
 
-        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
-
-        wells = self._mk_wells(**param_dict["wells"])
-
         if param_dict.get("static_settings", None) is None:
             settings = self.user_defaults["static_settings"]
         else:
@@ -186,6 +182,8 @@ class SURF:
                 except KeyError:
                     pass  # key not found
 
+        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
+        wells = self._mk_wells(**param_dict["wells"])
         voltages = self._solve_static(wells, elec_grid, field_grid, settings)
 
         if self.cache_path is not None:
@@ -217,19 +215,6 @@ class SURF:
         zs = param_dict.get("zs", None)
         if zs is None:
             zs = self.user_defaults["zs"]
-
-        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
-
-        scan_start = self._mk_wells(**param_dict["scan_start"])
-        scan_end = self._mk_wells(**param_dict["scan_end"])
-        spectators = self._mk_wells(**param_dict["spectators"])
-
-        # only supports a single well in solver
-        if param_dict.get("split_settings", None) is None:
-            settings = self.user_defaults["split_settings"]
-        else:
-            settings = self._mk_solver_settings(*param_dict["split_settings"],
-                                                solver="Split")
 
         # need to fix argument order!
         arg_key = pyon.encode((
@@ -279,6 +264,15 @@ class SURF:
                 except KeyError:
                     pass  # key not found
 
+        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
+        scan_start = self._mk_wells(**param_dict["scan_start"])
+        scan_end = self._mk_wells(**param_dict["scan_end"])
+        spectators = self._mk_wells(**param_dict["spectators"])
+        if param_dict.get("split_settings", None) is None:
+            settings = self.user_defaults["split_settings"]
+        else:
+            settings = self._mk_solver_settings(*param_dict["split_settings"],
+                                                solver="Split")
         voltages, sep_vec = self._solve_split(scan_start, scan_end, spectators,
                                               param_dict["n_step"],
                                               param_dict["n_scan"], elec_fn,
@@ -315,19 +309,6 @@ class SURF:
         zs = param_dict.get("zs", None)
         if zs is None:
             zs = self.user_defaults["zs"]
-
-        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
-
-        wells0 = self._mk_wells(**param_dict["wells0"])
-        wells1 = self._mk_wells(**param_dict["wells1"])
-
-        trajectory = self._mk_trajectory(wells0, wells1, param_dict["n_step"])
-
-        if param_dict.get("dynamic_settings", None) is None:
-            settings = self.user_defaults["dynamic_settings"]
-        else:
-            settings = self._mk_solver_settings(*param_dict["dynamic_settings"],
-                                                solver="Dynamic")
 
         v0 = [param_dict["volt_start"][name] for name in elec_fn.names]
         v1 = [param_dict["volt_end"][name] for name in elec_fn.names]
@@ -369,6 +350,16 @@ class SURF:
                     return db[arg_key]
                 except KeyError:
                     pass  # key not found
+
+        wells0 = self._mk_wells(**param_dict["wells0"])
+        wells1 = self._mk_wells(**param_dict["wells1"])
+        trajectory = self._mk_trajectory(wells0, wells1, param_dict["n_step"])
+        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
+        if param_dict.get("dynamic_settings", None) is None:
+            settings = self.user_defaults["dynamic_settings"]
+        else:
+            settings = self._mk_solver_settings(*param_dict["dynamic_settings"],
+                                                solver="Dynamic")
         voltages = self._solve_dynamic(trajectory, v0, v1, elec_grid, field_grid,
                                        settings)
 
