@@ -200,7 +200,26 @@ class SURFMediator:
                           omega_rf=None,
                           mass=None,
                           v_rf=None):
-        """Reload the trap model caching and trap parameters
+        """Reload the trap model caching and trap parameters.
+
+        Equivalent to ``load_trap_model(…, force_reload=True)``; see
+        :meth:`load_trap_model` for details.
+        """
+        return self.load_trap_model(trap_model_path,
+                                    cache_path,
+                                    omega_rf,
+                                    mass,
+                                    v_rf,
+                                    force_reload=True)
+
+    def load_trap_model(self,
+                        trap_model_path=None,
+                        cache_path=None,
+                        omega_rf=None,
+                        mass=None,
+                        v_rf=None,
+                        force_reload=False):
+        """Load the trap model caching and trap parameters.
 
         All parameters have sane defaults.
 
@@ -214,11 +233,19 @@ class SURFMediator:
         :param mass: mass of ion in atomic mass units
             Defaults to the most recently specified mass
         :param v_rf: RF voltage amplitude.
-            Default is given in trap model"""
+            Default is given in trap model
+        :param force_reload: Whether to reload the model from disk even if the
+            parameters are identical to the current settings. This does not
+            automatically purge the solution cache.
+        """
         if mass is not None:
             self.mass = mass
-        return self.driver.load_config(trap_model_path, cache_path, omega_rf, self.mass,
-                                       v_rf)
+        return self.driver.load_config(trap_model_path,
+                                       cache_path,
+                                       omega_rf,
+                                       self.mass,
+                                       v_rf,
+                                       force_reload=force_reload)
 
     def get_new_waveform(self,
                          z,
