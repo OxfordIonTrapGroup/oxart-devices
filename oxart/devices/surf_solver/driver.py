@@ -31,6 +31,7 @@ class SURF:
         self.jl.eval("using SURF.DataSelect")
         self.jl.eval("using SURF.Load")
 
+        self.current_config_args = {}
         self.load_config(trap_model_path, cache_path, **kwargs)
         print("ready")
 
@@ -39,19 +40,21 @@ class SURF:
                     cache_path=None,
                     omega_rf=None,
                     mass=None,
-                    v_rf=None):
+                    v_rf=None,
+                    force_reload=False):
         """
-        The trap model and default solver settings are (re-)loaded from the
-        specified file. The solution cache is set to to the specified path.
-        Infuture results will be cached/loaded to/from this path.
+        Load trap model and default solver settings from the specified file and
+        set solution solution cache path.
 
-        :param trap_model_path: path to the SURF trap model file
-        :param cache_path: path on which to cache results.  Be sure to
-            update/purge the cache if you change the trap model!
-            `None` disables the cache.
-        :param omega_rf: angular frequency of trap-RF [in rad/s]
-        :param mass: mass of ion in atomic mass units
+        :param trap_model_path: Path to the SURF trap model file
+        :param cache_path: Path where future solutions are saved to, and if
+            present later recalled from. Be sure to update/purge the cache
+            if you change the trap model! ``None`` disables the cache.
+        :param omega_rf: Angular frequency of trap-RF [in rad/s]
+        :param mass: Mass of ion in atomic mass units
         :param v_rf: RF voltage amplitude.
+        :param force_reload: Reload model even if arguments are identical to
+            currently loaded config. Set to ``True`` if the model changed.
         """
         if trap_model_path is not None:
             self.trap_model_path = trap_model_path
@@ -62,6 +65,17 @@ class SURF:
             if not os.path.isdir(cache_path):
                 os.mkdir(cache_path)
         self.cache_path = cache_path
+
+        args = {
+            "trap_model_path": self.trap_model_path,
+            "cache_path": self.cache_path,
+            "omega_rf": omega_rf,
+            "mass": mass,
+            "v_rf": v_rf
+        }
+        if args == self.current_config_args and not force_reload:
+            return self.get_config()
+        self.current_config_args = args
 
         model = self.jl.eval("SURF.Load.load_model")(self.trap_model_path,
                                                      omega_rf=omega_rf,
