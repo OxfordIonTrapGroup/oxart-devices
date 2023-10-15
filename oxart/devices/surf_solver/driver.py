@@ -12,6 +12,47 @@ import shelve
 import os
 
 
+class _GridCache:
+    """Hacky wrapper to cache mk_electrodes_grid/mk_field_grid results.
+
+    Trying to use @functools.lru_cache or equality-compare the Julia
+    ElectrodesFn/FieldFn appears to for whatever reason hang the process, so this just
+    manually stores the last parameters to speed up repeated calls e.g. during
+    micromotion compensation.
+
+    This should probably be replaced by just caching the grids for the default
+    elec_fn/field_fn directly in the driver class, and ensuring that latency-sensitive
+    user code just uses the default values.
+    """
+    def __init__(self, jl):
+        self.jl = jl
+        self.last_zs = None
+        self.last_elec_fn = None
+        self.last_field_fn = None
+        self.last_result = None
+
+    def can_use_last(self, zs, elec_fn, field_fn):
+        if not np.array_equal(zs, self.last_zs):
+            return False
+        # KLUDGE: Use names to stand in for equality comparison, as this is the only
+        # thing that changes without a model reload.
+        if self.last_elec_fn is None or elec_fn.names != self.last_elec_fn.names:
+            return False
+        if field_fn is not self.last_field_fn:
+            return False
+        return True
+
+    def get(self, zs, elec_fn, field_fn):
+        if self.can_use_last(zs, elec_fn, field_fn):
+            return self.last_result
+        self.last_result = (self.jl.eval("mk_electrodes_grid")(zs, elec_fn),
+                            self.jl.eval("mk_field_grid")(zs, field_fn))
+        self.last_zs = zs
+        self.last_elec_fn = elec_fn
+        self.last_field_fn = field_fn
+        return self.last_result
+
+
 class SURF:
     """SURF Uncomplicated Regional Fields (python driver)"""
     def __init__(self,
@@ -92,6 +133,7 @@ class SURF:
             "dynamic_settings": model[4],
             "split_settings": model[5],
         }
+        self.grid_cache = _GridCache(self.jl)
         return self.get_config()
 
     def get_div_grad_phi(self, z):
@@ -418,8 +460,7 @@ class SURF:
         """Sample electrodes and external fields at positions zs
 
         return (ElectrodesGrid, FieldGrid)"""
-        return (self.jl.eval("mk_electrodes_grid")(zs, elec_fn),
-                self.jl.eval("mk_field_grid")(zs, field_fn))
+        return self.grid_cache.get(zs, elec_fn, field_fn)
 
     def _select_elec(self, elec, names):
         """Select a subset of electrodes to use"""
