@@ -21,8 +21,7 @@ def main():
 
     dev = ConexMirror(args.id, args.device)
     try:
-        simple_server_loop({'conex_agap': dev}, bind_address_from_args(args),
-                           args.port)
+        simple_server_loop({'conex_agap': dev}, bind_address_from_args(args), args.port)
     finally:
         dev.close()
 
