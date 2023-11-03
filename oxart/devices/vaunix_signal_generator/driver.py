@@ -66,7 +66,8 @@ class VaunixSG(object):
 
         # These functions get the minimum and maximum power of the LSG device
         # The powerlevel is encoded as the number of .25dB increments, with a
-        # resolution of .5dB. To set a power level of +5 dBm, for example, powerlevel would be 20. To set a
+        # resolution of .5dB. To set a power level of +5 dBm, for example, powerlevel
+        # would be 20. To set a
         # power level of -20 dBm, powerlevel would be -80.
         self.min_power_025dBm = vnx.fnLSG_GetMinPwr(self.dev)
         self.max_power_025dBm = vnx.fnLSG_GetMaxPwr(self.dev)
@@ -81,11 +82,13 @@ class VaunixSG(object):
         return True
 
     def set_on(self, on):
-        """This function turns the RF stages of the synthesizer on (on = True) or off (on = False)."""
+        """This function turns the RF stages of the synthesizer on (on = True) or off
+        (on = False)."""
         vnx.fnLSG_SetRFOn(self.dev, on)
 
     def get_on(self):
-        """This function returns a bool value which is True when the synthesizer is “on”, or False when the
+        """This function returns a bool value which is True when the synthesizer is
+        “on”, or False when the
         synthesizer has been set “off”."""
         on = vnx.fnLSG_GetRF_On(self.dev)
         if int(on) == 1:
@@ -94,15 +97,16 @@ class VaunixSG(object):
             return False
 
     def set_ref_internal(self, internal):
-        """This function configures the synthesizer to use the internal reference if internal = True.
-        If internal = False, then the synthesizer is configured to use an external frequency reference.
+        """This function configures the synthesizer to use the internal reference
+        if internal = True. If internal = False, then the synthesizer is configured
+        to use an external frequency reference.
         """
         vnx.fnLSG_SetUseInternalRef(self.dev, internal)
 
     def get_ref_internal(self):
-        """This function returns a bool value which is True when the synthesizer is configured to use its
-        internal frequency reference. It returns a value of False when the synthesizer is configured to use an
-        external frequency reference."""
+        """This function returns a bool value which is True when the synthesizer is
+        configured to use its internal frequency reference. It returns a value of False
+        when the synthesizer is configured to use an external frequency reference."""
         internal = vnx.fnLSG_GetUseInternalRef(self.dev)
         if int(internal) == 1:
             return True
@@ -110,9 +114,9 @@ class VaunixSG(object):
             return False
 
     def save_settings(self):
-        """The LabBrick synthesizers can save their settings, and then resume operating with the saved
-        settings when they are powered up. Set the desired parameters, then use this function to save the
-        settings."""
+        """The LabBrick synthesizers can save their settings, and then resume operating
+        with the saved settings when they are powered up. Set the desired parameters,
+        then use this function to save the settings."""
         vnx.fnLSG_SaveSettings(self.dev)
 
     def set_frequency(self, freq):
