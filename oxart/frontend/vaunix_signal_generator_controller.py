@@ -8,9 +8,8 @@ import sipyco.common_args as sca
 
 
 def get_argparser():
-    parser = argparse.ArgumentParser(
-        description="ARTIQ controller for the " "Vaunix Lab brick signal generator"
-    )
+    parser = argparse.ArgumentParser(description="ARTIQ controller for the "
+                                     "Vaunix Lab brick signal generator")
     sca.simple_network_args(parser, 4000)
     parser.add_argument(
         "-d",

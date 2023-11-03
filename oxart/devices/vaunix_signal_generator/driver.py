@@ -40,12 +40,12 @@ def get_device(serial_number):
         ser_num = vnx.fnLSG_GetSerialNumber(Devices[i])
         print("Serial number of device %d:" % i, str(ser_num))
 
-    raise (
-        RuntimeError("Device with serial number %d could not be found" % serial_number)
-    )
+    raise (RuntimeError("Device with serial number %d could not be found" %
+                        serial_number))
 
 
 class VaunixSG(object):
+
     def __init__(self, serial_number):
         # serial_number is an integer which should be written under the device
         # alternatively, one can run this driver file which should print the
@@ -127,8 +127,7 @@ class VaunixSG(object):
 
         if freq_100kHz > self.max_freq_100kHz or freq_100kHz < self.min_freq_100kHz:
             raise ValueError(
-                "Frequency (rounded to nearest multiple of 100kHz) out of range"
-            )
+                "Frequency (rounded to nearest multiple of 100kHz) out of range")
 
         result = vnx.fnLSG_SetFrequency(self.dev, int(freq_100kHz))
         if result != 0:
@@ -143,8 +142,7 @@ class VaunixSG(object):
 
         if pow_dBm > self.max_power_dBm or pow_dBm < self.min_power_dBm:
             raise ValueError(
-                "Power (rounded to nearest multiple of 0.5dBm) out of range"
-            )
+                "Power (rounded to nearest multiple of 0.5dBm) out of range")
 
         # And then the power is set as an integer number of 0.25 dBm units
         pow_025dBm = pow_05dBm * 2
