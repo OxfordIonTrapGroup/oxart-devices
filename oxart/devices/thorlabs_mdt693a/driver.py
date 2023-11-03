@@ -35,18 +35,18 @@ class PiezoController:
     def _read_line(self):
         """Send a command, and return the output of the command as a string"""
         s = self.dev.readline().decode()
-        a1 = re.search('\[(.*)\]', s)
-        a2 = re.search('\*([0-9\.]+\Z)', s)
+        a1 = re.search(r'\[(.*)\]', s)
+        a2 = re.search(r'\*([0-9\.]+\Z)', s)
         while a1 is None and a2 is None and s != '':
             s = self.dev.readline().decode()
-            a1 = re.search('\[(.*)\]', s)
-            a2 = re.search('\*([0-9\.]+\Z)', s)
+            a1 = re.search(r'\[(.*)\]', s)
+            a2 = re.search(r'\*([0-9\.]+\Z)', s)
         if a1 is not None:
             return a1.group(1)
         elif a2 is not None:
             return a2.group(1)
         else:
-            raise Exception('No information return from command %s' % (cmd))
+            raise Exception('No information returned from command')
 
     def read_voltage(self, ch):
         msg = ch + "R?"

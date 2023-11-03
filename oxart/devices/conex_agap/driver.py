@@ -5,12 +5,12 @@ import time
 
 logger = logging.getLogger(__name__)
 
-StateType = Enum("StateType",
-                  ["NotReferenced", "Configuration", "Moving", "Stepping", "Ready", "Disable", "Other"])
+StateType = Enum("StateType", ["NotReferenced", "Configuration", "Moving",
+                               "Stepping", "Ready", "Disable", "Other"])
+
 
 class ConexMirror:
     """Driver for Newport CONEX motor controller."""
-
     def __init__(self, id, serial_addr):
         self.port = serial.Serial(serial_addr,
                                   baudrate=921600,
@@ -40,13 +40,14 @@ class ConexMirror:
             return s
 
     def home(self):
-        """Go to home position - required after reset of controller before any other operation.
-        If blocking, do not return until homing complete"""
+        """Go to home position - required after reset of controller before any other
+        operation. If blocking, do not return until homing complete"""
         self.set_position('U', 0)
         self.set_position('V', 0)
 
     def set_position(self, ax, pos, absolute=True, blocking=True):
-        """Go to a position. If blocking, do no return until the stage has stopped moving"""
+        """Go to a position. If blocking, do no return until the stage has stopped
+        moving"""
         if absolute:
             self._send_command("PA{}{}".format(ax, pos))
         else:
@@ -68,8 +69,9 @@ class ConexMirror:
         self._send_command("RS")
 
     def get_position(self, ax):
-        """Returns the current position. In MOVING state, the position changes according to the calculation
-        of the motion profiler. In READY state, the setpoint position is equal to the target position.
+        """Returns the current position. In MOVING state, the position changes
+        according to the calculation of the motion profiler. In READY state, the
+        setpoint position is equal to the target position.
         """
         self._send_command("TP{}".format(ax))
         line = self._read_line()
@@ -101,5 +103,3 @@ class ConexMirror:
         elif state_code == '46':
             st = StateType.Jogging
         return st
-
-
