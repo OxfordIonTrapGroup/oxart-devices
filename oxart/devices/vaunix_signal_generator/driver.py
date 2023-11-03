@@ -45,7 +45,6 @@ def get_device(serial_number):
 
 
 class VaunixSG(object):
-
     def __init__(self, serial_number):
         # serial_number is an integer which should be written under the device
         # alternatively, one can run this driver file which should print the
