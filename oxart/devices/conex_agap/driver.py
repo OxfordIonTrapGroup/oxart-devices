@@ -5,8 +5,9 @@ import time
 
 logger = logging.getLogger(__name__)
 
-StateType = Enum("StateType", ["NotReferenced", "Configuration", "Moving",
-                               "Stepping", "Ready", "Disable", "Other"])
+StateType = Enum("StateType", [
+    "NotReferenced", "Configuration", "Moving", "Stepping", "Ready", "Disable", "Other"
+])
 
 
 class ConexMirror:
@@ -18,8 +19,8 @@ class ConexMirror:
                                   write_timeout=0.1)
         self.id = id
         s = self.get_status()
-        if s != StateType.Ready:        #
-          raise Exception("Controller in unexpected state {}".format(s))
+        if s != StateType.Ready:
+            raise Exception("Controller in unexpected state {}".format(s))
 
     def close(self):
         """Close the serial port."""
