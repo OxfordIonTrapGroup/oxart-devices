@@ -10,6 +10,7 @@ from llama.rpc import add_chunker_methods, run_simple_rpc_server
 from llama.channels import ChunkedChannel
 
 from oxart.devices.thermostat.driver import Thermostat
+from oxart.devices.thermostat.autotune import PIDAutotune
 
 logger = logging.getLogger(__name__)
 
@@ -38,10 +39,6 @@ class RPCInterface(Thermostat):
         for channels in self.influx_channels:
             for c in channels.values():
                 add_chunker_methods(self, c)
-
-    def report_mode(self):
-        """Method not supported by controller"""
-        logger.exception("Report mode not supported by aqctl_thermostat controller.")
 
     def report(self):
         """Retrieve current status"""
@@ -84,6 +81,22 @@ def setup_interface(args, influx_pusher, loop):
             reg_chan(meas, i)
 
     dev = RPCInterface(influx_channels, args.device)
+
+    if args.subcommand == "autotune":
+        with dev.report_mode as reporter:
+            data = next(reporter)
+            ch = data[args.channel]
+            tuner = PIDAutotune(args.target, args.step, args.lookback, args.noiseband,
+                                ch['interval'])
+            for data in reporter:
+                ch = data[args.channel]
+                temperature = ch['temperature']
+                if tuner.run(temperature, ch['time']):
+                    break
+                tuner_out = tuner.output()
+                dev.set_param("pwm", args.channel, "i_set", tuner_out)
+            dev.set_param("pwm", args.channel, "i_set", 0)
+
     logging_task = loop.create_task(dev._report_continuously(args.poll_time))
 
     def stop_logging_task():
@@ -94,6 +107,7 @@ def setup_interface(args, influx_pusher, loop):
             pass
 
     atexit.register(stop_logging_task)
+
     return dev
 
 
@@ -106,9 +120,35 @@ def setup_args(parser):
         default=256,
         help="Size of chunks logged to Grafana (max. 30 sec worth of samples)")
     parser.add_argument("--poll-time",
-                        default=0.1,
+                        default=0.15,
                         type=float,
                         help="Seconds between measurements in chunk")
+
+    subparsers = parser.add_subparsers(title="Subcommands", dest="subcommand")
+    autotune_parser = subparsers.add_parser(
+        "autotune", help="Auto-tune PID parameters before starting server")
+    autotune_parser.add_argument("-c", "--channel", type=int, help="Channel index")
+    autotune_parser.add_argument("-t",
+                                 "--target",
+                                 type=float,
+                                 help="Target temperature in degrees celsius")
+    autotune_parser.add_argument(
+        "--step",
+        type=float,
+        default=1,
+        help="Current in amps by which output will be changed from zero")
+    autotune_parser.add_argument(
+        "--lookback",
+        type=float,
+        default=3,
+        help="Reference period for local minima/maxima, seconds")
+    autotune_parser.add_argument(
+        "--noiseband",
+        type=float,
+        default=1.5,
+        help=
+        "How much the input value must over/undershoot the temperature setpoint, kelvins"
+    )
 
 
 def main():
