@@ -13,12 +13,37 @@ class CommandError(Exception):
     pass
 
 
+class _ReportMode:
+    def __init__(self, dev):
+        self._dev = dev
+
+    def __enter__(self):
+        self._dev._command("report mode", "on")
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self._dev._command("report mode", "off")
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        while True:
+            line = self._dev._read_line()
+            if not line:
+                raise StopIteration
+            try:
+                return json.loads(line)
+            except json.decoder.JSONDecodeError:
+                continue
+
 class Thermostat:
 
     def __init__(self, host, port=23, timeout=10):
         self._socket = socket.create_connection((host, port), timeout)
         self._lines = [""]
         self._check_zero_limits()
+        self.report_mode = _ReportMode(self)
 
     def _check_zero_limits(self):
         pwm_report = self.get_pwm()
@@ -125,11 +150,7 @@ class Thermostat:
         return self._get_conf("postfilter")
 
     def report(self):
-        """Retrieve current status"""
-        return self._get_conf("report")
-
-    def report_mode(self):
-        """Start reporting measurement values
+        """Retrieve current status
 
         Example of yielded data::
             [{'channel': 0,
@@ -149,16 +170,7 @@ class Thermostat:
             ...
             ]
         """
-        self._command("report mode", "on")
-
-        while True:
-            line = self._read_line()
-            if not line:
-                break
-            try:
-                yield json.loads(line)
-            except json.decoder.JSONDecodeError:
-                pass
+        return self._get_conf("report")
 
     def set_param(self, topic, channel, field="", value=""):
         """Set configuration parameters
