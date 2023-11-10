@@ -37,6 +37,7 @@ class _ReportMode:
             except json.decoder.JSONDecodeError:
                 continue
 
+
 class Thermostat:
 
     def __init__(self, host, port=23, timeout=10):

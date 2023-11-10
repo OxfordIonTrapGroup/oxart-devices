@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
 import atexit
-import numpy as np
 import asyncio
 
 from llama.influxdb import aggregate_stats_default
 from llama.rpc import add_chunker_methods, run_simple_rpc_server
 from llama.channels import ChunkedChannel
-from oxart.devices.home_built_controller.driver import TemperatureController, MeasurementType
+from oxart.devices.home_built_controller.driver import (TemperatureController,
+                                                        MeasurementType)
 
 
 class RPCInterface:
+
     def __init__(self, dev, channels):
         self.dev = dev
         self.channels = channels
