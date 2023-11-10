@@ -13,6 +13,21 @@ class CommandError(Exception):
 
 
 class _ReportMode:
+    """Context manager for the report mode of Thermostat
+
+    At entering the context manager, thermostat's report mode is enabled. To receive the
+    incoming reports, use the asynchronous generator `self.receive_continuously()`. At
+    exiting the context manager, the message buffer is cleared automatically to ensure
+    subsequent commands receive their corresponding response.
+
+    Example usage:
+    ```python
+    with report_mode:
+        async for report in report_mode.receive_continuously():
+            print(report)
+    ```
+    """
+
     def __init__(self, dev):
         self._dev = dev
 
