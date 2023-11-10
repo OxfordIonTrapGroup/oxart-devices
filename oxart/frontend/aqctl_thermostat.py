@@ -136,17 +136,17 @@ def setup_args(parser):
         "--step",
         type=float,
         default=1,
-        help="Current in amps by which output will be changed from zero")
+        help="Current by which output will be changed from zero (default: 1A)")
     autotune_parser.add_argument(
         "--lookback",
         type=float,
         default=3,
-        help="Reference period for local minima/maxima, seconds")
+        help="Reference period for local minima/maxima (default: 3s)")
     autotune_parser.add_argument(
         "--noiseband",
         type=float,
         default=1.5,
-        help="How much the input value must over/undershoot the target, kelvins")
+        help="How much the input value must over/undershoot the target (default: 1.5K)")
 
 
 def main():

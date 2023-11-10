@@ -6,8 +6,6 @@ import socket
 import json
 import logging
 
-logger = logging.getLogger(__name__)
-
 
 class CommandError(Exception):
     pass
@@ -51,7 +49,7 @@ class Thermostat:
         for pwm_channel in pwm_report:
             for limit in ["max_i_neg", "max_i_pos", "max_v"]:
                 if pwm_channel[limit]["value"] == 0.0:
-                    logger.warning("`{}` limit is set to zero on channel {}".format(
+                    logging.warning("`{}` limit is set to zero on channel {}".format(
                         limit, pwm_channel["channel"]))
 
     def _read_line(self):
