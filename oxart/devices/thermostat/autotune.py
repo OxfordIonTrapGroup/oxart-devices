@@ -27,15 +27,19 @@ class PIDAutotune:
 
     _tuning_rules = {
         "ziegler-nichols": [0.6, 1.2, 0.075],
-        "tyreus-luyben": [0.4545,  0.2066, 0.07214],
+        "tyreus-luyben": [0.4545, 0.2066, 0.07214],
         "ciancone-marlin": [0.303, 0.1364, 0.0481],
         "pessen-integral": [0.7, 1.75, 0.105],
-        "some-overshoot": [0.333, 0.667,  0.111],
-        "no-overshoot": [0.2, 0.4,  0.0667]
+        "some-overshoot": [0.333, 0.667, 0.111],
+        "no-overshoot": [0.2, 0.4, 0.0667]
     }
 
-    def __init__(self, setpoint, out_step=10, lookback=60,
-                 noiseband=0.5, sampletime=1.2):
+    def __init__(self,
+                 setpoint,
+                 out_step=10,
+                 lookback=60,
+                 noiseband=0.5,
+                 sampletime=1.2):
         if setpoint is None:
             raise ValueError('setpoint must be specified')
 
@@ -108,7 +112,7 @@ class PIDAutotune:
             logging.debug('switched state: {0}'.format(self._state))
             logging.debug('input: {0}'.format(input_val))
         elif (self._state == PIDAutotuneState.STATE_RELAY_STEP_DOWN
-                and input_val < self._setpoint - self._noiseband):
+              and input_val < self._setpoint - self._noiseband):
             self._state = PIDAutotuneState.STATE_RELAY_STEP_UP
             logging.debug('switched state: {0}'.format(self._state))
             logging.debug('input: {0}'.format(input_val))
@@ -168,17 +172,15 @@ class PIDAutotune:
             abs_max = self._peaks[-2]
             abs_min = self._peaks[-2]
             for i in range(0, len(self._peaks) - 2):
-                self._induced_amplitude += abs(self._peaks[i]
-                                               - self._peaks[i+1])
+                self._induced_amplitude += abs(self._peaks[i] - self._peaks[i + 1])
                 abs_max = max(self._peaks[i], abs_max)
                 abs_min = min(self._peaks[i], abs_min)
 
             self._induced_amplitude /= 6.0
 
             # check convergence criterion for amplitude of induced oscillation
-            amplitude_dev = ((0.5 * (abs_max - abs_min)
-                              - self._induced_amplitude)
-                             / self._induced_amplitude)
+            amplitude_dev = ((0.5 * (abs_max - abs_min) - self._induced_amplitude) /
+                             self._induced_amplitude)
 
             logging.debug('amplitude: {0}'.format(self._induced_amplitude))
             logging.debug('amplitude deviation: {0}'.format(amplitude_dev))
