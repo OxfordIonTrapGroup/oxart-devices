@@ -5,6 +5,7 @@ https://git.m-labs.hk/M-Labs/thermostat/src/branch/master/pytec/pytec/client.py
 import socket
 import json
 import logging
+import asyncio
 
 
 class CommandError(Exception):
@@ -21,19 +22,27 @@ class _ReportMode:
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         self._dev._command("report mode", "off")
+        # FLush out any reports that may still be in the buffer.
+        surplus = 0
+        while True:
+            msg = self._dev.get_postfilter()[0]
+            if msg is None or "rate" not in msg:
+                surplus += 1
+            else:
+                break
+        for i in range(surplus):
+            self._dev._read_line()
 
-    def __iter__(self):
-        return self
-
-    def __next__(self):
+    async def receive_continuously(self):
         while True:
             line = self._dev._read_line()
             if not line:
-                raise StopIteration
+                break
             try:
-                return json.loads(line)
+                yield json.loads(line)
             except json.decoder.JSONDecodeError:
-                continue
+                pass
+            await asyncio.sleep(0)
 
 
 class Thermostat:
