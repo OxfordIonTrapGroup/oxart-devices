@@ -3,6 +3,7 @@ https://git.m-labs.hk/M-Labs/thermostat/src/branch/master/pytec/pytec/autotune.p
 """
 import math
 import logging
+import asyncio
 from collections import deque, namedtuple
 from enum import Enum
 
@@ -219,3 +220,29 @@ class PIDAutotune:
 
             return True
         return False
+
+
+async def autotune(args, interface):
+    try:
+        with interface.report_mode as report_mode:
+            reporter = report_mode.receive_continuously()
+
+            data = await anext(reporter)
+            interface._log_report_to_influx(data)
+            ch = data[args.channel]
+            tuner = PIDAutotune(args.target, args.step, args.lookback, args.noiseband,
+                                ch['interval'])
+
+            async for data in reporter:
+                interface._log_report_to_influx(data)
+                ch = data[args.channel]
+                temperature = ch['temperature']
+                if tuner.run(temperature, ch['time']):
+                    break
+                tuner_out = tuner.output()
+                interface.set_param("pwm", args.channel, "i_set", tuner_out)
+
+            interface.set_param("pwm", args.channel, "i_set", 0)
+
+    except asyncio.CancelledError:
+        return
