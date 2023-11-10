@@ -10,7 +10,7 @@ from llama.rpc import add_chunker_methods, run_simple_rpc_server
 from llama.channels import ChunkedChannel
 
 from oxart.devices.thermostat.driver import Thermostat
-from oxart.devices.thermostat.autotune import PIDAutotune
+from oxart.devices.thermostat.autotune import autotune
 
 logger = logging.getLogger(__name__)
 
@@ -85,19 +85,8 @@ def setup_interface(args, influx_pusher, loop):
     dev = RPCInterface(influx_channels, args.device)
 
     if args.subcommand == "autotune":
-        with dev.report_mode as reporter:
-            data = next(reporter)
-            ch = data[args.channel]
-            tuner = PIDAutotune(args.target, args.step, args.lookback, args.noiseband,
-                                ch['interval'])
-            for data in reporter:
-                ch = data[args.channel]
-                temperature = ch['temperature']
-                if tuner.run(temperature, ch['time']):
-                    break
-                tuner_out = tuner.output()
-                dev.set_param("pwm", args.channel, "i_set", tuner_out)
-            dev.set_param("pwm", args.channel, "i_set", 0)
+        t = loop.create_task(autotune(args, dev))
+        loop.run_until_complete(t)
 
     logging_task = loop.create_task(dev._report_continuously(args.poll_time))
 
