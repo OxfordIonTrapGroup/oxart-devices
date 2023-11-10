@@ -146,9 +146,7 @@ def setup_args(parser):
         "--noiseband",
         type=float,
         default=1.5,
-        help=
-        "How much the input value must over/undershoot the temperature setpoint, kelvins"
-    )
+        help="How much the input value must over/undershoot the target, kelvins")
 
 
 def main():
