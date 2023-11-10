@@ -218,6 +218,8 @@ class PIDAutotune:
                 print('Ki: {0}'.format(params.Ki))
                 print('Kd: {0}'.format(params.Kd))
 
+            logging.info("Use the controller's 'set_param()' method to update the PID "
+                         "parameters.")
             return True
         return False
 
