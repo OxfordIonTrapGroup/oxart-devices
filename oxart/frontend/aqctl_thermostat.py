@@ -42,7 +42,10 @@ class RPCInterface(Thermostat):
     def report(self):
         """Retrieve current status"""
         reports = super().report()
-        # Always log the values to InfluxDB.
+        self._log_report_to_influx(reports)
+        return reports
+
+    def _log_report_to_influx(self, reports):
         if reports:
             for report in reports:
                 idx = int(report.pop("channel"))
@@ -54,7 +57,6 @@ class RPCInterface(Thermostat):
                         # Ignore KeyError if Measurement with key does not exist.
                         # Ignore TypeError if value cannot be cast to float.
                         continue
-        return reports
 
     async def _report_continuously(self, t_sleep):
         while True:
