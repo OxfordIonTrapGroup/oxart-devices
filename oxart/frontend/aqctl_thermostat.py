@@ -113,7 +113,7 @@ def setup_args(parser):
     parser.add_argument("--poll-time",
                         default=0.15,
                         type=float,
-                        help="Seconds between measurements in chunk")
+                        help="Seconds between measurements in chunk (default: 0.15s)")
 
     subparsers = parser.add_subparsers(title="Subcommands", dest="subcommand")
     autotune_parser = subparsers.add_parser(
@@ -126,18 +126,19 @@ def setup_args(parser):
     autotune_parser.add_argument(
         "--step",
         type=float,
-        default=1,
-        help="Current by which output will be changed from zero (default: 1A)")
+        default=0.1,
+        help="Current by which output will be changed from zero (default: 0.1A)")
     autotune_parser.add_argument(
         "--lookback",
         type=float,
-        default=3,
-        help="Reference period for local minima/maxima (default: 3s)")
+        default=60,
+        help="Reference period for local minima/maxima (default: 60s)")
     autotune_parser.add_argument(
         "--noiseband",
         type=float,
-        default=1.5,
-        help="How much the input value must over/undershoot the target (default: 1.5K)")
+        default=0.01,
+        help="How much the input value must over/undershoot the target (default: 0.01K)"
+    )
 
 
 def main():
