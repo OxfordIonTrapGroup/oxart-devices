@@ -37,10 +37,13 @@ class PIDAutotune:
 
     def __init__(self,
                  setpoint,
-                 out_step=10,
+                 out_initial=0,
+                 out_min=-3,
+                 out_max=3,
+                 out_step=0.1,
                  lookback=60,
-                 noiseband=0.5,
-                 sampletime=1.2):
+                 noiseband=0.1,
+                 sampletime=0.1):
         if setpoint is None:
             raise ValueError('setpoint must be specified')
 
@@ -48,8 +51,9 @@ class PIDAutotune:
         self._setpoint = setpoint
         self._outputstep = out_step
         self._noiseband = noiseband
-        self._out_min = -out_step
-        self._out_max = out_step
+        self._out_min = out_min
+        self._out_max = out_max
+        self._initial_output = out_initial
         self._state = PIDAutotuneState.STATE_OFF
         self._peak_timestamps = deque(maxlen=5)
         self._peaks = deque(maxlen=5)
@@ -57,7 +61,6 @@ class PIDAutotune:
         self._last_run_timestamp = 0
         self._peak_type = 0
         self._peak_count = 0
-        self._initial_output = 0
         self._induced_amplitude = 0
         self._Ku = 0
         self._Pu = 0
@@ -226,14 +229,18 @@ class PIDAutotune:
 
 async def autotune(args, interface):
     try:
+        pwm_report = interface.get_pwm()[args.channel]
+        i_min = -pwm_report["max_i_neg"]["value"]
+        i_max = pwm_report["max_i_pos"]["value"]
+
         with interface.report_mode as report_mode:
             reporter = report_mode.receive_continuously()
 
             data = await anext(reporter)
             interface._log_report_to_influx(data)
             ch = data[args.channel]
-            tuner = PIDAutotune(args.target, args.step, args.lookback, args.noiseband,
-                                ch['interval'])
+            tuner = PIDAutotune(args.target, ch['i_set'], i_min, i_max, args.step,
+                                args.lookback, args.noiseband, ch['interval'])
 
             async for data in reporter:
                 interface._log_report_to_influx(data)
