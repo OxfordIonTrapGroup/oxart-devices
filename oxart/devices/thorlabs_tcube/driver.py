@@ -112,7 +112,6 @@ class MGMSG(Enum):
 
 
 class Direction:
-
     def __init__(self, direction):
         if direction not in (1, 2):
             raise ValueError("Direction must be either 1 or 2")
@@ -130,7 +129,6 @@ class MsgError(Exception):
 
 
 class Message:
-
     def __init__(self, id, param1=0, param2=0, dest=0x50, src=0x01, data=None):
         if data is not None:
             dest |= 0x80
@@ -179,7 +177,6 @@ class Message:
 
 
 class _Tcube:
-
     def __init__(self, serial_dev):
         self.port = asyncserial.AsyncSerial(serial_dev, baudrate=115200, rtscts=True)
 
@@ -286,7 +283,6 @@ class Tpz(_Tcube):
     or :py:meth:`get_tpz_io_settings()<Tpz.get_tpz_io_settings>` must
     be completed to finish initialising the driver.
     """
-
     def __init__(self, serial_dev):
         _Tcube.__init__(self, serial_dev)
         self.voltage_limit = None
@@ -652,7 +648,6 @@ class Tpz(_Tcube):
 
 
 class Tdc(_Tcube):
-
     def __init__(self, *args, **kwargs):
         _Tcube.__init__(self, *args, **kwargs)
         self.status_report_counter = 0
@@ -1131,7 +1126,6 @@ class Tdc(_Tcube):
 
 
 class TpzSim:
-
     def __init__(self):
         self.voltage_limit = 150
         self.hub_analog_input = 1
@@ -1221,7 +1215,6 @@ class TpzSim:
 
 
 class TdcSim:
-
     def close(self):
         pass
 

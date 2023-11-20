@@ -20,7 +20,6 @@ PZ_MAX_VOLTAGE = 75.0
 
 
 class _APTCardSlotDevice:
-
     def __init__(self, port):
         self.h = serial.Serial(port, 115200, write_timeout=0.1)
         self._status_update_counter = 0
@@ -154,7 +153,6 @@ class _APTCardSlotDevice:
 
 
 class BPC303(_APTCardSlotDevice):
-
     def __init__(self, port, enable_feedback=False):
         super().__init__(port)
         logger.info("Device vlimit is {}, travel is {}um".format(

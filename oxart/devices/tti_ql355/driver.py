@@ -17,7 +17,6 @@ class QL355:
 
     Default TCP/IP port is port=9221
     """
-
     def __init__(self, device):
         self.stream = get_stream(device, baudrate=19200, timeout=0.1)
         self._purge()

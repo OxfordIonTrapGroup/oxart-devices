@@ -5,7 +5,6 @@ class ShutterWrapper:
         'mappings': a dictionary mapping logical devices names to
             (device,channel) tuples
     """
-
     def __init__(self, dmgr, mappings):
         for channel in mappings:
             dev_name, ch = mappings[channel]
@@ -15,7 +14,6 @@ class ShutterWrapper:
 
 
 class ShutterChannel:
-
     def __init__(self, dev, channel):
         self.dev = dev
         self.channel = channel

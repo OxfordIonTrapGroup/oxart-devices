@@ -14,7 +14,6 @@ import os
 
 class SURF:
     """SURF Uncomplicated Regional Fields (python driver)"""
-
     def __init__(self,
                  trap_model_path="/home/ion/scratch/julia_projects/SURF/"
                  "trap_model/comet_model.jld",

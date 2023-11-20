@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 class OphirPowerMeter:
     """Interface to Ophir Starlite power meters"""
-
     def __init__(self, serial_number=None, channel=0):
         self.channel = channel
 

@@ -8,7 +8,6 @@ class SCPIDevice:
     """
     Base class for *all* SCPI devices. Implements IEEE-488.2 standard functions.
     """
-
     def __init__(self, addr, port=5025, serial_number=None):
         # addr : IP address of *device*
         self.addr = addr

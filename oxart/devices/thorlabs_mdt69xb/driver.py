@@ -23,7 +23,6 @@ class PiezoController:
 
     Tested with firmware versions 1.06 and 1.09.
     """
-
     def __init__(self, serial_addr):
         self.port = serial.serial_for_url(serial_addr,
                                           baudrate=115200,
@@ -356,7 +355,6 @@ class PiezoController:
 
 
 class SimulationPiezoController:
-
     def __init__(self, *args, **kwargs):
         logger.debug('Initialised')
 

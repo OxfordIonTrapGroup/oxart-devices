@@ -25,7 +25,6 @@ def to_nsd(data, t_axis):
 
 class MSO_S:
     """ Driver for Keysight MSO-S mixed-signal scopes """
-
     def __init__(self, ip):
         self.dev = serial.serial_for_url("socket://{}:5025".format(ip))
 

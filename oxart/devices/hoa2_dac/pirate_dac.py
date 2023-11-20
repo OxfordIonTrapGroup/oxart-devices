@@ -11,7 +11,6 @@ from pyBusPirateLite.SPI import *
 # CS : SYNC_N
 # AUX : LDAC
 class PirateDac:
-
     def __init__(self, port):
         self.spi = SPI(portname=port)
         self.spi.pins = PIN_POWER | PIN_AUX

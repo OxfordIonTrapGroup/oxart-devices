@@ -3,7 +3,6 @@ class UWaveDDSWrapper:
     logical frequencies (detunings from zero field) rather than the
     physical frequencies that are the input to the mixup chain
     """
-
     def __init__(self, dmgr, device, lo_frequency):
         self.core = dmgr.get("core")
         self.dds = dmgr.get(device)
