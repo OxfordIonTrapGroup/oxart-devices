@@ -6,6 +6,7 @@ from oxart.devices.streams import get_stream
 
 
 class E4405B:
+
     def __init__(self, device, timeout=10):
         self.stream = get_stream(device, timeout=timeout)
         assert self.ping()

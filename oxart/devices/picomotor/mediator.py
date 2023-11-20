@@ -7,6 +7,7 @@ class PicoMirror:
     each of which is a pair of (device, channel number) the respective motor
     is attached to.
     """
+
     def __init__(self, dmgr, motor_horizontal, motor_vertical):
         self.devs = (dmgr.get(motor_horizontal[0]), dmgr.get(motor_vertical[0]))
         self.chnls = (motor_horizontal[1], motor_vertical[1])
