@@ -29,6 +29,7 @@ class SURFMediator:
     The bare bones interface of the SURF driver is abstracted to simplify
     creating and chaining common operations.
     """
+
     def __init__(self,
                  dmgr,
                  device,

@@ -4,6 +4,7 @@ from . import constants as c
 
 class IPCMini:
     """Interface to IPCMini Ion Pump Controller"""
+
     def __init__(self, host, port=23):
         self.tn = telnetlib.Telnet(host, port)
 
@@ -20,6 +21,7 @@ class IPCMini:
         self.tn.write(bytes_)
 
     def _proto_get(self, win, type_, helper=None):
+
         def _get():
             msg = c.encode_read(win)
             self._write(msg)
@@ -38,6 +40,7 @@ class IPCMini:
         return _get
 
     def _proto_set(self, win, type_, helper=None):
+
         def _set(value):
             if helper is not None:
                 value = helper(value)

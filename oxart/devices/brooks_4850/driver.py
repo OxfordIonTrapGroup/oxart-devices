@@ -17,6 +17,7 @@ class CorruptionError(RuntimeError):
 
 class Brooks4850:
     """Brooks 4850 mass flow controller driver"""
+
     def __init__(self, address):
         """ Connect to a Brookes flowmeter"""
         self.c = serial_for_url(address)

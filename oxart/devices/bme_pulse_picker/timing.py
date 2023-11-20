@@ -117,6 +117,7 @@ class PulsePickerTiming:
         longer than sensible for calibrating single-pulse picking
         (2 * LASER_PERIOD_US).
     """
+
     def __init__(self, delay_gen: Driver, allow_long_pulses: bool = False):
         self._delay_gen = delay_gen
         self._times = TimingParams(allow_long_pulses)
