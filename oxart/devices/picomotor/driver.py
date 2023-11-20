@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 class PicomotorController:
     """ Picomotor Controller Driver """
+
     def __init__(self, device_ip):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(2)

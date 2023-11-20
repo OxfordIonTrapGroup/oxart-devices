@@ -13,6 +13,7 @@ class GPIB:
     commands for the GPIB controller itself instead of being passed on to a
     GPIB device.
     """
+
     def __init__(self, device, gpib_addr=0, timeout=None):
         """"
         :param device: pySerial-compatible address of the GPIB controller.
@@ -110,6 +111,7 @@ class GPIB:
 
     class Stream:
         """ pySerial-compatible interface to a single GPIB device. """
+
         def __init__(self, bus, addr):
             """ :param bus: a GPIB controller """
             self.bus = bus

@@ -40,6 +40,7 @@ def get_device_names():
 
 
 class _TLPM:
+
     def __init__(self):
         if sizeof(c_voidp) == 4:
             self.dll = cdll.LoadLibrary(
@@ -294,6 +295,7 @@ class _TLPM:
 
 
 class ThorlabsPM100A(_TLPM):
+
     def __init__(self, device_name, query_device=True, reset_device=False):
         self.device_name = device_name
         super().__init__()

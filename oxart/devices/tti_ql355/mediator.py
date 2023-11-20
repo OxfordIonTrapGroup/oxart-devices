@@ -5,6 +5,7 @@ class PsuWrapper:
         'mappings', a dictionary mapping logical devices names to
             (device,channel) tuples
     """
+
     def __init__(self, dmgr, devices, mappings):
         self.core = dmgr.get("core")
         self.devices = {dev: dmgr.get(dev) for dev in devices}

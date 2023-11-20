@@ -15,6 +15,7 @@ Status = collections.namedtuple("Status", [
 
 class Booster:
     """ Booster 8-channel RF PA """
+
     def __init__(self, device):
         self.dev = serial.serial_for_url("socket://{}:5000".format(device))
         self.dev.timeout = 1
