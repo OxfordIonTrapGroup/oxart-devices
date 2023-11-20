@@ -12,6 +12,47 @@ import shelve
 import os
 
 
+class _GridCache:
+    """Hacky wrapper to cache mk_electrodes_grid/mk_field_grid results.
+
+    Trying to use @functools.lru_cache or equality-compare the Julia
+    ElectrodesFn/FieldFn appears to for whatever reason hang the process, so this just
+    manually stores the last parameters to speed up repeated calls e.g. during
+    micromotion compensation.
+
+    This should probably be replaced by just caching the grids for the default
+    elec_fn/field_fn directly in the driver class, and ensuring that latency-sensitive
+    user code just uses the default values.
+    """
+    def __init__(self, jl):
+        self.jl = jl
+        self.last_zs = None
+        self.last_elec_fn = None
+        self.last_field_fn = None
+        self.last_result = None
+
+    def can_use_last(self, zs, elec_fn, field_fn):
+        if not np.array_equal(zs, self.last_zs):
+            return False
+        # KLUDGE: Use names to stand in for equality comparison, as this is the only
+        # thing that changes without a model reload.
+        if self.last_elec_fn is None or elec_fn.names != self.last_elec_fn.names:
+            return False
+        if field_fn is not self.last_field_fn:
+            return False
+        return True
+
+    def get(self, zs, elec_fn, field_fn):
+        if self.can_use_last(zs, elec_fn, field_fn):
+            return self.last_result
+        self.last_result = (self.jl.eval("mk_electrodes_grid")(zs, elec_fn),
+                            self.jl.eval("mk_field_grid")(zs, field_fn))
+        self.last_zs = zs
+        self.last_elec_fn = elec_fn
+        self.last_field_fn = field_fn
+        return self.last_result
+
+
 class SURF:
     """SURF Uncomplicated Regional Fields (python driver)"""
     def __init__(self,
@@ -31,6 +72,7 @@ class SURF:
         self.jl.eval("using SURF.DataSelect")
         self.jl.eval("using SURF.Load")
 
+        self.current_config_args = {}
         self.load_config(trap_model_path, cache_path, **kwargs)
         print("ready")
 
@@ -39,19 +81,21 @@ class SURF:
                     cache_path=None,
                     omega_rf=None,
                     mass=None,
-                    v_rf=None):
+                    v_rf=None,
+                    force_reload=False):
         """
-        The trap model and default solver settings are (re-)loaded from the
-        specified file. The solution cache is set to to the specified path.
-        Infuture results will be cached/loaded to/from this path.
+        Load trap model and default solver settings from the specified file and
+        set solution solution cache path.
 
-        :param trap_model_path: path to the SURF trap model file
-        :param cache_path: path on which to cache results.  Be sure to
-            update/purge the cache if you change the trap model!
-            `None` disables the cache.
-        :param omega_rf: angular frequency of trap-RF [in rad/s]
-        :param mass: mass of ion in atomic mass units
+        :param trap_model_path: Path to the SURF trap model file
+        :param cache_path: Path where future solutions are saved to, and if
+            present later recalled from. Be sure to update/purge the cache
+            if you change the trap model! ``None`` disables the cache.
+        :param omega_rf: Angular frequency of trap-RF [in rad/s]
+        :param mass: Mass of ion in atomic mass units
         :param v_rf: RF voltage amplitude.
+        :param force_reload: Reload model even if arguments are identical to
+            currently loaded config. Set to ``True`` if the model changed.
         """
         if trap_model_path is not None:
             self.trap_model_path = trap_model_path
@@ -62,6 +106,17 @@ class SURF:
             if not os.path.isdir(cache_path):
                 os.mkdir(cache_path)
         self.cache_path = cache_path
+
+        args = {
+            "trap_model_path": self.trap_model_path,
+            "cache_path": self.cache_path,
+            "omega_rf": omega_rf,
+            "mass": mass,
+            "v_rf": v_rf
+        }
+        if args == self.current_config_args and not force_reload:
+            return self.get_config()
+        self.current_config_args = args
 
         model = self.jl.eval("SURF.Load.load_model")(self.trap_model_path,
                                                      omega_rf=omega_rf,
@@ -78,6 +133,7 @@ class SURF:
             "dynamic_settings": model[4],
             "split_settings": model[5],
         }
+        self.grid_cache = _GridCache(self.jl)
         return self.get_config()
 
     def get_div_grad_phi(self, z):
@@ -146,10 +202,6 @@ class SURF:
         if zs is None:
             zs = self.user_defaults["zs"]
 
-        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
-
-        wells = self._mk_wells(**param_dict["wells"])
-
         if param_dict.get("static_settings", None) is None:
             settings = self.user_defaults["static_settings"]
         else:
@@ -172,6 +224,8 @@ class SURF:
                 except KeyError:
                     pass  # key not found
 
+        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
+        wells = self._mk_wells(**param_dict["wells"])
         voltages = self._solve_static(wells, elec_grid, field_grid, settings)
 
         if self.cache_path is not None:
@@ -203,19 +257,6 @@ class SURF:
         zs = param_dict.get("zs", None)
         if zs is None:
             zs = self.user_defaults["zs"]
-
-        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
-
-        scan_start = self._mk_wells(**param_dict["scan_start"])
-        scan_end = self._mk_wells(**param_dict["scan_end"])
-        spectators = self._mk_wells(**param_dict["spectators"])
-
-        # only supports a single well in solver
-        if param_dict.get("split_settings", None) is None:
-            settings = self.user_defaults["split_settings"]
-        else:
-            settings = self._mk_solver_settings(*param_dict["split_settings"],
-                                                solver="Split")
 
         # need to fix argument order!
         arg_key = pyon.encode((
@@ -265,6 +306,15 @@ class SURF:
                 except KeyError:
                     pass  # key not found
 
+        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
+        scan_start = self._mk_wells(**param_dict["scan_start"])
+        scan_end = self._mk_wells(**param_dict["scan_end"])
+        spectators = self._mk_wells(**param_dict["spectators"])
+        if param_dict.get("split_settings", None) is None:
+            settings = self.user_defaults["split_settings"]
+        else:
+            settings = self._mk_solver_settings(*param_dict["split_settings"],
+                                                solver="Split")
         voltages, sep_vec = self._solve_split(scan_start, scan_end, spectators,
                                               param_dict["n_step"],
                                               param_dict["n_scan"], elec_fn,
@@ -301,19 +351,6 @@ class SURF:
         zs = param_dict.get("zs", None)
         if zs is None:
             zs = self.user_defaults["zs"]
-
-        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
-
-        wells0 = self._mk_wells(**param_dict["wells0"])
-        wells1 = self._mk_wells(**param_dict["wells1"])
-
-        trajectory = self._mk_trajectory(wells0, wells1, param_dict["n_step"])
-
-        if param_dict.get("dynamic_settings", None) is None:
-            settings = self.user_defaults["dynamic_settings"]
-        else:
-            settings = self._mk_solver_settings(*param_dict["dynamic_settings"],
-                                                solver="Dynamic")
 
         v0 = [param_dict["volt_start"][name] for name in elec_fn.names]
         v1 = [param_dict["volt_end"][name] for name in elec_fn.names]
@@ -355,6 +392,16 @@ class SURF:
                     return db[arg_key]
                 except KeyError:
                     pass  # key not found
+
+        wells0 = self._mk_wells(**param_dict["wells0"])
+        wells1 = self._mk_wells(**param_dict["wells1"])
+        trajectory = self._mk_trajectory(wells0, wells1, param_dict["n_step"])
+        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
+        if param_dict.get("dynamic_settings", None) is None:
+            settings = self.user_defaults["dynamic_settings"]
+        else:
+            settings = self._mk_solver_settings(*param_dict["dynamic_settings"],
+                                                solver="Dynamic")
         voltages = self._solve_dynamic(trajectory, v0, v1, elec_grid, field_grid,
                                        settings)
 
@@ -413,8 +460,7 @@ class SURF:
         """Sample electrodes and external fields at positions zs
 
         return (ElectrodesGrid, FieldGrid)"""
-        return (self.jl.eval("mk_electrodes_grid")(zs, elec_fn),
-                self.jl.eval("mk_field_grid")(zs, field_fn))
+        return self.grid_cache.get(zs, elec_fn, field_fn)
 
     def _select_elec(self, elec, names):
         """Select a subset of electrodes to use"""

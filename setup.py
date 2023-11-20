@@ -34,6 +34,7 @@ scripts = [
     "thorlabs_mdt69xb_controller=oxart.frontend.thorlabs_mdt69xb_controller:main",
     "thorlabs_mdt693a_controller=oxart.frontend.thorlabs_mdt693a_controller:main",
     "thorlabs_bpc303_controller=oxart.frontend.thorlabs_bpc303_controller:main",
+    "vaunix_signal_generator_controller=oxart.frontend.vaunix_signal_generator_controller:main",
 ]
 
 setup(

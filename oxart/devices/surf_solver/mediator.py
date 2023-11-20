@@ -172,6 +172,17 @@ class SURFMediator:
         else:
             return self.default_electrodes
 
+    def get_z_grid(self, custom_spacing=None):
+        """Z grid points with optional custom spacing with same range as user default
+
+        :param custom_spacing: Grid spacing. If not specified, the user default is used.
+        """
+        user_default = self.driver.get_config()["zs"]
+        if custom_spacing is None:
+            return user_default
+        else:
+            return np.arange(np.min(user_default), np.max(user_default), custom_spacing)
+
     def get_sum_square_freq(self, z):
         """Return the single ion sum of square mode frequencies of the model
 
@@ -189,7 +200,26 @@ class SURFMediator:
                           omega_rf=None,
                           mass=None,
                           v_rf=None):
-        """Reload the trap model caching and trap parameters
+        """Reload the trap model caching and trap parameters.
+
+        Equivalent to ``load_trap_model(…, force_reload=True)``; see
+        :meth:`load_trap_model` for details.
+        """
+        return self.load_trap_model(trap_model_path,
+                                    cache_path,
+                                    omega_rf,
+                                    mass,
+                                    v_rf,
+                                    force_reload=True)
+
+    def load_trap_model(self,
+                        trap_model_path=None,
+                        cache_path=None,
+                        omega_rf=None,
+                        mass=None,
+                        v_rf=None,
+                        force_reload=False):
+        """Load the trap model caching and trap parameters.
 
         All parameters have sane defaults.
 
@@ -203,11 +233,19 @@ class SURFMediator:
         :param mass: mass of ion in atomic mass units
             Defaults to the most recently specified mass
         :param v_rf: RF voltage amplitude.
-            Default is given in trap model"""
+            Default is given in trap model
+        :param force_reload: Whether to reload the model from disk even if the
+            parameters are identical to the current settings. This does not
+            automatically purge the solution cache.
+        """
         if mass is not None:
             self.mass = mass
-        return self.driver.load_config(trap_model_path, cache_path, omega_rf, self.mass,
-                                       v_rf)
+        return self.driver.load_config(trap_model_path,
+                                       cache_path,
+                                       omega_rf,
+                                       self.mass,
+                                       v_rf,
+                                       force_reload=force_reload)
 
     def get_new_waveform(self,
                          z,
