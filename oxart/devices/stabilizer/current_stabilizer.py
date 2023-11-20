@@ -66,6 +66,7 @@ class IIR:
             complex conjugate pairs.
         :param gain: gain scaling factor of transfer function.
         """
+
         def get_polynomial_coefs(factors):
             "convert factors to coeficents"
             if len(factors) == 0:
@@ -100,13 +101,13 @@ class IIR:
                 s_coefs[0] + c * s_coefs[1] + c * c * s_coefs[2],
                 2 * s_coefs[0] - 2 * c * c * s_coefs[2],
                 s_coefs[0] - c * s_coefs[1] + c * c * s_coefs[2],
-                ]
+            ]
             return z_coefs
 
-        num_coefs = z_transform(get_polynomial_coefs(
-            [2 * np.pi * x for x in zeros]), self.t_update)
-        denom_coefs = z_transform(get_polynomial_coefs(
-            [2 * np.pi * x for x in poles]), self.t_update)
+        num_coefs = z_transform(get_polynomial_coefs([2 * np.pi * x for x in zeros]),
+                                self.t_update)
+        denom_coefs = z_transform(get_polynomial_coefs([2 * np.pi * x for x in poles]),
+                                  self.t_update)
 
         # normalise to a0 = 1 & apply gain factor
         num_coefs = [np.real(x / denom_coefs[0]) * gain for x in num_coefs]
@@ -158,6 +159,7 @@ class GPIO_HDR_SPI:
 
 
 class Feedforward:
+
     def __init__(self, num_harmonics):
         self.conversion_factor = 1 / 500  # [0, 500uA] maps to [0, 1]
         self.num_harmonics = num_harmonics
@@ -215,6 +217,7 @@ async def set_feedforward(connection, ff):
 
 
 class Stabilizer:
+
     def __init__(self, fb_connection, ff_connection):
         self.fb_connection = fb_connection
         self.ff_connection = ff_connection
@@ -253,12 +256,12 @@ class Stabilizer:
         await set_feedback(self.fb_connection, self.channel, i, d, g)
 
     async def set_feedback_biquad(self,
-                                 frontend_offset=250,
-                                 zeros=[],
-                                 poles=[],
-                                 gain = 1.,
-                                 feedback_offset=0,
-                                 channel_offset=0):
+                                  frontend_offset=250,
+                                  zeros=[],
+                                  poles=[],
+                                  gain=1.,
+                                  feedback_offset=0,
+                                  channel_offset=0):
         d = CPU_DAC()
         d.set_out(feedback_offset)
         d.set_en(True)
