@@ -49,6 +49,8 @@ class RPCInterface(Thermostat):
     def _log_report_to_influx(self, reports):
         if reports:
             for report in reports:
+                if report is None:
+                    continue
                 idx = int(report.pop("channel"))
                 for key, value in report.items():
                     try:
