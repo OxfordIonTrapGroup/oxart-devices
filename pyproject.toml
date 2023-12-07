@@ -4,6 +4,9 @@ version = "0.2"
 description = "ARTIQ/SiPyCo-compatible drivers for laboratory equipment"
 authors = ["Oxford Ion Trap Quantum Computing Group"]
 readme = "README.rst"
+packages = [
+    { include = "oxart" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
