@@ -5,6 +5,7 @@ class V3500A:
     """ USB driver for Keysight V3500A RF Power Meters. Windows only,
         assumes USB driver is installed; if not, download from
         https://www.keysight.com/main/software.jspx?ckey=sw287"""
+
     def __init__(self, device):
         self.bus = serial.serial_for_url(device, baudrate=9600)
         assert self.ping()

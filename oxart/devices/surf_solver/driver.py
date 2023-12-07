@@ -24,6 +24,7 @@ class _GridCache:
     elec_fn/field_fn directly in the driver class, and ensuring that latency-sensitive
     user code just uses the default values.
     """
+
     def __init__(self, jl):
         self.jl = jl
         self.last_zs = None
@@ -55,6 +56,7 @@ class _GridCache:
 
 class SURF:
     """SURF Uncomplicated Regional Fields (python driver)"""
+
     def __init__(self,
                  trap_model_path="/home/ion/scratch/julia_projects/SURF/"
                  "trap_model/comet_model.jld",
