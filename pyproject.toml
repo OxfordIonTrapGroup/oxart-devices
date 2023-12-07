@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "oxart"
+name = "oxart-devices"
 version = "0.2"
 description = "ARTIQ/SiPyCo-compatible drivers for laboratory equipment"
 authors = ["Oxford Ion Trap Quantum Computing Group"]
