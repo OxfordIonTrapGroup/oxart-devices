@@ -237,8 +237,10 @@ lookups = {
     }
 }
 reverse_lookups = {
-    name: {v: k
-           for k, v in lookup.items()}
+    name: {
+        v: k
+        for k, v in lookup.items()
+    }
     for name, lookup in lookups.items()
 }
 

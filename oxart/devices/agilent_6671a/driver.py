@@ -3,6 +3,7 @@ from oxart.devices.streams import get_stream
 
 class Agilent6671A:
     """Driver for Agilent 6671A power supplies"""
+
     def __init__(self, device, timeout=10):
         # If the Agilent 6671A is connected via a GPIB adapter, the adapter
         # will be pinged as part of the call to get_stream. If no

@@ -7,6 +7,7 @@ N_CHANNELS = 4
 
 
 class HOA2Dac:
+
     def __init__(self, serial_name):
         """serial_name : serial port name
 

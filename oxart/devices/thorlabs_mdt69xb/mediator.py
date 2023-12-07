@@ -12,6 +12,7 @@ class PiezoWrapper:
         'slow_scan', a dictionary mapping the logical devices which require
             incremented voltage steps to the maximum step size in volts.
     """
+
     def __init__(self, dmgr, devices, mappings, slow_scan):
         self.core = dmgr.get("core")
         self.devices = {dev: dmgr.get(dev) for dev in devices}

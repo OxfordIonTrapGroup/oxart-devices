@@ -15,6 +15,7 @@ def _write_exactly(f, data):
 
 
 class ProfileDescriptor:
+
     def __init__(self, freq_word, amp_word, phase_word):
         self.freq_word = freq_word
         self.amp_word = amp_word

@@ -66,6 +66,7 @@ class IIR:
             complex conjugate pairs.
         :param gain: gain scaling factor of transfer function.
         """
+
         def get_polynomial_coefs(factors):
             "convert factors to coeficents"
             if len(factors) == 0:
@@ -158,6 +159,7 @@ class GPIO_HDR_SPI:
 
 
 class Feedforward:
+
     def __init__(self, num_harmonics):
         self.conversion_factor = 1 / 500  # [0, 500uA] maps to [0, 1]
         self.num_harmonics = num_harmonics
@@ -215,6 +217,7 @@ async def set_feedforward(connection, ff):
 
 
 class Stabilizer:
+
     def __init__(self, fb_connection, ff_connection):
         self.fb_connection = fb_connection
         self.ff_connection = ff_connection

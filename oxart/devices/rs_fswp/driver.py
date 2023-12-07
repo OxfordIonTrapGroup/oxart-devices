@@ -16,6 +16,7 @@ logger = getLogger()
 
 
 class RS_FSWP:
+
     def __init__(self, ip="169.254.147.5", prefix="TCPIP", suffix="INSTR"):
         self.ip = ip
         self.prefix = prefix

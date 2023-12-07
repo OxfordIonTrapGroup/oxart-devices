@@ -29,8 +29,10 @@ def write(client, booster_name, measurement, data):
         "tags": {
             "name": measurement,
         },
-        "fields": {"ch{}".format(idx): value
-                   for idx, value in enumerate(data)}
+        "fields": {
+            "ch{}".format(idx): value
+            for idx, value in enumerate(data)
+        }
     }
     try:
         client.write_points([point])

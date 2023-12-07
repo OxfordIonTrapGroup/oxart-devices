@@ -11,6 +11,7 @@ class BBShutter:
     channel: channel index [0..3]
     state: True = open = not blocking beam. False = closed = blocking beam
     """
+
     def __init__(self):
         self.pins = ["P9_14", "P9_16", "P9_21", "P9_22"]
         self.states = [False] * len(self.pins)
