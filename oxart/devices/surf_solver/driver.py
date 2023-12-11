@@ -128,12 +128,22 @@ class SURF:
         self.elec_fn = self.jl.eval("mk_electrodes_fn")(self.raw_elec_grid)
         self.field_fn = self.jl.eval("mk_field_fn")(self.raw_field_grid)
 
+        if len(model) > 6:
+            dynamic_split_settings = model[6]
+        else:
+            # Provide defaults based on split solver.
+            settings = (model[5].split_scale_tup, model[5].spectator_scale_tup,
+                        model[5].v_weight, (0.0, 0.0), model[5].v_max)
+            dynamic_split_settings = self._mk_solver_settings(*settings,
+                                                              solver="DynamicSplit")
+
         # recommended default values for user
         self.user_defaults = {
             "zs": model[2],
             "static_settings": model[3],
             "dynamic_settings": model[4],
             "split_settings": model[5],
+            "dynamic_split_settings": dynamic_split_settings,
         }
         self.grid_cache = _GridCache(self.jl)
         return self.get_config()
@@ -325,6 +335,97 @@ class SURF:
 
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "split.db")) as db:
+                try:
+                    db[arg_key] = (voltages, elec_fn.names, sep_vec)
+                except ValueError:
+                    pass  # value too large
+
+        return voltages, elec_fn.names, sep_vec
+
+    def dynamic_split(self, **param_dict):
+        """Controls dynamic split solver and handles julia objects
+
+        This is required as sipyco can't serialise the julia objects.
+
+        :param **param_dict: dictionary with execution information
+            specify fields by using kwargs/unpacking a dictionary.
+            Most parameters load sane defaults.
+
+        :returns: voltage_array, electrode_name_tup
+            voltage_array shape: (electrode_name_tup, n_time_steps).
+        """
+        names = param_dict.get("electrodes", None)
+        if names is None:
+            elec_fn = self.elec_fn
+        else:
+            elec_fn = self._select_elec(self.elec_fn, names)
+
+        zs = param_dict.get("zs", None)
+        if zs is None:
+            zs = self.user_defaults["zs"]
+
+        # need to fix argument order!
+        arg_key = pyon.encode((
+            elec_fn.names,
+            zs,
+            param_dict.get("split_settings", None),
+            param_dict["split_well"]["z"],
+            param_dict["split_well"]["width"],
+            param_dict["split_well"]["dphidx"],
+            param_dict["split_well"]["dphidy"],
+            param_dict["split_well"]["dphidz"],
+            param_dict["split_well"]["rx_axial"],
+            param_dict["split_well"]["ry_axial"],
+            param_dict["split_well"]["phi_radial"],
+            param_dict["split_well"]["d2phidaxial2"],
+            param_dict["split_well"]["d3phidz3"],
+            param_dict["split_well"]["d2phidradial_h2"],
+            param_dict["spectators"]["z"],
+            param_dict["spectators"]["width"],
+            param_dict["spectators"]["dphidx"],
+            param_dict["spectators"]["dphidy"],
+            param_dict["spectators"]["dphidz"],
+            param_dict["spectators"]["rx_axial"],
+            param_dict["spectators"]["ry_axial"],
+            param_dict["spectators"]["phi_radial"],
+            param_dict["spectators"]["d2phidaxial2"],
+            param_dict["spectators"]["d3phidz3"],
+            param_dict["spectators"]["d2phidradial_h2"],
+            param_dict["start_separation"],
+            param_dict["end_separation"],
+            param_dict["n_step"],
+        ))
+        if self.cache_path is not None:
+            with shelve.open(os.path.join(self.cache_path, "dynamic_split.db")) as db:
+                try:
+                    return db[arg_key]
+                except KeyError:
+                    pass  # key not found
+
+        elec_grid, field_grid = self._mk_grids(zs, elec_fn, self.field_fn)
+        split_well = self._mk_wells(**param_dict["split_well"])
+        spectators = self._mk_wells(**param_dict["spectators"])
+
+        if param_dict.get("split_settings", None) is None:
+            settings = self.user_defaults["dynamic_split_settings"]
+        else:
+            settings = self._mk_solver_settings(*param_dict["split_settings"],
+                                                solver="DynamicSplit")
+        voltages, sep_vec = self._solve_dynamic_split(
+            split_well,
+            param_dict["start_separation"],
+            param_dict["end_separation"],
+            param_dict["n_step"],
+            spectators,
+            elec_fn,
+            self.field_fn,
+            elec_grid,
+            field_grid,
+            settings,
+        )
+
+        if self.cache_path is not None:
+            with shelve.open(os.path.join(self.cache_path, "dynamic_split.db")) as db:
                 try:
                     db[arg_key] = (voltages, elec_fn.names, sep_vec)
                 except ValueError:
@@ -550,6 +651,31 @@ class SURF:
         volt_set, sep_vec = self.jl.eval("SURF.Split.solver")(
             scan_start, scan_end, spectator, n_step, n_scan, elec_fn, field_fn,
             elec_grid, field_grid, weights_fn, cull_fn, settings)
+        return (np.ascontiguousarray(np.array(volt_set)), np.array(sep_vec))
+
+    def _solve_dynamic_split(self, split_well, start_separation, end_separation, n_step,
+                             spectator, elec_fn, field_fn, elec_grid, field_grid,
+                             settings):
+        """Find voltages for splitting/merging a well with spectator wells dynamically
+
+        The solver operates on a single well. This well evolves from well_start
+        to well_end.
+
+        :param split_well: well to be split.
+        :param start_separation: de-facto ion-ion separation in `split_well`.
+        :param end_separation: the target separation between ions in double-well after
+            splitting.
+        :param n_step: number of time steps in the splitting waveform
+        :param spectator: as returned by mk_wells. Static wells present during
+            splitting.
+        :param settings: solver settings struct
+
+        :return: voltage array, (n_electrode, time_step)
+        """
+        cull_fn = self.jl.eval("get_cull_indices")
+        volt_set, sep_vec = self.jl.eval("SURF.DynamicSplit.solver")(
+            split_well, start_separation, end_separation, n_step, spectator, elec_fn,
+            field_fn, elec_grid, field_grid, cull_fn, settings)
         return (np.ascontiguousarray(np.array(volt_set)), np.array(sep_vec))
 
     def ping(self):
