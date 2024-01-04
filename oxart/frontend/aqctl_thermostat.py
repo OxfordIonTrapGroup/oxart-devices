@@ -96,7 +96,7 @@ def setup_interface(args, influx_pusher, loop):
         logging_task.cancel()
         try:
             loop.run_until_complete(logging_task)
-        except asyncio.CancelledError:
+        except (asyncio.CancelledError, TimeoutError):
             pass
 
     atexit.register(stop_logging_task)

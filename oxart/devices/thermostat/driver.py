@@ -79,7 +79,12 @@ class Thermostat:
     def _read_line(self):
         # read more lines
         while len(self._lines) <= 1:
-            chunk = self._socket.recv(4096)
+            self._socket.settimeout(2)
+            try:
+                chunk = self._socket.recv(4096)
+            except TimeoutError as e:
+                logging.error(e)
+                return None
             if not chunk:
                 return None
             buf = self._lines[-1] + chunk.decode('utf-8', errors='ignore')
