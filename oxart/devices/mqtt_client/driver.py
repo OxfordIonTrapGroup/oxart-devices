@@ -9,6 +9,8 @@ import logging
 from typing import Any
 import nest_asyncio
 import argparse
+from gmqtt import Client as GmqttClient
+
 
 nest_asyncio.apply()
 
@@ -17,11 +19,13 @@ logger = logging.getLogger()
 
 class MQTTClient:
 
-    def __init__(self, dmgr, prefix: str, address: str, timeout: float = 1):
+    def __init__(self, dmgr, prefix: str, address: str, timeout: float = 1, session_expiry_interval: int = 600):
         """
         :param dmgr: Device manager passed in by Artiq.
         :param prefix: Prefix to the '/settings' topic for the device.
         :param address: IP adress of the device running the MQTT broker.
+        :param timeout: Timeout period for MQTT requests in seconds.
+        :param session_expiry_interval: Session expiry interval for MQTT client in seconds.
         """
 
         self.dmgr = dmgr
@@ -29,7 +33,10 @@ class MQTTClient:
         self.address = address
         self.timeout = timeout
 
-        self.interface = asyncio.run(Miniconf.create(self.prefix, self.address))
+        self.client = GmqttClient("stabilizer_logger", session_expiry_interval=600)
+        self.client.connect(self.address)
+
+        self.interface = asyncio.run(Miniconf.create(self.client, self.prefix))
         logger.info(f"Connection to broker at {self.address} established.")
         self.paths = self.list_paths()
 
@@ -97,12 +104,20 @@ class MQTTClient:
 
         # Last entry returned by 'interface.list_paths()' is the response topic, which
         # is not a valid path.
-        return paths[:-1]
+        return ["settings/{path}" for path in paths[:-1]]
 
     def ping(self):
 
         if self.get_setting(self.paths[0]):
             return True
+
+    def get_message_on_topic(self, path: str):
+        """
+        Get the full topic string for a given path.
+        :param path: path to the setting.
+        """
+
+        return f"{self.prefix}/settings/{path}"
 
 
 def get_argparser():
@@ -127,6 +142,11 @@ def get_argparser():
         default=1,
         help="Timeout period for MQTT requests in seconds.",
     )
+    parser.add_argument(
+        "--session-expiry-interval",
+        required=False,
+        default=600,
+        help="Session expiry interval for MQTT client in seconds.",)
     return parser
 
 
