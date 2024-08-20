@@ -15,7 +15,7 @@ oitg = { git = "https://github.com/oxfordiontrapgroup/oitg.git" }
 numpy = "^1.24.2"
 pyserial = "^3.5"
 appdirs = "^1.4.4"
-pyzmq = "^25.1.2"
+pyzmq = ">=25.1.2"
 influxdb = "^5.3.1"
 
 [tool.poetry.group.dev.dependencies]
