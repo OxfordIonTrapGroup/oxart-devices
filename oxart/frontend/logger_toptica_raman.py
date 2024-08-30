@@ -69,8 +69,10 @@ def main():
 
     async def run_poll_loop():
         async with Client(NetworkConnection(args.server)) as dlc:
+            next_update = time.monotonic()
             while True:
-                time.sleep(args.poll)
+                await asyncio.sleep(next_update - time.monotonic())
+                next_update += args.poll
                 msg = {key: None for key in parameters.keys()}
                 for key in parameters.keys():
                     msg[key] = await asyncio.wait_for(dlc.get(parameters[key], float),
@@ -83,7 +85,8 @@ def main():
                 await run_poll_loop()
             except Exception:
                 logger.exception("Is DLC pro connected to network?")
-                # Ignore exception and retry.
+                # Ignore exception and retry after a while.
+                await asyncio.sleep(args.poll)
 
     loop.run_until_complete(run())
 
