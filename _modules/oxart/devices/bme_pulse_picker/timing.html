@@ -98,13 +98,13 @@
 <span class="sd">    - F: ON B</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">from</span> <span class="nn">.bme_delay_gen</span> <span class="kn">import</span> <span class="n">Driver</span><span class="p">,</span> <span class="n">OutputGateMode</span><span class="p">,</span> <span class="n">PulseParameters</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.bme_delay_gen</span><span class="w"> </span><span class="kn">import</span> <span class="n">Driver</span><span class="p">,</span> <span class="n">OutputGateMode</span><span class="p">,</span> <span class="n">PulseParameters</span>
 
 
 <div class="viewcode-block" id="InvalidTimingError">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.InvalidTimingError">[docs]</a>
-<span class="k">class</span> <span class="nc">InvalidTimingError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">InvalidTimingError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when the user specifies a set of parameters that violate the</span>
 <span class="sd">    hardware timing constraints.&quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
@@ -113,7 +113,7 @@
 
 <div class="viewcode-block" id="TimingParams">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.TimingParams">[docs]</a>
-<span class="k">class</span> <span class="nc">TimingParams</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TimingParams</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stores different pulse picker timing parameters. All times in</span>
 <span class="sd">    microseconds.&quot;&quot;&quot;</span>
 
@@ -125,7 +125,7 @@
     <span class="c1">#: end up being up to ~130 ns long, so be on the safe side.</span>
     <span class="n">MIN_SWITCH_INTERVAL_US</span> <span class="o">=</span> <span class="mf">150e-3</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allow_long_pulses</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allow_long_pulses</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_allow_long_pulses</span> <span class="o">=</span> <span class="n">allow_long_pulses</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">offset_on_us</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.0007</span>
@@ -153,7 +153,7 @@
 
 <div class="viewcode-block" id="TimingParams.ensure_valid">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.TimingParams.ensure_valid">[docs]</a>
-    <span class="k">def</span> <span class="nf">ensure_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ensure_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Verify that the timing parameters are sane, raising an error if not.</span>
 
@@ -188,7 +188,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming">[docs]</a>
-<span class="k">class</span> <span class="nc">PulsePickerTiming</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PulsePickerTiming</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a new high-level interface for using the passed delay generator</span>
 <span class="sd">    to drive a pulse picker head.</span>
@@ -201,7 +201,7 @@
 <span class="sd">        (2 * LASER_PERIOD_US).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay_gen</span><span class="p">:</span> <span class="n">Driver</span><span class="p">,</span> <span class="n">allow_long_pulses</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delay_gen</span><span class="p">:</span> <span class="n">Driver</span><span class="p">,</span> <span class="n">allow_long_pulses</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_delay_gen</span> <span class="o">=</span> <span class="n">delay_gen</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_times</span> <span class="o">=</span> <span class="n">TimingParams</span><span class="p">(</span><span class="n">allow_long_pulses</span><span class="p">)</span>
 
@@ -214,7 +214,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.disable">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.disable">[docs]</a>
-    <span class="k">def</span> <span class="nf">disable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">disable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Disable pulsing.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_enabled</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_pulses</span><span class="p">()</span></div>
@@ -222,7 +222,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.enable_gated">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.enable_gated">[docs]</a>
-    <span class="k">def</span> <span class="nf">enable_gated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">holdoff_us</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">enable_gated</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">holdoff_us</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Enable pulsing, triggering one whenever the external gate input is</span>
 <span class="sd">        signalled.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delay_gen</span><span class="p">:</span>
@@ -233,7 +233,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.enable_free">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.enable_free">[docs]</a>
-    <span class="k">def</span> <span class="nf">enable_free</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_period_us</span><span class="o">=</span><span class="mf">10.0</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">enable_free</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_period_us</span><span class="o">=</span><span class="mf">10.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Enable pulsing in a free-running manner, where pulses are triggered</span>
 <span class="sd">        whenever the laser sync trigger is asserted, but with a minimum period</span>
 <span class="sd">        (hold-off/inhibit) of min_period_us.&quot;&quot;&quot;</span>
@@ -248,7 +248,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.get_offset_on_us">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_offset_on_us">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_offset_on_us</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_offset_on_us</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="o">.</span><span class="n">offset_on_us</span></div>
@@ -256,7 +256,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.set_offset_on_us">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_offset_on_us">[docs]</a>
-    <span class="k">def</span> <span class="nf">set_offset_on_us</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_offset_on_us</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="p">)</span>
@@ -268,7 +268,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.get_offset_off_us">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_offset_off_us">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_offset_off_us</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_offset_off_us</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="o">.</span><span class="n">offset_off_us</span></div>
@@ -276,7 +276,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.set_offset_off_us">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_offset_off_us">[docs]</a>
-    <span class="k">def</span> <span class="nf">set_offset_off_us</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_offset_off_us</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="p">)</span>
@@ -288,7 +288,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.get_pre_open_us">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_pre_open_us">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_pre_open_us</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_pre_open_us</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="o">.</span><span class="n">pre_open_us</span></div>
@@ -296,7 +296,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.set_pre_open_us">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_pre_open_us">[docs]</a>
-    <span class="k">def</span> <span class="nf">set_pre_open_us</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_pre_open_us</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="p">)</span>
@@ -308,7 +308,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.get_post_open_us">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_post_open_us">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_post_open_us</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_post_open_us</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="o">.</span><span class="n">post_open_us</span></div>
@@ -316,7 +316,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.set_post_open_us">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_post_open_us">[docs]</a>
-    <span class="k">def</span> <span class="nf">set_post_open_us</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_post_open_us</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="p">)</span>
@@ -328,7 +328,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.get_open_us">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_open_us">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_open_us</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_open_us</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="o">.</span><span class="n">open_us</span></div>
@@ -336,7 +336,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.set_open_us">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_open_us">[docs]</a>
-    <span class="k">def</span> <span class="nf">set_open_us</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_open_us</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="p">)</span>
@@ -348,7 +348,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.get_align_us">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.get_align_us">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_align_us</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_align_us</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="o">.</span><span class="n">align_us</span></div>
@@ -356,7 +356,7 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.set_align_us">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.set_align_us">[docs]</a>
-    <span class="k">def</span> <span class="nf">set_align_us</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_align_us</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="p">)</span>
@@ -368,12 +368,12 @@
 
 <div class="viewcode-block" id="PulsePickerTiming.ping">
 <a class="viewcode-back" href="../../../../bme.html#oxart.devices.bme_pulse_picker.timing.PulsePickerTiming.ping">[docs]</a>
-    <span class="k">def</span> <span class="nf">ping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return true (for ARTIQ controller heartbeat mechanism).&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_update_pulses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_pulses</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delay_gen</span><span class="p">:</span>
             <span class="k">return</span>
 
@@ -383,7 +383,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="o">.</span><span class="n">ensure_valid</span><span class="p">()</span>
 
-        <span class="k">def</span> <span class="nf">split_neg</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">split_neg</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
 
         <span class="n">s_a_off</span><span class="p">,</span> <span class="n">s_b_off</span> <span class="o">=</span> <span class="n">split_neg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_times</span><span class="o">.</span><span class="n">offset_off_us</span><span class="p">)</span>
