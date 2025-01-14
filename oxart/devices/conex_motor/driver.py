@@ -15,10 +15,10 @@ class Conex:
     """Driver for Newport CONEX motor controller."""
 
     def __init__(self, serial_addr, position_limit=None, auto_home=True):
-        self.port = serial.Serial(serial_addr,
-                                  baudrate=921600,
-                                  timeout=0.1,
-                                  write_timeout=0.1)
+        self.port = serial.serial_for_url(serial_addr,
+                                          baudrate=921600,
+                                          timeout=0.1,
+                                          write_timeout=0.1)
 
         if auto_home:
             s = self.get_status()
