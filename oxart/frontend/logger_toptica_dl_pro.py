@@ -75,6 +75,7 @@ def main():
             "amp-temp-act": "laser1:amp:tc:temp-act",
             "amp-seed-power": "laser1:amp:pd:seed:power",
             "amp-power": "laser1:amp:pd:amp:power",
+            "pzt-voltage": "laser1:dl:pc:voltage-act",
         }
         msg = {key: None for key in parameters.keys()}
         logger.info("Connecting to DLC Pro...")
