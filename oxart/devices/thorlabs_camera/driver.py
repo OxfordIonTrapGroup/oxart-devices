@@ -23,11 +23,11 @@ class Camera(Thorlabs.ThorlabsTLCamera):
     def get_serial_no(self):
         return self.serial
 
-    def get_device_info():
-        return repr(super().get_device_info())
+    def get_device_info_str(self):
+        return repr(self.get_device_info())
 
-    def get_sensor_info():
-        return repr(super().get_sensor_info())
+    def get_sensor_info_str(self):
+        return repr(self.get_sensor_info())
 
     def wait_for_frame(self, since='now', nframes=1, timeout=20.0, error_on_stopped=False):
        super().wait_for_frame(since=since, nframes=nframes, timeout=timeout, error_on_stopped=error_on_stopped)

@@ -65,7 +65,7 @@ thorlabs_k10cr1_controller = "oxart.frontend.thorlabs_k10cr1_controller:main"
 thorlabs_mdt69xb_controller = "oxart.frontend.thorlabs_mdt69xb_controller:main"
 thorlabs_mdt693a_controller = "oxart.frontend.thorlabs_mdt693a_controller:main"
 thorlabs_bpc303_controller = "oxart.frontend.thorlabs_bpc303_controller:main"
-thorlabs_camera = "oxart.frontend.thorlabs_camera_controller:main"
+thorlabs_camera_controller = "oxart.frontend.thorlabs_camera_controller:main"
 vaunix_signal_generator_controller = "oxart.frontend.vaunix_signal_generator_controller:main"
 
 [tool.poetry-dynamic-versioning]
