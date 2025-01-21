@@ -1,5 +1,5 @@
 """
-Most of functions are straight copied from the Thorlabs pylab library. Maybe this could just inherit from the Thorlabs camera?
+Most functions are inherited from the Thorlabs pylab library.
 """
 
 from pylablib.devices import Thorlabs
@@ -13,6 +13,7 @@ def list_serials():
 
 
 class Camera(Thorlabs.ThorlabsTLCamera):
+
     def __init__(self, sn=None):
         super().__init__(serial=sn)
 
@@ -31,9 +32,11 @@ class Camera(Thorlabs.ThorlabsTLCamera):
     def get_sensor_info_str(self):
         return repr(self.get_sensor_info())
 
-    def wait_for_frame(
-        self, since="now", nframes=1, timeout=20.0, error_on_stopped=False
-    ):
+    def wait_for_frame(self,
+                       since="now",
+                       nframes=1,
+                       timeout=20.0,
+                       error_on_stopped=False):
         super().wait_for_frame(
             since=since,
             nframes=nframes,
@@ -64,17 +67,24 @@ class Camera(Thorlabs.ThorlabsTLCamera):
 
     # ROI
     def set_roi(self, hstart=260, hend=800, vstart=0, vend=50):
-        """Warning! This seems to be inconsistent up to some pixels in the vertical axis.
-        Don't forget to check the roi limits with self.get_roi_limits(). The region of interest
-        should be larger than the min value and smaller than the max (the size of the detector).
-        Check with self.get_roi() to see the effective frame size.
+        """Warning! This seems to be inconsistent up to some pixels
+        in the vertical axis. Don't forget to check the roi limits
+        with self.get_roi_limits(). The region of interest
+        should be larger than the min value and smaller than the max
+        (the size of the detector). Check with self.get_roi() to see
+        the effective frame size.
         """
-        super().set_roi(
-            hstart=hstart, hend=hend, vstart=vstart, vend=vend, hbin=1, vbin=1
-        )
+        super().set_roi(hstart=hstart,
+                        hend=hend,
+                        vstart=vstart,
+                        vend=vend,
+                        hbin=1,
+                        vbin=1)
 
     def get_roi_lim(hbin=1, vbin=1):
-        """Override parent class to output a dictionary. [LV] I believe sipyco does not allow some object types passing through the server.
+        """Override parent class to output a dictionary.
+        [LV] I believe sipyco does not allow some object
+        types passing through the server.
 
         Args:
             hbin (int, optional): _description_. Defaults to 1.
@@ -104,3 +114,7 @@ class Camera(Thorlabs.ThorlabsTLCamera):
         xlim_max = limits["xlim"]["max"]
         ylim_max = limits["ylim"]["max"]
         self.set_roi(0, xlim_max, 0, ylim_max)
+
+    def ping(self):
+        """Needed to run inside ARTIQ control manager."""
+        return True
