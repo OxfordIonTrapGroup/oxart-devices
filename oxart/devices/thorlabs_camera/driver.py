@@ -20,17 +20,17 @@ class Camera(Thorlabs.ThorlabsTLCamera):
     def open(self):
         super().open()
         logger.warning("Camera connected")
-        logger.warning(self.get_device_info())
-        logger.warning(self.get_sensor_info())
+        logger.warning(self.get_device_info_str())
+        logger.warning(self.get_sensor_info_str())
 
     def get_serial_no(self):
         return self.serial
 
     def get_device_info_str(self):
-        return repr(self.get_device_info())
+        return repr(super().get_device_info())
 
     def get_sensor_info_str(self):
-        return repr(self.get_sensor_info())
+        return repr(super().get_sensor_info())
 
     def wait_for_frame(self,
                        since="now",
@@ -50,7 +50,7 @@ class Camera(Thorlabs.ThorlabsTLCamera):
 
     def disconnect(self):
         self.stop_acquisition()
-        super().close()
+        self.close()
 
     def set_exposure_ms(self, exp: float):
         """Set exposure in seconds"""
@@ -66,7 +66,7 @@ class Camera(Thorlabs.ThorlabsTLCamera):
         return super().get_gain_range()
 
     # ROI
-    def set_roi(self, hstart=260, hend=800, vstart=0, vend=50):
+    def set_roi(self, hstart=260, hend=800, vstart=0, vend=50, hbin=1, vbin=1):
         """Warning! This seems to be inconsistent up to some pixels
         in the vertical axis. Don't forget to check the roi limits
         with self.get_roi_limits(). The region of interest
@@ -78,10 +78,10 @@ class Camera(Thorlabs.ThorlabsTLCamera):
                         hend=hend,
                         vstart=vstart,
                         vend=vend,
-                        hbin=1,
-                        vbin=1)
+                        hbin=hbin,
+                        vbin=vbin)
 
-    def get_roi_lim(hbin=1, vbin=1):
+    def get_roi_limits_dict(self, hbin=1, vbin=1):
         """Override parent class to output a dictionary.
         [LV] I believe sipyco does not allow some object
         types passing through the server.
@@ -110,7 +110,7 @@ class Camera(Thorlabs.ThorlabsTLCamera):
         return limits
 
     def reset_roi_max(self):
-        limits = self.get_roi_lim()
+        limits = self.get_roi_limits_dict()
         xlim_max = limits["xlim"]["max"]
         ylim_max = limits["ylim"]["max"]
         self.set_roi(0, xlim_max, 0, ylim_max)
