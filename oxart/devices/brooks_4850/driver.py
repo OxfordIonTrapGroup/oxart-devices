@@ -165,6 +165,21 @@ class Brooks4850:
         else:
             raise RuntimeError("Error updating set point source")
 
+
+    def _valve_override(self, valve_mode=0):
+        """Selects mode of operation for valve.
+        0 = normal, 1 = valve closed, 2 = valve open"""
+        self._send_command(CMD_WRITE_VAR_CHAR, struct.pack(">BB", 30, valve_mode))
+        command, payload = self._read_response(1)
+
+        self._send_command(CMD_READ_VAR_CHAR, struct.pack("B", 30))
+        command, payload = self._read_response(3)
+
+        if struct.unpack("B", payload)[0] == valve_mode:
+            log.info("Set valve mode to " + str(valve_mode))
+        else:
+            raise RuntimeError("Error updating valve mode")
+
     def read_setpoint(self):
         """Read the current flow rate setpoint in sccm"""
         self._send_command(CMD_READ_VAR_INT16, struct.pack("B", 20))
@@ -186,29 +201,56 @@ class Brooks4850:
         self._read_response(1)
         return setpoint
 
+    def set_gas_type(self, gas_id):
+        """Change the gas type
+            For N2, gas_id = 13
+            For He, gas_id = 1"""
+        self._send_command(CMD_WRITE_VAR_CHAR, struct.pack(">BB", 6, gas_id))
+        self._read_response(1)
+
+        max_flow, gas_id, gas_density = f.read_gas_info()
+        return max_flow, gas_id, gas_density
+
 
 if __name__ == "__main__":
     log.basicConfig(level=log.INFO)
     f = Brooks4850("socket://10.255.6.178:9001")
 
-    t = f.read_temperature()
-    print("Temperature (C) = ", t)
+    # f.set_gas_type(1)
 
-    flow = f.read_flow()
-    print("Flow rate (sccm) = ", flow * 100.)
+    # t = f.read_temperature()
+    # print("Temperature (C) = ", t)
 
-    max_flow, gas_id, gas_density = f.read_gas_info()
-    print("max_flow = ", max_flow)
-    print("gas_id = ", gas_id)
-    print("gas_density = ", gas_density)
+    # f.set_setpoint(15000)
+    # setpoint = f.read_setpoint()
+    # print("setpoint = ", setpoint)
 
-    setpoint = f.read_setpoint()
-    print("setpoint = ", setpoint)
+    # max_flow, gas_id, gas_density = f.read_gas_info()
+    # print("max_flow = ", max_flow)
+    # print("gas_id = ", gas_id)
+    # print("gas_density = ", gas_density)
 
-    f.set_setpoint(15000)
-    setpoint = f.read_setpoint()
-    print("setpoint = ", setpoint)
 
-    print("ping:", f.ping())
-    f.close()
-    print("ping:", f.ping())
+# while True:
+#     flow = f.read_flow()
+#     real_flow = flow * max_flow/10000
+#     #print("Flow rate (sccm) = ", real_flow )
+#     print("Flow rate (l/min) = ", real_flow/1000.)
+#     time.sleep(2)
+
+
+    # max_flow, gas_id, gas_density = f.read_gas_info()
+    # print("max_flow = ", max_flow)
+    # print("gas_id = ", gas_id)
+    # print("gas_density = ", gas_density)
+
+    # setpoint = f.read_setpoint()
+    # print("setpoint = ", setpoint)
+
+    # f.set_setpoint(15000)
+    # setpoint = f.read_setpoint()
+    # print("setpoint = ", setpoint)
+
+    # print("ping:", f.ping())
+    # f.close()
+    # print("ping:", f.ping())

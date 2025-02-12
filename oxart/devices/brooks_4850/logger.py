@@ -6,15 +6,16 @@ import influxdb
 
 import sipyco.common_args as sca
 from sipyco.pc_rpc import Client
+from comet.devices.utils import get_device_db
 
 logger = logging.getLogger(__name__)
 
 
 def get_argparser():
     parser = argparse.ArgumentParser(
-        description="Cryogenics logger",
+        description="Flow meter logger",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-p",
+    parser.add_argument("-pt",
                         "--poll-time",
                         help="time between measurements (s)",
                         type=int,

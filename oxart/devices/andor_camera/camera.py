@@ -44,10 +44,11 @@ class CameraSetup(EnvExperiment):
                                                         em_gain=False,
                                                         adc_bit_depth=16)
         self.camera.set_vertical_shift_speed(3.3)
+        # self.camera.set_em_gain_mode(1)
         self.camera.set_em_gain(self.em_gain)
 
         if self.run_acq:
-            self.camera.start_acquisition()
+            self.camera.start_acquisition(False)
 
     def issue_applets(self):
         ddb = self.get_device_db()
