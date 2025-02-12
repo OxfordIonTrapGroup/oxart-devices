@@ -3,6 +3,7 @@ from setuptools import setup, find_packages
 scripts = [
     "aqctl_andor_emccd=oxart.frontend.aqctl_andor_emccd:main",
     "aqctl_agilent_6671a=oxart.frontend.aqctl_agilent_6671a:main",
+    "aqctl_agilent_33220a=oxart.frontend.aqctl_agilent_33220a:main",
     "aqctl_booster=oxart.frontend.aqctl_booster:main",
     "aqctl_brooks_4850=oxart.frontend.aqctl_brooks_4850:main",
     "aqctl_current_stabilizer=oxart.frontend.aqctl_current_stabilizer:main",
@@ -16,6 +17,7 @@ scripts = [
     "aqctl_thorlabs_pm100a=oxart.frontend.aqctl_thorlabs_pm100a:main",
     "aqctl_v3500a=oxart.frontend.aqctl_v3500a:main",
     "aqctl_thermostat=oxart.frontend.aqctl_thermostat:main",
+    "aqctl_thermostat_legacy=oxart.frontend.aqctl_thermostat_legacy:main",
     "arduino_dac_controller=oxart.frontend.arduino_dac_controller:main",
     "bb_shutter_controller=oxart.frontend.bb_shutter_controller:main",
     "bme_pulse_picker_timing_controller=oxart.frontend.bme_pulse_picker_timing_controller:main",  # noqa

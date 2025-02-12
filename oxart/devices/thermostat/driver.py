@@ -4,16 +4,77 @@ https://git.m-labs.hk/M-Labs/thermostat/src/branch/master/pytec/pytec/client.py
 
 import socket
 import json
+import logging
+import asyncio
 
 
 class CommandError(Exception):
     pass
 
 
+class _ReportMode:
+    """Context manager for the report mode of Thermostat
+
+    At entering the context manager, thermostat's report mode is enabled. To receive the
+    incoming reports, use the asynchronous generator `self.receive_continuously()`. At
+    exiting the context manager, the message buffer is cleared automatically to ensure
+    subsequent commands receive their corresponding response.
+
+    Example usage:
+    ```python
+    with report_mode:
+        async for report in report_mode.receive_continuously():
+            print(report)
+    ```
+    """
+
+    def __init__(self, dev):
+        self._dev = dev
+
+    def __enter__(self):
+        self._dev._command("report mode", "on")
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self._dev._command("report mode", "off")
+        # FLush out any reports that may still be in the buffer.
+        surplus = 0
+        while True:
+            msg = self._dev.get_postfilter()[0]
+            if msg is None or "rate" not in msg:
+                surplus += 1
+            else:
+                break
+        for i in range(surplus):
+            self._dev._read_line()
+
+    async def receive_continuously(self):
+        while True:
+            line = self._dev._read_line()
+            if not line:
+                break
+            try:
+                yield json.loads(line)
+            except json.decoder.JSONDecodeError:
+                pass
+            await asyncio.sleep(0)
+
+
 class Thermostat:
+
     def __init__(self, host, port=23, timeout=10):
         self._socket = socket.create_connection((host, port), timeout)
         self._lines = [""]
+        self._check_zero_limits()
+        self.report_mode = _ReportMode(self)
+
+    def _check_zero_limits(self):
+        pwm_report = self.get_pwm()
+        for pwm_channel in pwm_report:
+            for limit in ["max_i_neg", "max_i_pos", "max_v"]:
+                if pwm_channel[limit]["value"] == 0.0:
+                    logging.warning("`{}` limit is set to zero on channel {}".format(
+                        limit, pwm_channel["channel"]))
 
     def _read_line(self):
         # read more lines
@@ -29,7 +90,7 @@ class Thermostat:
         return line
 
     def _command(self, *command):
-        self._socket.sendall((" ".join(command) + "\n").encode('utf-8'))
+        self._socket.sendall((" ".join(command).strip() + "\n").encode('utf-8'))
 
         line = self._read_line()
         response = json.loads(line)
@@ -80,22 +141,16 @@ class Thermostat:
                   'ki': 0.02,
                   'kd': 0.0,
                   'output_min': 0.0,
-                  'output_max': 3.0,
-                  'integral_min': -100.0,
-                  'integral_max': 100.0},
-              'target': 37.0,
-              'integral': 38.41138597026372},
+                  'output_max': 3.0},
+              'target': 37.0},
              {'channel': 1,
               'parameters': {
                   'kp': 10.0,
                   'ki': 0.02,
                   'kd': 0.0,
                   'output_min': 0.0,
-                  'output_max': 3.0,
-                  'integral_min': -100.0,
-                  'integral_max': 100.0},
-              'target': 36.5,
-              'integral': nan}]
+                  'output_max': 3.0},
+              'target': 36.5}]
         """
         return self._get_conf("pid")
 
@@ -120,43 +175,8 @@ class Thermostat:
     def report(self):
         """Retrieve current status
 
-        Example::
-              [{'channel': 0,
-              'time': 76332.548,
-              'interval': 0.12,
-              'adc': 0.7265734615241562,
-              'sens': 8025.597054833033,
-              'temperature': 29.999977197542364,
-              'pid_engaged': True,
-              'i_set': 0.15560243296810894,
-              'vref': 1.5, 'dac_value': 1.5768012164840546,
-              'dac_feedback': 1.573,
-              'i_tec': 1.567,
-              'tec_i': 0.20000000000000018,
-              'tec_u_meas': 0.0680000000000005,
-              'pid_output': 0.14770870320992324},
-             {'channel': 0,
-              'time': 76332.548,
-              'interval': 0.12,
-              'adc': 0.7265734615241562,
-              'sens': 8025.597054833033,
-              'temperature': 29.999977197542364,
-              'pid_engaged': True,
-              'i_set': 0.15560243296810894,
-              'vref': 1.5, 'dac_value': 1.5768012164840546,
-              'dac_feedback': 1.573,
-              'i_tec': 1.567,
-              'tec_i': 0.20000000000000018,
-              'tec_u_meas': 0.0680000000000005,
-              'pid_output': 0.14770870320992324}]
-        """
-        return self._get_conf("report")
-
-    def report_mode(self):
-        """Start reporting measurement values
-
         Example of yielded data::
-            {'channel': 0,
+            [{'channel': 0,
              'time': 2302524,
              'adc': 0.6199188965423515,
              'sens': 6138.519310282602,
@@ -169,18 +189,11 @@ class Thermostat:
              'i_tec': 2.331,
              'tec_i': 2.0925,
              'tec_u_meas': 2.5340000000000003,
-             'pid_output': 2.067581958092247}
+             'pid_output': 2.067581958092247},
+            ...
+            ]
         """
-        self._command("report mode", "on")
-
-        while True:
-            line = self._read_line()
-            if not line:
-                break
-            try:
-                yield json.loads(line)
-            except json.decoder.JSONDecodeError:
-                pass
+        return self._get_conf("report")
 
     def set_param(self, topic, channel, field="", value=""):
         """Set configuration parameters
