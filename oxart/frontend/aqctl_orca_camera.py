@@ -22,7 +22,11 @@ def get_argparser():
     parser.add_argument("--speed",
                         default=3,
                         type=int,
-                        help="integer value - (0: QUIET, 1: STANDARD, 2: FAST)")
+                        help="integer value - (1: QUIET, 2: STANDARD, 3: FAST)")
+    parser.add_argument("--exposure_time",
+                        default=0.1,
+                        type=float,
+                        help="default exposure time in seconds")
     return parser
 
 
@@ -47,6 +51,7 @@ def main():
     dev.open(camera_index=0, framebuffer_len=args.buffer_size)
     dev.set_subarray(*roi)
     dev.set_readout_speed(args.speed)
+    dev.set_exposure_time(args.exposure_time)
     dev.start_capture()
 
     if args.broadcast_images:
