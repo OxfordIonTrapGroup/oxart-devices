@@ -33,8 +33,6 @@ def main():
         dev.close()
     else:
         dev.close()
-    finally:
-        dev.save_setpoints()
 
 
 if __name__ == "__main__":

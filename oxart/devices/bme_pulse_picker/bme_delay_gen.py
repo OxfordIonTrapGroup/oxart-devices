@@ -108,6 +108,7 @@ class Driver:
     destruction (although that would be easily fixable), so creating many objects
     would eventually deplete the process handle pool.
     """
+
     def __init__(self):
         try:
             lib = cdll.DelayGenerator

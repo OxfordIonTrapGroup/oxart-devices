@@ -3,9 +3,18 @@ from oxart.devices.streams import get_stream
 
 class Synth:
     """ Generic driver for SCPI-compliant frequency synthesisers """
+
     def __init__(self, device):
         self.stream = get_stream(device)
         assert self.ping()
+
+    def write(self, cmd):
+        """ Write a string command. """
+        self.stream.write(cmd.encode())
+
+    def readline(self):
+        """ Read a line from the device. """
+        return self.stream.readline().decode()
 
     def identify(self):
         """ Return a device ID string. """

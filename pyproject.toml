@@ -1,0 +1,85 @@
+[tool.poetry]
+name = "oxart-devices"
+version = "0.2"
+description = "ARTIQ/SiPyCo-compatible drivers for laboratory equipment"
+authors = ["Oxford Ion Trap Quantum Computing Group"]
+readme = "README.rst"
+packages = [
+    { include = "oxart" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+sipyco = {git = "https://github.com/m-labs/sipyco.git"}
+oitg = { git = "https://github.com/oxfordiontrapgroup/oitg.git" }
+numpy = "^1.24.2"
+pyserial = "^3.5"
+appdirs = "^1.4.4"
+pyzmq = ">=25.1.2"
+influxdb = "^5.3.1"
+
+[tool.poetry.group.dev.dependencies]
+poethepoet = "^0.22.1"
+toml = "^0.10.2"
+
+# Pin exact versions of linters to avoid inconsistencies between CI environments.
+yapf = "0.40.2"
+flake8 = "6.1.0"
+
+# To generate documentation.
+sphinx = "^7.2.6"
+sphinx-rtd-theme = "^1.3.0"
+
+[tool.poetry.scripts]
+aqctl_andor_emccd = "oxart.frontend.aqctl_andor_emccd:main"
+aqctl_agilent_6671a = "oxart.frontend.aqctl_agilent_6671a:main"
+aqctl_arroyo = "oxart.frontend.aqctl_arroyo:main"
+aqctl_booster = "oxart.frontend.aqctl_booster:main"
+aqctl_brooks_4850 = "oxart.frontend.aqctl_brooks_4850:main"
+aqctl_current_stabilizer = "oxart.frontend.aqctl_current_stabilizer:main"
+aqctl_lakeshore_335 = "oxart.frontend.aqctl_lakeshore_335:main"
+aqctl_orca_camera = "oxart.frontend.aqctl_orca_camera:main"
+aqctl_scpi_dmm = "oxart.frontend.aqctl_scpi_dmm:main"
+aqctl_scpi_synth = "oxart.frontend.aqctl_scpi_synth:main"
+aqctl_surf_solver = "oxart.frontend.aqctl_surf_solver:main"
+aqctl_thorlabs_tcube = "oxart.frontend.aqctl_thorlabs_tcube:main"
+aqctl_tti_ql355 = "oxart.frontend.aqctl_tti_ql355:main"
+aqctl_thorlabs_pm100a = "oxart.frontend.aqctl_thorlabs_pm100a:main"
+aqctl_v3500a = "oxart.frontend.aqctl_v3500a:main"
+aqctl_thermostat = "oxart.frontend.aqctl_thermostat:main"
+arduino_dac_controller = "oxart.frontend.arduino_dac_controller:main"
+bb_shutter_controller = "oxart.frontend.bb_shutter_controller:main"
+bme_pulse_picker_timing_controller = "oxart.frontend.bme_pulse_picker_timing_controller:main"
+camera_viewer = "oxart.frontend.camera_viewer:main"
+conex_motor_controller = "oxart.frontend.conex_motor_controller:main"
+hoa2_dac_controller = "oxart.frontend.hoa2_dac_controller:main"
+holzworth_synth_controller = "oxart.frontend.holzworth_synth_controller:main"
+llama_scpi_dmm = "oxart.frontend.llama_scpi_dmm:main"
+logger_solstis = "oxart.frontend.logger_solstis:main"
+log_kasli_health = "oxart.frontend.log_kasli_health:main"
+ophir_controller = "oxart.frontend.ophir_controller:main"
+picomotor_controller = "oxart.frontend.picomotor_controller:main"
+scpi_awg_controller = "oxart.frontend.scpi_awg_controller:main"
+thorlabs_ddr25_controller = "oxart.frontend.thorlabs_ddr25_controller:main"
+thorlabs_ddr05_controller = "oxart.frontend.thorlabs_ddr05_controller:main"
+thorlabs_k10cr1_controller = "oxart.frontend.thorlabs_k10cr1_controller:main"
+thorlabs_mdt69xb_controller = "oxart.frontend.thorlabs_mdt69xb_controller:main"
+thorlabs_mdt693a_controller = "oxart.frontend.thorlabs_mdt693a_controller:main"
+thorlabs_bpc303_controller = "oxart.frontend.thorlabs_bpc303_controller:main"
+thorlabs_camera_controller = "oxart.frontend.thorlabs_camera_controller:main"
+vaunix_signal_generator_controller = "oxart.frontend.vaunix_signal_generator_controller:main"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poe.tasks]
+fmt = "yapf -i -r oxart"
+fmt-test = "yapf -d -r oxart"
+lint = "flake8 oxart"
+test = "python -m unittest discover -v test"
