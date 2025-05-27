@@ -7,18 +7,22 @@ import time
 
 logger = logging.getLogger(__name__)
 
-StateType = Enum("StateType",
-                 ["NotReferenced", "Homing", "Moving", "Ready", "Disable", "Configuartion", "Other"])
+StateType = Enum(
+    "StateType",
+    ["NotReferenced", "Homing", "Moving", "Ready", "Disable", "Configuartion", "Other"])
 
 #: For now, we only use channel 1 of the controller (motor controllers are
 #: single-channel anyway).
 CHANNEL_IDX = 1
 
+
 class ConexError(RuntimeError):
+
     def __init__(self, code, message):
         self.code = code
-        self.message= message
+        self.message = message
         super().__init__(f"Hardware reported error: {message} (code: {code})")
+
 
 class Conex:
     """Driver for Newport CONEX motor controller."""
@@ -39,7 +43,7 @@ class Conex:
             s = self.get_status()
             if s != StateType.Ready:
                 raise Exception("Controller in unexpected state {}".format(s))
-        
+
         # Can't write limits when not referenced, so store for later if stage is not homed
         # yet. This is slightly unsatisfactory, as we duplicate hardware state, but we want
         # to make it as hard as possible for the user accidentally to end up putting the stage
@@ -52,16 +56,18 @@ class Conex:
             self._cached_upper_limit = 12
         else:
             self._cached_upper_limit = position_limit
-        
+
         s = self.get_status()
         if s == StateType.Configuartion:
-            logger.warning("Controller was left behind in configuration mode; leaving it.")
+            logger.warning(
+                "Controller was left behind in configuration mode; leaving it.")
             self._execute_checked_command("PW0", delay_before_status_read=10.0)
 
         s = self.get_status()
         if s == StateType.NotReferenced:
-            logger.warning("Skipping application of limits, as stage not referenced (homed); " +
-                           "will be applied once home[_to_current]() is called.")
+            logger.warning(
+                "Skipping application of limits, as stage not referenced (homed); " +
+                "will be applied once home[_to_current]() is called.")
         elif s == StateType.Ready:
             self.set_upper_limit(self._cached_upper_limit)
         else:
@@ -97,7 +103,7 @@ class Conex:
             s = s[:-2]
         logger.info("Read hardware response: '%s'", s)
         return s
-    
+
     def _execute_checked_command(self, command, delay_before_status_read=None):
         """Execute the given response-less command, and check the hardware error 
         status afterwards (raising a ConexError if not nominal).
@@ -106,7 +112,7 @@ class Conex:
         if delay_before_status_read is not None:
             time.sleep(delay_before_status_read)
         self.check_error()
-    
+
     def _execute_config_mode_command(self, command):
         """Switch to configuration mode (PW1), execute the given response-less
         command, switch back to regular mode (PW0). Hardware errors are checked
@@ -169,7 +175,9 @@ class Conex:
             try:
                 ht = self._execute_query("HT", "?")
                 if ht != type:
-                    logger.warning(f"Changing home type (in persistent storage) from {ht} to {type}")
+                    logger.warning(
+                        f"Changing home type (in persistent storage) from {ht} to {type}"
+                    )
                     self._execute_config_mode_command(f"HT{type}")
                 self._execute_checked_command("OR")
             except ConexError as e:
@@ -224,7 +232,7 @@ class Conex:
             return float(pos_str)
         except ValueError:
             raise ValueError("Could not interpret responses '{}'".format(pos_str))
-        
+
     def get_position_setpoint(self):
         """Return the position setpoint.
 
@@ -264,7 +272,9 @@ class Conex:
         # spurious failures.
         curr_pos = self.get_position_setpoint()
         if limit > curr_pos:
-            raise ValueError(f"Requested lower limit {limit} mm outside range for current position {curr_pos} mm")
+            raise ValueError(
+                f"Requested lower limit {limit} mm outside range for current position {curr_pos} mm"
+            )
         cmd = f"SL{limit}"
         if persist:
             # run in config mode to write to flash
