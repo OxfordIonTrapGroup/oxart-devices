@@ -218,6 +218,15 @@ class Calculations:
             case None:
                 safety_parameters = []
             case 'rectangle':
+                """the safety_data should be a list of length 15 with contents in this order:
+                    coordinates of origin, direction of rectangle's x-axis, direction of rectangle's y-axis,
+                    safety bounds in x-direction, safety bounds in y-direction, safety bounds in z-direction.
+                    (all points, directions and distances measured in hexapod's native coordinate system)
+                    
+                    as such the list should contain the numbers:
+                    [origin_x, origin_y, origin_z, x_axis_x, x_axis_y, x_axis_z, y_axis_x, y_axis_y, y_axis_z,
+                     lower_bound_x, upper_bound_x, lower_bound_y, upper_bound_y, lower_bound_z, upper_bound_z]
+                """
                 # x_axis is used as is. only component of y_axis orthogonal to x_axis is used
                 # read the origin position
                 origin = np.array(safety_data[0:3], dtype=float)
@@ -237,6 +246,15 @@ class Calculations:
                 # write safety parameters
                 safety_parameters = [origin, x_axis, y_axis, z_axis, extent_x, extent_y, extent_z]
             case 'cylinder':
+                """the safety_data should be a list of length 9 with contents in this order:
+                    coordinates of origin, direction of cylinder symmetry axis,
+                    safety bounds from origin along axis, safety radius of cylinder.
+                    (all points, directions and distances measured in hexapod's native coordinate system)
+                    
+                    as such the list should contain the numbers:
+                    [origin_x, origin_y, origin_z, axis_x, axis_y, axis_z,
+                     lower_bound_axis, upper_bound_axis, radius]
+                """
                 # read the origin position
                 origin = np.array(safety_data[0:3], dtype=float)
                 # read and normalise the cylinder axis
@@ -266,6 +284,7 @@ class Calculations:
                 raise ValueError('Safety case not recognised.')
 
     def check_safety_rectangle(self, position: np.ndarray, safety_parameters: list):
+        """checks if a point is in safety for the rectangle safety case"""
         origin, x_axis, y_axis, z_axis, extent_x, extent_y, extent_z = safety_parameters
         displacement = position - origin
         safe_x = (extent_x[0] < np.dot(displacement, x_axis) < extent_x[1])
@@ -273,6 +292,7 @@ class Calculations:
         safe_z = (extent_z[0] < np.dot(displacement, z_axis) < extent_z[1])
         return (safe_x and safe_y and safe_z)
     def check_safety_cylinder(self, position: np.ndarray, safety_parameters):
+        """checks if a point is in safety for the cylinder safety case"""
         origin, axis, extent_axis, radius = safety_parameters
         displacement = position - origin
         displacement_axis = np.dot(displacement, axis)
