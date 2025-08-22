@@ -109,6 +109,9 @@ class MGMSG(Enum):
     PZ_SET_TPZ_IOSETTINGS = 0x07D4
     PZ_REQ_TPZ_IOSETTINGS = 0x07D5
     PZ_GET_TPZ_IOSETTINGS = 0x07D6
+    KPC_SET_IOSETTINGS = 0x08F3
+    KPC_REQ_IOSETTINGS = 0x08F4
+    KPC_GET_IOSETTINGS = 0x08F5
 
 
 class Direction:
@@ -1130,6 +1133,76 @@ class Tdc(_Tcube):
         await self.send(Message(MGMSG.MOT_RESUME_ENDOFMOVEMSGS))
 
 
+class Kpc(Tpz):
+    """KPC001 K-Cube Piezo Controller driver.
+
+    Inherits from Tpz but overrides methods that are specific to TPZ devices
+    and not supported by KPC devices.
+    """
+
+    async def set_tpz_io_settings(self, voltage_limit, hub_analog_input):
+        raise NotImplementedError(
+            "set_tpz_io_settings not supported on KPC devices")
+
+    async def get_tpz_io_settings(self):
+        raise NotImplementedError(
+            "get_tpz_io_settings not supported on KPC devices")
+
+    async def get_kpc_io_settings(self):
+        """
+        Read I/O settings from the KPC101.
+
+        :return: tuple (voltage_limit, hud_analog_input)
+        """
+        get_msg = await self.send_request(MGMSG.KPC_REQ_IOSETTINGS,
+                                          [MGMSG.KPC_GET_IOSETTINGS], 1)
+        voltage_limit = st.unpack("<H", get_msg.data[2:4])[0]
+        hub_analog_input = st.unpack("<H", get_msg.data[4:6])[0]
+        hw_voltage_range = st.unpack(
+            "<H", get_msg.data[8:10])[0]  # change for KPC101
+
+        self.voltage_limit = voltage_limit
+        self.hw_voltage_range = hw_voltage_range
+        return voltage_limit, hw_voltage_range, hub_analog_input
+
+    async def set_tpz_display_settings(self, intensity):
+        raise NotImplementedError(
+            "set_tpz_display_settings not supported on KPC devices")
+
+    async def get_tpz_display_settings(self):
+        raise NotImplementedError(
+            "get_tpz_display_settings not supported on KPC devices")
+
+    async def set_output_volts(self, voltage):
+        """Set output voltage applied to the piezo actuator.
+        This command is only applicable in Open Loop mode. If called when in
+        Closed Loop mode it is ignored.
+        :param voltage: The output voltage applied to the piezo when operating
+            in open loop mode. The voltage value must be in range
+            [0; voltage_limit]. Voltage_limit being set by the
+            :py:meth:`set_tpz_io_settings()<Tpz.set_tpz_io_settings>`
+            method between the three values 75 V, 100 V and 150 V.
+        """
+        if voltage < 0 or voltage > self.voltage_limit:
+            raise ValueError("Voltage must be in range [0;{}]".format(
+                self.voltage_limit))
+        volt = (int(voltage * 32767 / self.hw_voltage_range) // 2
+                )  # Seems to be inconsistency in the API documentation
+        payload = st.pack("<HH", 1, volt)
+        await self.send(Message(MGMSG.PZ_SET_OUTPUTVOLTS, data=payload))
+
+    async def get_output_volts(self):
+        """Get the output voltage applied to the piezo actuator.
+        :return: The output voltage.
+        :rtype: float
+        """
+        get_msg = await self.send_request(MGMSG.PZ_REQ_OUTPUTVOLTS,
+                                          [MGMSG.PZ_GET_OUTPUTVOLTS], 1)
+        return (st.unpack("<H", get_msg.data[2:])[0] * self.voltage_limit /
+                32767 * 2
+                )  # seems to be inconsistency in the API documentation
+
+
 class TpzSim:
 
     def __init__(self):
@@ -1375,3 +1448,14 @@ class TdcSim:
 
     def resume_end_of_move_messages(self):
         pass
+
+
+class KpcSim(TpzSim):
+    """KPC001 K-Cube Piezo Controller driver simulation.
+
+    Inherits from TpzSim but overrides methods that are specific to KPC devices
+    and not supported by Tpz devices.
+    """
+
+    def get_kpc_io_settings(self):
+        return self.voltage_limit, self.hub_analog_input, 1
