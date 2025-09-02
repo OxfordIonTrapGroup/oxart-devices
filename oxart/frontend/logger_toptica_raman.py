@@ -7,7 +7,6 @@ from asyncio import wait_for
 from influxdb import InfluxDBClient
 from toptica.lasersdk.asyncio.dlcpro.v2_0_1 import Client, NetworkConnection
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -80,9 +79,11 @@ def main():
                     for key in parameters.keys():
                         try:
                             msg[key] = await wait_for(dlc.get(parameters[key], float),
-                                                    timeout=args.timeout)
+                                                      timeout=args.timeout)
                         except Exception as exception:
-                            logger.error(f"Error: Is DLC pro connected to network?: \n{exception}")
+                            logger.error(
+                                f"Error: Is DLC pro connected to network?: \n{exception}"
+                            )
                             is_connected = False
                         else:
                             write_point(msg)
