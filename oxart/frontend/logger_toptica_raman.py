@@ -82,7 +82,7 @@ def main():
                                                       timeout=args.timeout)
                         except Exception as exception:
                             logger.error(
-                                f"Error: Is DLC pro connected to network?: \n{exception}"
+                                f"Error: Is DLC pro connected to network?:\n{exception}"
                             )
                             is_connected = False
                         else:
