@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import argparse
 import asyncio
-from asyncio import wait_for
 import time
+import logging
+from asyncio import wait_for
 from influxdb import InfluxDBClient
-
 from toptica.lasersdk.asyncio.dlcpro.v2_0_1 import Client, NetworkConnection
+
+logger = logging.getLogger(__name__)
 
 
 def get_argparser():
@@ -66,16 +68,27 @@ def main():
             "shg-power": "laser1:nlo:pd:shg:power"
         }
         msg = {key: None for key in parameters.keys()}
-        async with Client(NetworkConnection(args.server)) as dlc:
-            while True:
-                time.sleep(args.poll)
-                for key in parameters.keys():
-                    try:
-                        msg[key] = await wait_for(dlc.get(parameters[key], float),
-                                                  timeout=args.timeout)
-                    except Exception:
-                        print('Error: Is DLC pro connected to network?')
-                write_point(msg)
+        logger.info("Connecting to DLC Pro...")
+        is_connected = False
+        while True:
+            async with Client(NetworkConnection(args.server)) as dlc:
+                logger.info("Established connection to DLC Pro")
+                is_connected = True
+                while is_connected:
+                    time.sleep(args.poll)
+                    for key in parameters.keys():
+                        try:
+                            msg[key] = await wait_for(dlc.get(parameters[key], float),
+                                                      timeout=args.timeout)
+                        except Exception as exception:
+                            logger.error(
+                                f"Error: Is DLC pro connected to network?:\n{exception}"
+                            )
+                            is_connected = False
+                        else:
+                            write_point(msg)
+
+            logger.info("Connection to DLC Pro lost. Trying to reconnect...")
 
     loop.run_until_complete(run())
 

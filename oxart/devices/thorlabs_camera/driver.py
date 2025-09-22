@@ -1,7 +1,3 @@
-"""
-Most functions are inherited from the Thorlabs pylab library.
-"""
-
 from pylablib.devices import Thorlabs
 import logging
 
@@ -13,6 +9,10 @@ def list_serials():
 
 
 class Camera(Thorlabs.ThorlabsTLCamera):
+    """Driver for Thorlabs cameras based on pylablib ThorlabsTLCamera class.
+
+    See parent class documentation for more details on available methods.
+    """
 
     def __init__(self, sn=None):
         super().__init__(serial=sn)
@@ -44,17 +44,28 @@ class Camera(Thorlabs.ThorlabsTLCamera):
             error_on_stopped=error_on_stopped,
         )
 
-    def is_opened(self):
-        """Verify the connection of the camera"""
-        return super().is_opened()
+    def get_frame(self, timeout=5.0):
+        if not self.acquisition_in_progress():
+            logger.warning("Acquisition not running, starting it.")
+            self.start_acquisition()
+        self.wait_for_frame(timeout=timeout)
+        return super().read_newest_image()
+
+    def get_multiple_frames(self, nframes=5, timeout=5.0):
+        if not self.acquisition_in_progress():
+            logger.warning("Acquisition not running, starting it.")
+            self.start_acquisition()
+
+        self.wait_for_frame(nframes=nframes + 1, timeout=timeout)
+        return super().read_multiple_images(rng=(-nframes, -1))
 
     def disconnect(self):
-        self.stop_acquisition()
+        if self.acquisition_in_progress():
+            self.stop_acquisition()
         self.close()
 
-    def set_exposure_ms(self, exp: float):
-        """Set exposure in seconds"""
-        super().set_exposure(exp / 1000)
+    def set_exposure_ms(self, exp):
+        super().set_exposure(exp / 1000.0)
 
     def set_gain_dB(self, gain_dB, truncate=False):
         super().set_gain(gain_dB, truncate)
@@ -65,7 +76,6 @@ class Camera(Thorlabs.ThorlabsTLCamera):
     def get_gain_range_dB(self):
         return super().get_gain_range()
 
-    # ROI
     def set_roi(self, hstart=260, hend=800, vstart=0, vend=50, hbin=1, vbin=1):
         """Warning! This seems to be inconsistent up to some pixels
         in the vertical axis. Don't forget to check the roi limits
@@ -85,10 +95,6 @@ class Camera(Thorlabs.ThorlabsTLCamera):
         """Override parent class to output a dictionary.
         [LV] I believe sipyco does not allow some object
         types passing through the server.
-
-        Args:
-            hbin (int, optional): _description_. Defaults to 1.
-            vbin (int, optional): _description_. Defaults to 1.
         """
         xlim, ylim = super().get_roi_limits(hbin, vbin)
         limits = {
