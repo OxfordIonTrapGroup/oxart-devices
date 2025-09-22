@@ -12,7 +12,7 @@ packages = [
 python = "^3.10"
 sipyco = {git = "https://github.com/m-labs/sipyco.git"}
 oitg = { git = "https://github.com/oxfordiontrapgroup/oitg.git" }
-numpy = "^1.24.2"
+numpy = ">=1.24.2"
 pyserial = "^3.5"
 appdirs = "^1.4.4"
 pyzmq = ">=25.1.2"
@@ -55,6 +55,7 @@ camera_viewer = "oxart.frontend.camera_viewer:main"
 conex_motor_controller = "oxart.frontend.conex_motor_controller:main"
 hoa2_dac_controller = "oxart.frontend.hoa2_dac_controller:main"
 holzworth_synth_controller = "oxart.frontend.holzworth_synth_controller:main"
+llama_scpi_dmm = "oxart.frontend.llama_scpi_dmm:main"
 logger_solstis = "oxart.frontend.logger_solstis:main"
 log_kasli_health = "oxart.frontend.log_kasli_health:main"
 ophir_controller = "oxart.frontend.ophir_controller:main"
@@ -66,6 +67,7 @@ thorlabs_k10cr1_controller = "oxart.frontend.thorlabs_k10cr1_controller:main"
 thorlabs_mdt69xb_controller = "oxart.frontend.thorlabs_mdt69xb_controller:main"
 thorlabs_mdt693a_controller = "oxart.frontend.thorlabs_mdt693a_controller:main"
 thorlabs_bpc303_controller = "oxart.frontend.thorlabs_bpc303_controller:main"
+thorlabs_camera_controller = "oxart.frontend.thorlabs_camera_controller:main"
 vaunix_signal_generator_controller = "oxart.frontend.vaunix_signal_generator_controller:main"
 
 [tool.poetry-dynamic-versioning]
