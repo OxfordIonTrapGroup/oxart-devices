@@ -1,3 +1,5 @@
+#### Programming manual: https://www.thorlabs.com/Software/Motion%20Control/APT_Communications_Protocol.pdf
+
 from enum import Enum
 import logging
 import struct as st
@@ -109,6 +111,7 @@ class MGMSG(Enum):
     PZ_SET_TPZ_IOSETTINGS = 0x07D4
     PZ_REQ_TPZ_IOSETTINGS = 0x07D5
     PZ_GET_TPZ_IOSETTINGS = 0x07D6
+    KPC_SET_IOSETTINGS = 0x08F3
 
 
 class Direction:
@@ -1128,6 +1131,56 @@ class Tdc(_Tcube):
         MGMSG.HW_RICHRESPONSE
         """
         await self.send(Message(MGMSG.MOT_RESUME_ENDOFMOVEMSGS))
+
+    async def set_output_volts(self, voltage):
+        """Set the output voltage.
+        :param voltage: The output voltage in Volts. The value must be in the
+            range -voltage_limit to +voltage_limit, where voltage_limit is
+            specified by the :py:meth:`set_tpz_io_settings()
+            <Tpz.set_tpz_io_settings>`
+            method.
+        """
+        volt = int(voltage * 32767 / 150.)
+        payload = st.pack("<HH", 1, volt)
+        await self.send(Message(MGMSG.PZ_SET_OUTPUTVOLTS, data=payload))
+
+    async def set_tpc_io_settings(self, voltage_limit, hub_analog_input):
+        """Set various I/O settings."
+        :param voltage_limit: The piezo actuator connected to the T-Cube has a
+            specific maximum operating voltage. This parameter sets the maximum
+            output to the value among the following ones:
+            75 V limit.
+            100 V limit.
+            150 V limit.
+        :param hub_analog_input: When the T-Cube piezo driver unit is used in
+            conjunction with the T-Cube Strain Gauge Reader (TSG001) on the
+            T-Cube Controller Hub (TCH001), a feedback signal can be passed
+            from the Strain Gauge Reader to the Piezo unit.
+            High precision closed loop operation is then possible using the
+            complete range of feedback-equipped piezo actuators.
+            This parameter is routed to the Piezo unit as follows:
+            0x01: the feedback signals run through all T-Cube bays.
+            0x02: the feedback signals run between adjacent pairs of T-Cube
+            bays (i.e. 1&2, 3&4, 5&6). This setting is useful when several
+            pairs of Strain Gauge/Piezo Driver cubes are being used on the same
+            hub.
+            0x03: the feedback signals run through the read panel SMA
+            connectors.
+        """
+        self.voltage_limit = voltage_limit
+
+        if self.voltage_limit == 75:
+            voltage_limit = 1
+        elif self.voltage_limit == 100:
+            voltage_limit = 2
+        elif self.voltage_limit == 150:
+            voltage_limit = 3
+        else:
+            raise ValueError("voltage_limit must be 75 V, 100 V or 150 V")
+
+        payload = st.pack("<HHHHH", 1, self.voltage_limit, hub_analog_input, 0, 150)
+        await self.send(Message(MGMSG.KPC_SET_IOSETTINGS, data=payload))
+
 
 
 class TpzSim:
