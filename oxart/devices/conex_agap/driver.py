@@ -12,7 +12,6 @@ StateType = Enum("StateType", [
 
 class ConexMirror:
     """Driver for Newport CONEX motor controller."""
-
     def __init__(self, id, serial_addr):
         self.port = serial.Serial(serial_addr,
                                   baudrate=921600,

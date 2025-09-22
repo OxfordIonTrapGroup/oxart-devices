@@ -4,7 +4,6 @@ from asyncio import wait_for
 
 
 class SolstisNotifier:
-
     def __init__(self,
                  server,
                  port=8088,

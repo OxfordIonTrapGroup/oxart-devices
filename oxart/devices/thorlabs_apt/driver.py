@@ -177,7 +177,6 @@ class MsgError(Exception):
 
 
 class Message:
-
     def __init__(self,
                  _id,
                  param1=0,
@@ -232,7 +231,6 @@ class Message:
 
 
 class _APTDevice:
-
     def __init__(self, port):
         self.h = serial.Serial(port, 115200, write_timeout=0.1)
         self._status_update_counter = 0
@@ -383,7 +381,6 @@ class _APTDevice:
 
 class _APTRotation(_APTDevice):
     """Generic class of rotation mounts"""
-
     def __init__(self, port, auto_home=True):
         super().__init__(port)
 
@@ -488,7 +485,6 @@ class K10CR1(_APTRotation):
 
 class _KBD101(_APTRotation):
     """This will not work if instantiated directly"""
-
     def setup(self):
         super().setup()
         self.req_hw_info()

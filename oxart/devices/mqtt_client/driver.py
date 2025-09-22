@@ -16,7 +16,6 @@ logger = logging.getLogger()
 
 
 class MQTTClient:
-
     def __init__(self, dmgr, prefix: str, address: str, timeout: float = 1):
         """
         :param dmgr: Device manager passed in by Artiq.
@@ -89,7 +88,6 @@ class MQTTClient:
         """
         Return a list of all the valid topics under '/settings'.
         """
-
         async def _list_paths():
             return await asyncio.wait_for(self.interface.list_paths(), self.timeout)
 

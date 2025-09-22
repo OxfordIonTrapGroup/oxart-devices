@@ -13,7 +13,6 @@ class Camera(Thorlabs.ThorlabsTLCamera):
 
     See parent class documentation for more details on available methods.
     """
-
     def __init__(self, sn=None):
         super().__init__(serial=sn)
 

@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class ArduinoDAC:
-
     def __init__(self, serial_name, n_channels=16, v_min=-10, v_max=10):
         """serial_name : serial port name
         n_channels : clock frequency in Hz

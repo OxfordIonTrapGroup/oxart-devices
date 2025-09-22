@@ -32,7 +32,6 @@ class Measurement(Enum):
 
 class RPCInterface(Thermostat):
     """Wraps Thermostat driver with llama functionality"""
-
     def __init__(self, influx_channels, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.influx_channels = influx_channels

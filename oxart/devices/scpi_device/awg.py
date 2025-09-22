@@ -5,7 +5,6 @@ logger = logging.getLogger(__name__)
 
 
 class SCPIAWG(SCPIDevice):
-
     def set_waveform(self, waveform, channel=1):
         waveforms = ("SIN", "SQU", "TRI", "RAMP", "PULS", "PSRB", "NOIS", "ARB", "DC")
         if waveform not in waveforms:

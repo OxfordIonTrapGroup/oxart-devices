@@ -7,7 +7,6 @@ logger = logging.getLogger(__name__)
 
 class TrapController:
     """A mediation layer to sanitise control of trap RF and DC voltages"""
-
     def __init__(self, dmgr, dc_config_file=None, rf_config=None):
         """dc_config: configuration dictionary for dc electrodes
         rf_config: configuration dictionary for rf electrodes

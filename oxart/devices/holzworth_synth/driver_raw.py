@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 class HolzworthSynthRaw():
     """Raw driver to communicate with the Holzworth Synthesiser using SCPI commands over
     USB"""
-
     def __init__(self):
 
         self.dll = ctypes.WinDLL("HolzworthHS1001.dll")
@@ -26,10 +25,9 @@ class HolzworthSynthRaw():
         self.dll.usbCommWrite.restype = ctypes.c_char_p
 
         self.suffix_dict = {'Hz': 0, 'kHz': 3, 'MHz': 6, 'GHz': 9}  # SI suffixes.
-        self.exponent_dict = {
-            v: k
-            for k, v in self.suffix_dict.items()
-        }  # swap keys for values
+        self.exponent_dict = {v: k
+                              for k, v in self.suffix_dict.items()
+                              }  # swap keys for values
 
     def get_freq(self, limits=0):
         """Returns the current set frequency of the Holzworth synth when called without
