@@ -4,6 +4,7 @@ import time
 
 class BoosterVCP:
     """ Skeletal Booster VCP driver for debugging only """
+
     def __init__(self, device):
         self.dev = serial.serial_for_url(device)
         self.dev.timeout = 0.2

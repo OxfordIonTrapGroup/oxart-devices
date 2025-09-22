@@ -9,6 +9,7 @@ import os
 class HolzworthSynth():
     """Driver for Holzworth synth to get and set the frequency, and get and set the ramp
     rate to track the 674 nm quadrupole laser cavity drift."""
+
     def __init__(self):
 
         self.synth_raw = HolzworthSynthRaw()  # The raw driver

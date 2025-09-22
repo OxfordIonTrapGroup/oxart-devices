@@ -12,6 +12,7 @@ class MeasurementType(Enum):
 
 
 class TemperatureController():
+
     def __init__(self, addr):
         self.ser = serial.serial_for_url(addr, baudrate=115200, timeout=2)
 

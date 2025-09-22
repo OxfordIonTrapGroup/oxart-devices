@@ -27,6 +27,7 @@ class _ReportMode:
             print(report)
     ```
     """
+
     def __init__(self, dev):
         self._dev = dev
 
@@ -60,6 +61,7 @@ class _ReportMode:
 
 
 class Thermostat:
+
     def __init__(self, host, port=23, timeout=10):
         self._socket = socket.create_connection((host, port), timeout)
         self._lines = [""]

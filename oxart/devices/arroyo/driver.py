@@ -7,6 +7,7 @@ class Arroyo:
     This driver is not exhaustive; see documentation at
     https://www.arroyoinstruments.com/wp-content/uploads/2021/01/ArroyoComputerInterfacingManual.pdf
     """
+
     def __init__(self, address, timeout=0.1, **kwargs):
         self.device = serial.serial_for_url(address,
                                             baudrate=38400,

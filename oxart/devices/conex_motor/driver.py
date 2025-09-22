@@ -13,6 +13,7 @@ StateType = Enum("StateType",
 
 class Conex:
     """Driver for Newport CONEX motor controller."""
+
     def __init__(self, serial_addr, position_limit=None, auto_home=True):
         self.port = serial.serial_for_url(serial_addr,
                                           baudrate=921600,

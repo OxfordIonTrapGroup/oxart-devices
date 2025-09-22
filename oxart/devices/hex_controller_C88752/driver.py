@@ -4,6 +4,7 @@ from pipython import GCSDevice, pitools
 class Hexapod:
     """Driver for the Hexpod controller C-887.52
     """
+
     def __init__(self, address: str):
         self.dev = GCSDevice('C-887')
         self.dev.ConnectTCPIP(address)

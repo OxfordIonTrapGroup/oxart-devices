@@ -38,6 +38,7 @@ args = None
 
 
 class TestBooster(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         cls.dev = Booster(args.booster)
@@ -152,6 +153,7 @@ class TestBooster(unittest.TestCase):
         self.assertEqual(resp, "ok")
 
     def check_errors(func):
+
         def wrapped(self, *args, **kwargs):
             func(self, *args, **kwargs)
             for chan in range(8):

@@ -10,6 +10,7 @@ class PiezoController:
     NB The knobs on the piezo controller must be set to 0 voltage (i.e. turned
     fully counter-clockwise) before using the driver to set the voltages.
     """
+
     def __init__(self, device):
         self.dev = serial.serial_for_url("socket://{}:9001".format(device),
                                          baudrate=115200,

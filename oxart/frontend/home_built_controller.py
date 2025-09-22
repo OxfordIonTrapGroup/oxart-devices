@@ -11,6 +11,7 @@ from oxart.devices.home_built_controller.driver import (TemperatureController,
 
 
 class RPCInterface:
+
     def __init__(self, dev, channels):
         self.dev = dev
         self.channels = channels
@@ -39,6 +40,7 @@ def setup_interface(args, influx_pusher, loop):
     channels = dict()
 
     def reg_chan(meas_type: MeasurementType) -> None:
+
         def cb(values):
             if influx_pusher:
                 influx_pusher.push(meas_type.value, aggregate_stats_default(values))
