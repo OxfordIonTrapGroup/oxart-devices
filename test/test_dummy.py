@@ -6,6 +6,8 @@ tests that can be used as an example.
 
 import unittest
 
+
 class DummyTest(unittest.TestCase):
+
     def test_empty(self):
         self.assertTrue(True)

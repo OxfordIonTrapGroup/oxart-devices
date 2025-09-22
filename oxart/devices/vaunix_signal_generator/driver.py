@@ -100,8 +100,11 @@ class VaunixSG(object):
         """This function configures the synthesizer to use the internal reference
         if internal = True. If internal = False, then the synthesizer is configured
         to use an external frequency reference.
+
+        22/09/2025: it seems we need to flip logical value here to get
+        correct result (see caqtus notes)
         """
-        vnx.fnLSG_SetUseInternalRef(self.dev, internal)
+        vnx.fnLSG_SetUseInternalRef(self.dev, not (internal))
 
     def get_ref_internal(self):
         """This function returns a bool value which is True when the synthesizer is
@@ -109,9 +112,9 @@ class VaunixSG(object):
         when the synthesizer is configured to use an external frequency reference."""
         internal = vnx.fnLSG_GetUseInternalRef(self.dev)
         if int(internal) == 1:
-            return True
-        else:
             return False
+        else:
+            return True
 
     def save_settings(self):
         """The LabBrick synthesizers can save their settings, and then resume operating
