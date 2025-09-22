@@ -1182,7 +1182,6 @@ class Tdc(_Tcube):
         await self.send(Message(MGMSG.KPC_SET_IOSETTINGS, data=payload))
 
 
-
 class TpzSim:
 
     def __init__(self):

@@ -20,9 +20,9 @@ def main():
 
     dev = Sumito(args.device)
     try:
-        simple_server_loop({'Sumito': dev},sca.bind_address_from_args(args), args.port)
+        simple_server_loop({'Sumito': dev}, sca.bind_address_from_args(args), args.port)
     except Exception:
-        dev.close()    
+        dev.close()
     finally:
         dev.close()
 

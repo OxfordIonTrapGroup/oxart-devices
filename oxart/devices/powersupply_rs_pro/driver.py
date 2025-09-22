@@ -4,12 +4,12 @@ import serial
 class PowerSupply:
 
     def __init__(self, device):
-        self.stream = serial.serial_for_url(device, 
-            baudrate=9600, 
-            timeout=1, 
-            parity=serial.PARITY_NONE, 
-            stopbits=serial.STOPBITS_ONE, 
-            bytesize=serial.EIGHTBITS)
+        self.stream = serial.serial_for_url(device,
+                                            baudrate=9600,
+                                            timeout=1,
+                                            parity=serial.PARITY_NONE,
+                                            stopbits=serial.STOPBITS_ONE,
+                                            bytesize=serial.EIGHTBITS)
 
     def _send_cmd(self, msg):
         cmd = msg + "\r"
@@ -26,7 +26,6 @@ class PowerSupply:
             raise ValueError("Current out of range")
         cmd = "ISET1:" + str(current)
 
-
     def set_voltage(self, voltage):
         """ 
         set voltage in V
@@ -35,7 +34,7 @@ class PowerSupply:
             raise ValueError("Voltage out of range")
         cmd = "VSET1:" + str(voltage)
         self._send_cmd(cmd)
-    
+
     def get_current(self):
         cmd = "IOUT1?"
         self._send_cmd(cmd)
@@ -66,7 +65,7 @@ class PowerSupply:
             print("CC mode")
         else:
             print("CV mode")
-        
+
         if binary_rep[6] == "0":
             print("Output off")
         else:
@@ -77,4 +76,3 @@ if __name__ == "__main__":
     PowerSupply = PowerSupply("socket://10.255.6.188:9001")
 
     PowerSupply.status()
-

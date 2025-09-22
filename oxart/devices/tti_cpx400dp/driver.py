@@ -26,7 +26,7 @@ class CPX400DP:
             device (str): IP address of the power supply
             port (int): TCP port number (default: 9221)
         """
-        
+
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.settimeout(5.0)
         self.socket.connect((device, port))
@@ -39,7 +39,7 @@ class CPX400DP:
         except Exception as e:
             logger.error(f"Error sending command '{cmd}': {e}")
             raise
-    
+
     def _query(self, cmd):
         """Send a command and return the response."""
         self.socket.send((cmd + '\n').encode('utf-8'))
@@ -63,8 +63,8 @@ class CPX400DP:
         """
         try:
             ident = self.identify().split(',')
-            return (ident[0].strip() == "THURLBY THANDAR" and 
-                   ident[1].strip() == "CPX400DP")
+            return (ident[0].strip() == "THURLBY THANDAR"
+                    and ident[1].strip() == "CPX400DP")
         except:
             return False
 
@@ -212,28 +212,28 @@ if __name__ == "__main__":
     try:
         # Create instance
         ps = CPX400DP("192.168.1.100")  # Replace with your IP
-        
+
         # Print device info
         print(f"Connected to: {ps.identify()}")
-        
+
         # Set up channel 1
         ps.set_voltage(12.0, channel=1)
         ps.set_current(1.0, channel=1)
-        
+
         # Read back settings
         print(f"Voltage setting: {ps.get_voltage_setpoint(1)}V")
         print(f"Current setting: {ps.get_current_setpoint(1)}A")
-        
+
         # Enable output
         ps.set_output(True, channel=1)
-        
+
         # Read actual values
         print(f"Actual voltage: {ps.get_voltage(1)}V")
         print(f"Actual current: {ps.get_current(1)}A")
-        
+
         # Disable output and close
         ps.set_output(False, channel=1)
         ps.close()
-        
+
     except Exception as e:
         print(f"Error: {e}")

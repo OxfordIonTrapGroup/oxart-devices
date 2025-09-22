@@ -6,6 +6,7 @@ import os
 def numtostr(mystr):
     return '%20.15e' % mystr
 
+
 class RS_ZVL:
 
     def __init__(self, device='10.255.6.21'):
@@ -15,27 +16,26 @@ class RS_ZVL:
 
     def close(self):
         self.dev.close()
-            
+
     def ping(self):
-        return True # hot fix as ping is requested during scans...
-        mystr = 'SYST:VERS?' # should always be "1997.0"
+        return True  # hot fix as ping is requested during scans...
+        mystr = 'SYST:VERS?'  # should always be "1997.0"
         pp = self.dev.query(mystr)
         return pp == "1997.0"
 
     def Reset(self):
         # self.dev.send("*RST")
         pass
-        
+
     def SetIFBW(self, x):
-        self.dev.send('BAND '+numtostr(x))
-        
-    
-    def SetContinuous(self,on):
+        self.dev.send('BAND ' + numtostr(x))
+
+    def SetContinuous(self, on):
         if on:
             self.dev.send('INIT:CONT ON')
         elif not on:
             self.dev.send('INIT:CONT OFF')
-        
+
     def SetRange(self, start, end):
         self.SetStart(start)
         self.SetEnd(end)
@@ -99,10 +99,10 @@ class RS_ZVL:
             for _ in range(naver):
                 self.Trigger()
             dat = self.GetAllData(keep_uncal)
-                # self.AutoScaleAll()
+            # self.AutoScaleAll()
             self.dev.send('SENS:AVER OFF')
             return dat
-        
+
     def SetStart(self, x):
         mystr = numtostr(x)
         mystr = 'SENS:FREQ:STAR ' + mystr
@@ -159,7 +159,7 @@ class RS_ZVL:
         return pp
 
     def SetPower(self, x):
-        assert x<=0
+        assert x <= 0
         mystr = numtostr(x)
         mystr = 'SOUR:POW ' + mystr
         self.dev.send(mystr)
@@ -196,7 +196,7 @@ class RS_ZVL:
         self.dev.send("SOUR1:POW1:MODE ON")
         return
 
-    def SetAverageCounts(self,x):
+    def SetAverageCounts(self, x):
         self.dev.send('SENS:AVER:COUN {}'.format(2000))
         return
 
@@ -207,8 +207,7 @@ class RS_ZVL:
     def SetAverageOff(self):
         self.dev.send('SENS:AVER OFF')
         return
-    
-        
+
     def GetFrequency(self):
         freq = self.dev.query('CALC:DATA:STIM?')
         freq = np.asarray([float(xx) for xx in freq.split(',')])
@@ -219,56 +218,61 @@ class RS_ZVL:
         pars = pars.strip('\n').strip("'").split(',')
         parnames = pars[1::2]
         pars = pars[::2]
-        return pars,parnames
-    def SetActiveTrace(self,mystr):
+        return pars, parnames
+
+    def SetActiveTrace(self, mystr):
         self.dev.send('CALC:PAR:SEL "%s"' % mystr)
+
     def GetTraceData(self):
         yy = self.dev.query("CALC:DATA? SDATA")
         yy = np.asarray([float(xx) for xx in yy.split(',')])
         yyre = yy[::2]
         yyim = yy[1::2]
-        return yyre,yyim
+        return yyre, yyim
 
     def CalOn(self):
         mystr = "CORR ON"
         self.dev.send(mystr)
+
     def CalOff(self):
         mystr = "CORR OFF"
         self.dev.send(mystr)
+
     def GetCal(self):
         return bool(int(self.dev.query('CORR?')))
-    
+
     def SetupS11(self):
         self.Reset()
-        self.SetContinuous(False) #Turn off continuous mode
-        self.write('CALC:PAR:DEL:ALL') #Delete default trace
+        self.SetContinuous(False)  #Turn off continuous mode
+        self.write('CALC:PAR:DEL:ALL')  #Delete default trace
         tracenames = ['\'TrS11\'']
         tracevars = ['\'S11\'']
-        for name,var in zip(tracenames,tracevars):
+        for name, var in zip(tracenames, tracevars):
             self.write('CALC:PAR:SDEF ' + name + ', ' + var)
             self.write('DISP:WIND1:TRAC:EFE ' + name)
-      
+
     def SetupS21(self):
         self.Reset()
-        self.SetContinuous(False) #Turn off continuous mode
-        self.write('CALC:PAR:DEL:ALL') #Delete default trace
+        self.SetContinuous(False)  #Turn off continuous mode
+        self.write('CALC:PAR:DEL:ALL')  #Delete default trace
         tracenames = ['\'TrS21\'']
         tracevars = ['\'S21\'']
-        for name,var in zip(tracenames,tracevars):
-            self.write('CALC:PAR:SDEF ' + name + ', ' + var) #Set 2 traces and measurements
+        for name, var in zip(tracenames, tracevars):
+            self.write('CALC:PAR:SDEF ' + name + ', ' +
+                       var)  #Set 2 traces and measurements
             self.write('DISP:WIND1:TRAC:EFE ' + name)
-            
 
-    def write(self,x):
+    def write(self, x):
         self.dev.send(x)
-    def query(self,x):
+
+    def query(self, x):
         return self.dev.query(x)
-    
+
     def SetReference(self, ref='EXT'):
         # INT, EXT, ELO
         self.write('ROSC:SOUR ' + ref)
         return self.dev.query('ROSC:SOUR?')
-    
+
     #####
 
     def acquire_S11(self, start, stop, points, ifbw=1e3, power=-20, N_averages=1):
@@ -279,7 +283,7 @@ class RS_ZVL:
         self.SetPoints(points)
         data = self.MeasureScreen(keep_uncal=False, N_averages=N_averages)
         return data
-    
+
     def acquire_S21(self, start, stop, points, ifbw=1e3, power=-20, N_averages=1):
         self.SetupS21()
         self.SetRange(start, stop)

@@ -12,10 +12,7 @@ logger = logging.getLogger(__name__)
 
 def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller RS ZVL VNA")
-    parser.add_argument(
-        "-d",
-        "--device",
-        help="IP address of RS ZVL")
+    parser.add_argument("-d", "--device", help="IP address of RS ZVL")
 
     sca.simple_network_args(parser, 9903)
     sca.verbosity_args(parser)
