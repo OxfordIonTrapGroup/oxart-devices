@@ -34,6 +34,7 @@ sphinx-rtd-theme = "^1.3.0"
 aqctl_andor_emccd = "oxart.frontend.aqctl_andor_emccd:main"
 aqctl_agilent_6671a = "oxart.frontend.aqctl_agilent_6671a:main"
 aqctl_arroyo = "oxart.frontend.aqctl_arroyo:main"
+aqctl_agilent_33220= "oxart.frontend.aqctl_agilent_33220a:main",
 aqctl_booster = "oxart.frontend.aqctl_booster:main"
 aqctl_brooks_4850 = "oxart.frontend.aqctl_brooks_4850:main"
 aqctl_current_stabilizer = "oxart.frontend.aqctl_current_stabilizer:main"
