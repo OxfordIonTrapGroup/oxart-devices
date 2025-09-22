@@ -1,5 +1,3 @@
-from oxart.devices.streams import get_stream
-
 import socket
 
 

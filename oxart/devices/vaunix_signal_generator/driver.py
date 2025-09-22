@@ -101,7 +101,8 @@ class VaunixSG(object):
         if internal = True. If internal = False, then the synthesizer is configured
         to use an external frequency reference.
 
-        22/09/2025: it seems we need to flip logical value here to get correct result (see caqtus notes)
+        22/09/2025: it seems we need to flip logical value here to get
+        correct result (see caqtus notes)
         """
         vnx.fnLSG_SetUseInternalRef(self.dev, not (internal))
 
