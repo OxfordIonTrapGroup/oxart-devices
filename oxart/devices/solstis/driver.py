@@ -5,12 +5,14 @@ from asyncio import wait_for
 
 class SolstisNotifier:
 
-    def __init__(self,
-                 server,
-                 port=8088,
-                 status_callback=None,
-                 notification_callback=None,
-                 timeout=None):
+    def __init__(
+        self,
+        server,
+        port=8088,
+        status_callback=None,
+        notification_callback=None,
+        timeout=None,
+    ):
         self.server = server
         self.port = port
         self.status_callback = status_callback
@@ -18,7 +20,7 @@ class SolstisNotifier:
         self.timeout = timeout
 
     async def run(self):
-        async with websockets.connect('ws://{}:{}'.format(self.server, self.port),
+        async with websockets.connect("ws://{}:{}".format(self.server, self.port),
                                       ping_interval=None) as websocket:
             while True:
                 raw_msg = await wait_for(websocket.recv(), timeout=self.timeout)

@@ -6,8 +6,12 @@ import logging
 from oxart.devices.tti_cpx400dp.driver import CPX400DP
 
 from sipyco.pc_rpc import simple_server_loop
-from sipyco.common_args import (bind_address_from_args, init_logger_from_args,
-                                simple_network_args, verbosity_args)
+from sipyco.common_args import (
+    bind_address_from_args,
+    init_logger_from_args,
+    simple_network_args,
+    verbosity_args,
+)
 
 logger = logging.getLogger(__name__)
 

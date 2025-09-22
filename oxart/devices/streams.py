@@ -4,7 +4,7 @@ from oxart.devices.prologix_gpib.driver import GPIB
 
 
 def get_stream(device, baudrate=115200, port=None, timeout=None):
-    """ Returns a pySerial-compatible interface to a hardware connection.
+    """Returns a pySerial-compatible interface to a hardware connection.
 
     Serial and Ethernet connections are handled by pySerial.serial_for_url()
 
@@ -23,6 +23,6 @@ def get_stream(device, baudrate=115200, port=None, timeout=None):
                                      timeout=timeout,
                                      write_timeout=timeout)
 
-    controller_addr, gpib_port = device[7:].split('-')
+    controller_addr, gpib_port = device[7:].split("-")
     controller = GPIB(controller_addr, timeout=timeout)
     return controller.get_stream(int(gpib_port))

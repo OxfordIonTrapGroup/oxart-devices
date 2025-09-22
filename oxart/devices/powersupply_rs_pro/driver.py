@@ -4,22 +4,24 @@ import serial
 class PowerSupply:
 
     def __init__(self, device):
-        self.stream = serial.serial_for_url(device,
-                                            baudrate=9600,
-                                            timeout=1,
-                                            parity=serial.PARITY_NONE,
-                                            stopbits=serial.STOPBITS_ONE,
-                                            bytesize=serial.EIGHTBITS)
+        self.stream = serial.serial_for_url(
+            device,
+            baudrate=9600,
+            timeout=1,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS,
+        )
 
     def _send_cmd(self, msg):
         cmd = msg + "\r"
-        self.stream.write(cmd.encode('utf-8'))
+        self.stream.write(cmd.encode("utf-8"))
 
     def _read(self):
         return self.stream.read(20).decode()
 
     def set_current(self, current):
-        """ 
+        """
         set current in A
         """
         if current < 0 or current > 5:
@@ -27,7 +29,7 @@ class PowerSupply:
         cmd = "ISET1:" + str(current)
 
     def set_voltage(self, voltage):
-        """ 
+        """
         set voltage in V
         """
         if voltage < 0 or voltage > 30:
@@ -59,7 +61,7 @@ class PowerSupply:
     def status(self):
         cmd = "STATUS?"
         self._send_cmd(cmd)
-        binary_rep = format(ord(self.stream.read(20)[:-1]), '08b')
+        binary_rep = format(ord(self.stream.read(20)[:-1]), "08b")
         print("Status: ", binary_rep)
         if binary_rep[0] == "0":
             print("CC mode")

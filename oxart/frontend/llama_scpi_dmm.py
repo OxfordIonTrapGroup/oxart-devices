@@ -22,19 +22,25 @@ def setup_args(parser):
                         "--device",
                         help="multimeter hardware address",
                         required=True)
-    parser.add_argument("--measurement",
-                        help="name of measurement; also used as InfluxDB series name",
-                        required=True)
-    parser.add_argument("--max-chunk-size",
-                        type=int,
-                        default=256,
-                        help=("number of measurements to average before sending " +
-                              "to InfluxDB (if not timed out first)"))
-    parser.add_argument("--max-chunk-duration",
-                        type=float,
-                        default=30,
-                        help=("maximum wall-clock duration of averaging chunk before " +
-                              "sending to InfluxDB (if size not reached first)"))
+    parser.add_argument(
+        "--measurement",
+        help="name of measurement; also used as InfluxDB series name",
+        required=True,
+    )
+    parser.add_argument(
+        "--max-chunk-size",
+        type=int,
+        default=256,
+        help=("number of measurements to average before sending " +
+              "to InfluxDB (if not timed out first)"),
+    )
+    parser.add_argument(
+        "--max-chunk-duration",
+        type=float,
+        default=30,
+        help=("maximum wall-clock duration of averaging chunk before " +
+              "sending to InfluxDB (if size not reached first)"),
+    )
 
 
 def setup_interface(args, influx_pusher, loop):
@@ -44,8 +50,13 @@ def setup_interface(args, influx_pusher, loop):
         if influx_pusher:
             influx_pusher.push(args.measurement, aggregate_stats_default(values))
 
-    channel = ChunkedChannel(args.measurement, bin_finished, args.max_chunk_size,
-                             args.max_chunk_duration, loop)
+    channel = ChunkedChannel(
+        args.measurement,
+        bin_finished,
+        args.max_chunk_size,
+        args.max_chunk_duration,
+        loop,
+    )
 
     def poller_thread():
         while True:

@@ -10,11 +10,13 @@ import sipyco.common_args as sca
 
 def get_argparser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d",
-                        "--device",
-                        default=None,
-                        help="serial device. See documentation for how to "
-                        "specify a USB Serial Number.")
+    parser.add_argument(
+        "-d",
+        "--device",
+        default=None,
+        help="serial device. See documentation for how to "
+        "specify a USB Serial Number.",
+    )
 
     sca.simple_network_args(parser, 2030)
     sca.verbosity_args(parser)

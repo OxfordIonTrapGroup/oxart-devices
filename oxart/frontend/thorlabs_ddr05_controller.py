@@ -11,16 +11,20 @@ def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller for the "
                                      "Thorlabs DDR05 motorised rotation mount")
     sca.simple_network_args(parser, 4001)
-    parser.add_argument("-d",
-                        "--device",
-                        default=None,
-                        help="serial device. See documentation for how to "
-                        "specify a USB Serial Number.")
-    parser.add_argument("--no-auto-home",
-                        action="store_true",
-                        help="Do not home (reset to mechanical zero) on \
+    parser.add_argument(
+        "-d",
+        "--device",
+        default=None,
+        help="serial device. See documentation for how to "
+        "specify a USB Serial Number.",
+    )
+    parser.add_argument(
+        "--no-auto-home",
+        action="store_true",
+        help="Do not home (reset to mechanical zero) on \
                         start (this needs to be done each time the hardware \
-                        is power cycled")
+                        is power cycled",
+    )
     sca.verbosity_args(parser)
     return parser
 

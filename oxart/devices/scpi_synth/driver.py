@@ -2,22 +2,22 @@ from oxart.devices.streams import get_stream
 
 
 class Synth:
-    """ Generic driver for SCPI-compliant frequency synthesisers """
+    """Generic driver for SCPI-compliant frequency synthesisers"""
 
     def __init__(self, device):
         self.stream = get_stream(device)
         assert self.ping()
 
     def write(self, cmd):
-        """ Write a string command. """
+        """Write a string command."""
         self.stream.write(cmd.encode())
 
     def readline(self):
-        """ Read a line from the device. """
+        """Read a line from the device."""
         return self.stream.readline().decode()
 
     def identify(self):
-        """ Return a device ID string. """
+        """Return a device ID string."""
         self.stream.write("*IDN?\n".encode())
         return self.stream.readline().decode()
 
@@ -25,11 +25,11 @@ class Synth:
         return bool(self.identify().lower().split(","))
 
     def set_freq(self, freq):
-        """ Program the device to a frequency in Hz. """
+        """Program the device to a frequency in Hz."""
         self.stream.write("FREQ {} HZ\n".format(freq).encode())
 
     def get_freq(self):
-        """ Returns the current frequency setting. """
+        """Returns the current frequency setting."""
         self.stream.write("FREQ?\n".encode())
         return self.stream.readline().decode()
 

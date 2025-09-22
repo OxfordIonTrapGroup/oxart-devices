@@ -1,6 +1,7 @@
 import logging
 import sys
-if sys.platform == 'win32':
+
+if sys.platform == "win32":
     try:
         import win32com.client
     except ImportError:
@@ -40,7 +41,9 @@ class OphirPowerMeter:
             if len(device_list) != 1:
                 raise Exception(
                     "More than one Ophir power meter connected, "
-                    "specify a serial number", device_list)
+                    "specify a serial number",
+                    device_list,
+                )
             self.device_serial_number = device_list[-1]
 
         logger.info("Connecting to serial number %s...", self.device_serial_number)
@@ -48,10 +51,14 @@ class OphirPowerMeter:
 
         if not self.com.IsSensorExists(self.device, self.channel):
             raise Exception("No sensor connected to power meter")
-        self.sensor_serial_number, sensor_type, sensor_model = (self.com.GetSensorInfo(
-            self.device, self.channel))
-        logger.info("Connected; %s sensor (%s; serial number %s).", sensor_type,
-                    sensor_model, self.sensor_serial_number)
+        self.sensor_serial_number, sensor_type, sensor_model = self.com.GetSensorInfo(
+            self.device, self.channel)
+        logger.info(
+            "Connected; %s sensor (%s; serial number %s).",
+            sensor_type,
+            sensor_model,
+            self.sensor_serial_number,
+        )
 
     def start_acquisition(self):
         self.com.StartStream(self.device, self.channel)

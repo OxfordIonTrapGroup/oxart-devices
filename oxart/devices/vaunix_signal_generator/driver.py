@@ -1,5 +1,4 @@
-"""Module for instance of a Vaunix LabBrick Signal Generator
-"""
+"""Module for instance of a Vaunix LabBrick Signal Generator"""
 
 from ctypes import *
 from os.path import dirname, join

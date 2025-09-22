@@ -48,10 +48,10 @@ class Conex:
 
     def _read_line(self):
         """Read a CR terminated line. Returns '' on timeout"""
-        s = ''
-        while len(s) == 0 or s[-1] != '\r':
+        s = ""
+        while len(s) == 0 or s[-1] != "\r":
             c = self.port.read().decode()
-            if c == '':  # Timeout
+            if c == "":  # Timeout
                 break
             s += c
         return s

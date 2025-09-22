@@ -28,7 +28,7 @@ def _wrap_function(func_name, func, channel_arg_idx=None):
 
 
 def multi_channel_dev_mediator(mediator_cls):
-    """ Monkeypatch mediator classes for multi-channel devices to wrap all
+    """Monkeypatch mediator classes for multi-channel devices to wrap all
     methods from the device driver.
 
     The decorated mediator allow one to call any method of the base driver,
@@ -60,7 +60,7 @@ def multi_channel_dev_mediator(mediator_cls):
         (func_name, func)
         for (func_name,
              func) in inspect.getmembers(mediator_cls._driver_cls, inspect.isfunction)
-        if func_name[0] != '_'
+        if func_name[0] != "_"
     ]
 
     for func_name, func in funcs:
@@ -78,7 +78,8 @@ def multi_channel_dev_mediator(mediator_cls):
             params.insert(
                 1,
                 inspect.Parameter(name="channel_name",
-                                  kind=inspect.Parameter.POSITIONAL_OR_KEYWORD))
+                                  kind=inspect.Parameter.POSITIONAL_OR_KEYWORD),
+            )
             wrapper = _wrap_function(func_name, func)
         wrapper.__signature__ = sig.replace(parameters=params)
         setattr(mediator_cls, func_name, wrapper)

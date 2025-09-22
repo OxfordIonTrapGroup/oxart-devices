@@ -11,11 +11,13 @@ def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller for the "
                                      "Ophir power meter")
     sca.simple_network_args(parser, 4000)
-    parser.add_argument("-d",
-                        "--device",
-                        default=None,
-                        help="Device serial number. This is the unit no., "
-                        "not that of the sensor")
+    parser.add_argument(
+        "-d",
+        "--device",
+        default=None,
+        help="Device serial number. This is the unit no., "
+        "not that of the sensor",
+    )
     sca.verbosity_args(parser)
     return parser
 

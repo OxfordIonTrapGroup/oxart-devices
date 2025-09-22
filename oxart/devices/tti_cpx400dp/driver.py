@@ -10,17 +10,17 @@ logger = logging.getLogger(__name__)
 
 class CPX400DP:
     """Driver for TTI CPX400DP power supply.
-    
+
     This power supply has two independent outputs.
     Default TCP/IP port is 9221
-    
+
     Voltage range: 0-60V
     Current range: 0-20A
     """
 
     def __init__(self, dmgr, device, port=9221):
         """Initialize connection to the power supply.
-        
+
         Args:
             dmgr: Device manager instance
             device (str): IP address of the power supply
@@ -34,7 +34,7 @@ class CPX400DP:
     def _send_cmd(self, cmd):
         """Send a command to the power supply."""
         try:
-            self.socket.send((cmd + '\n').encode('utf-8'))
+            self.socket.send((cmd + "\n").encode("utf-8"))
             # time.sleep(0.1)
         except Exception as e:
             logger.error(f"Error sending command '{cmd}': {e}")
@@ -42,9 +42,9 @@ class CPX400DP:
 
     def _query(self, cmd):
         """Send a command and return the response."""
-        self.socket.send((cmd + '\n').encode('utf-8'))
+        self.socket.send((cmd + "\n").encode("utf-8"))
         time.sleep(0.1)
-        return self.socket.recv(1024).decode('utf-8').strip()
+        return self.socket.recv(1024).decode("utf-8").strip()
         # except Exception as e:
         #     logger.error(f"Error querying with command '{cmd}': {e}")
         #     raise
@@ -57,12 +57,12 @@ class CPX400DP:
 
     def ping(self):
         """Check if the device is responding correctly.
-        
+
         Returns:
             bool: True if device responds correctly
         """
         try:
-            ident = self.identify().split(',')
+            ident = self.identify().split(",")
             return (ident[0].strip() == "THURLBY THANDAR"
                     and ident[1].strip() == "CPX400DP")
         except:
@@ -70,7 +70,7 @@ class CPX400DP:
 
     def identify(self):
         """Get the device identification string.
-        
+
         Returns:
             str: Device identification string
         """
@@ -78,7 +78,7 @@ class CPX400DP:
 
     def set_voltage(self, voltage, channel=1):
         """Set the voltage for the specified channel.
-        
+
         Args:
             voltage (float): Voltage in volts (0-60V)
             channel (int): Output channel (1 or 2)
@@ -91,10 +91,10 @@ class CPX400DP:
 
     def get_voltage_setpoint(self, channel=1):
         """Get the voltage setpoint for the specified channel.
-        
+
         Args:
             channel (int): Output channel (1 or 2)
-            
+
         Returns:
             float: Voltage setpoint in volts
         """
@@ -104,10 +104,10 @@ class CPX400DP:
 
     def get_voltage(self, channel=1):
         """Get the actual output voltage for the specified channel.
-        
+
         Args:
             channel (int): Output channel (1 or 2)
-            
+
         Returns:
             float: Measured output voltage in volts
         """
@@ -117,7 +117,7 @@ class CPX400DP:
 
     def set_current(self, current, channel=1):
         """Set the current limit for the specified channel.
-        
+
         Args:
             current (float): Current in amperes (0-20A)
             channel (int): Output channel (1 or 2)
@@ -130,10 +130,10 @@ class CPX400DP:
 
     def get_current_setpoint(self, channel=1):
         """Get the current setpoint for the specified channel.
-        
+
         Args:
             channel (int): Output channel (1 or 2)
-            
+
         Returns:
             float: Current setpoint in amperes
         """
@@ -143,10 +143,10 @@ class CPX400DP:
 
     def get_current(self, channel=1):
         """Get the actual output current for the specified channel.
-        
+
         Args:
             channel (int): Output channel (1 or 2)
-            
+
         Returns:
             float: Measured output current in amperes
         """
@@ -156,7 +156,7 @@ class CPX400DP:
 
     def set_output(self, state, channel=1):
         """Set the output state for the specified channel.
-        
+
         Args:
             state (bool): True to enable output, False to disable
             channel (int): Output channel (1 or 2)
@@ -167,10 +167,10 @@ class CPX400DP:
 
     def get_output_state(self, channel=1):
         """Get the output state for the specified channel.
-        
+
         Args:
             channel (int): Output channel (1 or 2)
-            
+
         Returns:
             bool: True if output is enabled, False if disabled
         """
@@ -180,7 +180,7 @@ class CPX400DP:
 
     def save_settings(self, location):
         """Save current settings to memory location.
-        
+
         Args:
             location (int): Memory location (1-10)
         """
@@ -190,7 +190,7 @@ class CPX400DP:
 
     def recall_settings(self, location):
         """Recall settings from memory location.
-        
+
         Args:
             location (int): Memory location (1-10)
         """
@@ -200,7 +200,7 @@ class CPX400DP:
 
     def get_status(self):
         """Get the power supply status.
-        
+
         Returns:
             str: Status information string
         """

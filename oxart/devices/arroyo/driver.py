@@ -41,7 +41,7 @@ class Arroyo:
 
         Returns an empty list if there are no errors.
         """
-        errs = iter(s.strip('"') for s in self._query("errstr?").split(','))
+        errs = iter(s.strip('"') for s in self._query("errstr?").split(","))
         return list(zip(errs, errs))
 
     def set_laser_output(self, enable):

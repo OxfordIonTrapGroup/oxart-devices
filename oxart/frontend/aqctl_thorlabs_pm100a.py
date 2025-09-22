@@ -15,10 +15,12 @@ def get_argparser():
 
     # A list of available Thorlabs power meter devices can be obtained via
     # the get_device_names function in module oxart.devices.thorlabs_pm.driver
-    parser.add_argument("-d",
-                        "--device",
-                        default="USB0::0x1313::0x8079::P1003876::INSTR",
-                        help="Hardware address of device")
+    parser.add_argument(
+        "-d",
+        "--device",
+        default="USB0::0x1313::0x8079::P1003876::INSTR",
+        help="Hardware address of device",
+    )
     sca.simple_network_args(parser, 4315)
     sca.verbosity_args(parser)
 

@@ -33,6 +33,7 @@ from .bme_delay_gen import Driver, OutputGateMode, PulseParameters
 class InvalidTimingError(Exception):
     """Raised when the user specifies a set of parameters that violate the
     hardware timing constraints."""
+
     pass
 
 
@@ -155,13 +156,11 @@ class PulsePickerTiming:
     # meta-programming magic.
 
     def get_offset_on_us(self):
-        """
-        """
+        """ """
         return self._times.offset_on_us
 
     def set_offset_on_us(self, value):
-        """
-        """
+        """ """
         new = copy.copy(self._times)
         new.offset_on_us = value
         new.ensure_valid()
@@ -169,13 +168,11 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_offset_off_us(self):
-        """
-        """
+        """ """
         return self._times.offset_off_us
 
     def set_offset_off_us(self, value):
-        """
-        """
+        """ """
         new = copy.copy(self._times)
         new.offset_off_us = value
         new.ensure_valid()
@@ -183,13 +180,11 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_pre_open_us(self):
-        """
-        """
+        """ """
         return self._times.pre_open_us
 
     def set_pre_open_us(self, value):
-        """
-        """
+        """ """
         new = copy.copy(self._times)
         new.pre_open_us = value
         new.ensure_valid()
@@ -197,13 +192,11 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_post_open_us(self):
-        """
-        """
+        """ """
         return self._times.post_open_us
 
     def set_post_open_us(self, value):
-        """
-        """
+        """ """
         new = copy.copy(self._times)
         new.post_open_us = value
         new.ensure_valid()
@@ -211,13 +204,11 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_open_us(self):
-        """
-        """
+        """ """
         return self._times.open_us
 
     def set_open_us(self, value):
-        """
-        """
+        """ """
         new = copy.copy(self._times)
         new.open_us = value
         new.ensure_valid()
@@ -225,13 +216,11 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_align_us(self):
-        """
-        """
+        """ """
         return self._times.align_us
 
     def set_align_us(self, value):
-        """
-        """
+        """ """
         new = copy.copy(self._times)
         new.align_us = value
         new.ensure_valid()
@@ -263,12 +252,16 @@ class PulsePickerTiming:
         self._delay_gen.set_pulse_parameters([
             PulseParameters(True, s_a_off, 0.0),
             PulseParameters(
-                True, s_a_off + self._times.pre_open_us + self._times.post_open_us,
-                0.0),
+                True,
+                s_a_off + self._times.pre_open_us + self._times.post_open_us,
+                0.0,
+            ),
             PulseParameters(True, s_b_off, 0.0),
             PulseParameters(
-                True, s_b_off + self._times.pre_open_us + self._times.post_open_us,
-                0.0),
+                True,
+                s_b_off + self._times.pre_open_us + self._times.post_open_us,
+                0.0,
+            ),
             PulseParameters(True, s_a_on + open_at_us - self._times.open_us / 2, 0.0),
             PulseParameters(True, s_b_on + open_at_us + self._times.open_us / 2, 0.0),
         ])

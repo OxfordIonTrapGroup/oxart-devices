@@ -19,14 +19,18 @@ def get_argparser():
     parser.add_argument("--zmq-port", default=5555, type=int)
     parser.add_argument("--roi", default="884,200,956,48")
     parser.add_argument("--buffer-size", default=10000, type=int)
-    parser.add_argument("--speed",
-                        default=3,
-                        type=int,
-                        help="integer value - (1: QUIET, 2: STANDARD, 3: FAST)")
-    parser.add_argument("--exposure_time",
-                        default=0.1,
-                        type=float,
-                        help="default exposure time in seconds")
+    parser.add_argument(
+        "--speed",
+        default=3,
+        type=int,
+        help="integer value - (1: QUIET, 2: STANDARD, 3: FAST)",
+    )
+    parser.add_argument(
+        "--exposure_time",
+        default=0.1,
+        type=float,
+        help="default exposure time in seconds",
+    )
     return parser
 
 
@@ -45,7 +49,7 @@ def main():
     logger.info("Initialising cameras...")
 
     roi = [int(x) for x in args.roi.split(",")]
-    assert (len(roi) == 4)
+    assert len(roi) == 4
 
     dev = OrcaFusion()
     dev.open(camera_index=0, framebuffer_len=args.buffer_size)

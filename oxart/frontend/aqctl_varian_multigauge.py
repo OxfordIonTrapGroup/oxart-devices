@@ -7,10 +7,12 @@ from sipyco.pc_rpc import simple_server_loop
 
 def get_argparser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d",
-                        "--device",
-                        default="/dev/ttyUSB19",
-                        help="address (USB Serial Number or IP:port)")
+    parser.add_argument(
+        "-d",
+        "--device",
+        default="/dev/ttyUSB19",
+        help="address (USB Serial Number or IP:port)",
+    )
     sca.simple_network_args(parser, 5001)
     sca.verbosity_args(parser)
     return parser

@@ -17,7 +17,7 @@ class SCPIDevice:
         self.sock.connect((self.addr, port))
 
         # Store identity as a list of the comma separated fields returned
-        self.idn = self.identity().split(',')
+        self.idn = self.identity().split(",")
 
         # Some devices may not implement *IDN? in the same way, but most place
         # serial number in this field, allowing us to check that we have the

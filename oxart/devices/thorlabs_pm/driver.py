@@ -1,5 +1,17 @@
-from ctypes import (c_bool, c_char_p, c_double, c_int, c_int16, c_long, c_uint32,
-                    c_voidp, byref, cdll, create_string_buffer, sizeof)
+from ctypes import (
+    c_bool,
+    c_char_p,
+    c_double,
+    c_int,
+    c_int16,
+    c_long,
+    c_uint32,
+    c_voidp,
+    byref,
+    cdll,
+    create_string_buffer,
+    sizeof,
+)
 import logging
 
 # The following constants are taken from the TLPM.h header file in the
@@ -99,9 +111,12 @@ class _TLPM:
         if hasattr(device_name, "encode"):
             device_name = device_name.encode()
 
-        pInvokeResult = self.dll.TLPM_init(create_string_buffer(device_name),
-                                           c_bool(query_id), c_bool(reset_device),
-                                           byref(self.dev_session))
+        pInvokeResult = self.dll.TLPM_init(
+            create_string_buffer(device_name),
+            c_bool(query_id),
+            c_bool(reset_device),
+            byref(self.dev_session),
+        )
         self._testForError(pInvokeResult)
 
     def close(self):
@@ -188,16 +203,21 @@ class _TLPM:
         manufacturer = create_string_buffer(TLPM_BUFFER_SIZE)
         available = c_int16()
 
-        pInvokeResult = self.dll.TLPM_getRsrcInfo(self.dev_session, c_int(index),
-                                                  model_name, serial_number,
-                                                  manufacturer, byref(available))
+        pInvokeResult = self.dll.TLPM_getRsrcInfo(
+            self.dev_session,
+            c_int(index),
+            model_name,
+            serial_number,
+            manufacturer,
+            byref(available),
+        )
         self._testForError(pInvokeResult)
 
         info_dict = {
             "model_name": c_char_p(model_name.raw).value.decode(),
             "serial_number": c_char_p(serial_number.raw).value.decode(),
             "manufacturer": c_char_p(manufacturer.raw).value.decode(),
-            "available": available.value
+            "available": available.value,
         }
 
         return info_dict
@@ -286,10 +306,13 @@ class _TLPM:
         Returns:
             int: The return value, 0 is for success
         """
-        pInvokeResult = self.dll.TLPM_identificationQuery(self.dev_session,
-                                                          manufacturerName, deviceName,
-                                                          serialNumber,
-                                                          firmwareRevision)
+        pInvokeResult = self.dll.TLPM_identificationQuery(
+            self.dev_session,
+            manufacturerName,
+            deviceName,
+            serialNumber,
+            firmwareRevision,
+        )
         self._testForError(pInvokeResult)
         return pInvokeResult
 

@@ -29,7 +29,8 @@ def get_argparser():
         default=60,
         type=int,
         help="Time (seconds) between messages from device after which connection is " +
-        "considered faulty and program exits")
+        "considered faulty and program exits",
+    )
     return parser
 
 
@@ -64,7 +65,7 @@ def main():
             "cavity_lock_status": msg["cavity_lock_status"],
             "doubler_lock_status": msg["doubler_lock_status"],
             "etalon_lock_status": msg["etalon_lock_status"],
-            "brf_wavelength": float(msg["wsd_wavelength"])
+            "brf_wavelength": float(msg["wsd_wavelength"]),
         }
         write_point(fields)
 
@@ -73,22 +74,25 @@ def main():
     def handle_notification(msg):
         if msg["display_notification"] != 1:
             return
-        if msg["notification_message"] in \
-                ["Saved Vapour Cell Items",
-                 "Saved Sprout Items",
-                 "Saved Beam Alignment Setup",
-                 "Saved Scope Setup",
-                 "Saved Stitching Setup",
-                 "Saved Wavelength Meter Setup",
-                 "Saved Common Items"]:
+        if msg["notification_message"] in [
+                "Saved Vapour Cell Items",
+                "Saved Sprout Items",
+                "Saved Beam Alignment Setup",
+                "Saved Scope Setup",
+                "Saved Stitching Setup",
+                "Saved Wavelength Meter Setup",
+                "Saved Common Items",
+        ]:
             return
         fields = {"title": msg["notification_message"], "tags": args.name}
         write_point(fields, tags={"type": "display_notification"})
 
-    notifier = SolstisNotifier(server=args.server,
-                               notification_callback=handle_notification,
-                               status_callback=handle_status_update,
-                               timeout=args.timeout)
+    notifier = SolstisNotifier(
+        server=args.server,
+        notification_callback=handle_notification,
+        status_callback=handle_status_update,
+        timeout=args.timeout,
+    )
     loop.run_until_complete(notifier.run())
 
 

@@ -69,8 +69,7 @@ class TrapController:
         self._update_physical_voltages(update_hw)
 
     def get_dc_voltage(self, logical_electrode):
-        """Reads the last set voltage on the given  logical electrode.
-        """
+        """Reads the last set voltage on the given  logical electrode."""
 
         # Find the index of the logical electrode, given its name
         logical_index = self._dc_logical_channel_names.index(logical_electrode)
@@ -128,8 +127,8 @@ class TrapController:
             logical_voltage_array = np.zeros(len(self._dc_logical_voltages))
             for electrode in dc_config["trap_settings"][name].keys():
                 index = self._dc_logical_channel_names.index(electrode)
-                logical_voltage_array[index] = \
-                    dc_config["trap_settings"][name][electrode]
+                logical_voltage_array[index] = dc_config["trap_settings"][name][
+                    electrode]
             self._dc_trap_settings[name] = logical_voltage_array
 
         # Store the default trap setting

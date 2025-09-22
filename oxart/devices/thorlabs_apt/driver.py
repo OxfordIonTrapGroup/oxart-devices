@@ -158,8 +158,11 @@ class Status(IntEnum):
     SETTLED = 0x2000
     POSITION_ERROR = 0x1000000
     ENABLED = 0x80000000
-    MOVING = (MOVING_HOME | MOVING_FORWARD | MOVING_REVERSE
-              | JOGGING_FORWARD | JOGGING_REVERSE)
+    MOVING = (MOVING_HOME
+              | MOVING_FORWARD
+              | MOVING_REVERSE
+              | JOGGING_FORWARD
+              | JOGGING_REVERSE)
 
 
 class Direction(IntEnum):
@@ -178,13 +181,15 @@ class MsgError(Exception):
 
 class Message:
 
-    def __init__(self,
-                 _id,
-                 param1=0,
-                 param2=0,
-                 dest=SRC_DEST.GENERIC_USB_HW.value,
-                 src=SRC_DEST.HOST_CONTROLLER.value,
-                 data=None):
+    def __init__(
+        self,
+        _id,
+        param1=0,
+        param2=0,
+        dest=SRC_DEST.GENERIC_USB_HW.value,
+        src=SRC_DEST.HOST_CONTROLLER.value,
+        data=None,
+    ):
         if data is not None:
             dest |= 0x80
         self._id = _id
@@ -213,8 +218,8 @@ class Message:
 
     def pack(self):
         if self.has_data:
-            return struct.pack("<HHBB", self._id.value, len(self.data),
-                               self.dest | 0x80, self.src) + self.data
+            return (struct.pack("<HHBB", self._id.value, len(self.data),
+                                self.dest | 0x80, self.src) + self.data)
         else:
             return struct.pack("<HBBBB", self._id.value, self.param1, self.param2,
                                self.dest, self.src)
@@ -277,8 +282,10 @@ class _APTDevice:
             raise MsgError("Hardware error {}: {}".format(
                 code, data[4:].decode(encoding="ascii")))
         elif msg_id in [
-                MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED, MGMSG.MOT_MOVE_HOMED,
-                MGMSG.MOT_GET_DCSTATUSUPDATE
+                MGMSG.MOT_MOVE_COMPLETED,
+                MGMSG.MOT_MOVE_STOPPED,
+                MGMSG.MOT_MOVE_HOMED,
+                MGMSG.MOT_GET_DCSTATUSUPDATE,
         ]:
             self._status_update_counter += 1
             if self._status_update_counter > 25:
@@ -327,9 +334,11 @@ class _APTDevice:
 
     def home(self, channel=0):
         logger.debug("Homing...")
-        self._send_request(MGMSG.MOT_MOVE_HOME,
-                           param1=channel,
-                           wait_for=[MGMSG.MOT_MOVE_HOMED, MGMSG.MOT_MOVE_STOPPED])
+        self._send_request(
+            MGMSG.MOT_MOVE_HOME,
+            param1=channel,
+            wait_for=[MGMSG.MOT_MOVE_HOMED, MGMSG.MOT_MOVE_STOPPED],
+        )
         logger.debug("Homed")
 
     def move(self, position, channel=0):
@@ -418,10 +427,12 @@ class _APTRotation(_APTDevice):
                 self.check_angle_mu(acceptable_error=acceptable_error)
             except ValueError:
                 if auto_retry > 0:
-                    self.set_angle(angle,
-                                   check_position=check_position,
-                                   auto_retry=auto_retry - 1,
-                                   acceptable_error=acceptable_error)
+                    self.set_angle(
+                        angle,
+                        check_position=check_position,
+                        auto_retry=auto_retry - 1,
+                        acceptable_error=acceptable_error,
+                    )
                 else:
                     raise
 
@@ -440,8 +451,11 @@ class _APTRotation(_APTDevice):
 
         angle_mu = self.get_position()
         if abs(self._last_angle_mu - angle_mu) > acceptable_error:
-            raise ValueError("Last angle set does not match current angle",
-                             self._last_angle_mu, angle_mu)
+            raise ValueError(
+                "Last angle set does not match current angle",
+                self._last_angle_mu,
+                angle_mu,
+            )
         else:
             # if we're off by an acceptable amount, store the actual value
             self._last_angle_mu = angle_mu
@@ -499,14 +513,22 @@ class _KBD101(_APTRotation):
         data = struct.unpack("=l8sH4B48s12sHHH", msg.data)
 
         serial_no = data[0]
-        model_no = data[1].rstrip(b'\x00').decode()
+        model_no = data[1].rstrip(b"\x00").decode()
         type_ = data[2]
-        fw_version = '.'.join(map(str, data[3:6]))
-        notes = ', '.join(bs.rstrip(b'\x00').decode() for bs in data[7:9])
+        fw_version = ".".join(map(str, data[3:6]))
+        notes = ", ".join(bs.rstrip(b"\x00").decode() for bs in data[7:9])
         hw_version, modstate, nchs = data[9:]
 
-        return (serial_no, model_no, type_, fw_version, notes, hw_version, modstate,
-                nchs)
+        return (
+            serial_no,
+            model_no,
+            type_,
+            fw_version,
+            notes,
+            hw_version,
+            modstate,
+            nchs,
+        )
 
 
 class DDR25(_KBD101):

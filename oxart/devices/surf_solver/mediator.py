@@ -5,8 +5,10 @@ from copy import deepcopy
 from scipy.constants import value as const
 
 Wells = namedtuple(
-    "Wells", "name,z,width,dphidx,dphidy,dphidz,rx_axial,ry_axial,"
-    "phi_radial,d2phidaxial2,d3phidz3,d2phidradial_h2")
+    "Wells",
+    "name,z,width,dphidx,dphidy,dphidz,rx_axial,ry_axial,"
+    "phi_radial,d2phidaxial2,d3phidz3,d2phidradial_h2",
+)
 Wells.__doc__ = """Represents a snapshot of the parameters of potential wells
 
 all parameters are tuples with 'length = <number of potential wells>'
@@ -30,19 +32,21 @@ class SURFMediator:
     creating and chaining common operations.
     """
 
-    def __init__(self,
-                 dmgr,
-                 device,
-                 default_electrode_override=None,
-                 default_z_grid_override=None,
-                 default_f_axial=1e6,
-                 default_f_rad_x=5e6,
-                 default_split_start_curvature=1.e7,
-                 default_split_end_curvature=-1.e7,
-                 default_split_well_seperation=140e-6,
-                 default_split_positions=np.array([0.]),
-                 charge=1,
-                 mass=43):
+    def __init__(
+            self,
+            dmgr,
+            device,
+            default_electrode_override=None,
+            default_z_grid_override=None,
+            default_f_axial=1e6,
+            default_f_rad_x=5e6,
+            default_split_start_curvature=1.0e7,
+            default_split_end_curvature=-1.0e7,
+            default_split_well_seperation=140e-6,
+            default_split_positions=np.array([0.0]),
+            charge=1,
+            mass=43,
+    ):
         """
         :param dmgr: device manager
         :param device: name of SURF driver
@@ -90,10 +94,12 @@ class SURFMediator:
 
         electrodes and voltages are matched by index"""
         el_vec = tuple(el for el in el_vec)  # unpack into tuple
-        wave = Waveform(voltage_vec_list=[volt_vec],
-                        el_vec=el_vec,
-                        fixed_wells=[wells],
-                        wells_idx=[0])
+        wave = Waveform(
+            voltage_vec_list=[volt_vec],
+            el_vec=el_vec,
+            fixed_wells=[wells],
+            wells_idx=[0],
+        )
         return wave
 
     def concatenate(self, *waves):
@@ -124,8 +130,8 @@ class SURFMediator:
             electrodes = self.default_electrodes
         el_names = self.get_all_electrode_names()
 
-        assert set(electrodes).issubset(set(el_names)), \
-            "\n{}\n{}".format(set(electrodes), set(el_names))
+        assert set(electrodes).issubset(set(el_names)), "\n{}\n{}".format(
+            set(electrodes), set(el_names))
 
         if z_grid is None:
             z_grid = self.default_z_grid
@@ -134,7 +140,7 @@ class SURFMediator:
             "zs": z_grid,
             "electrodes": electrodes,
             "wells": wells._asdict(),
-            "static_settings": static_settings
+            "static_settings": static_settings,
         }
 
         v_vec, el_vec = self.driver.static(**param)
@@ -213,13 +219,15 @@ class SURFMediator:
                                     v_rf,
                                     force_reload=True)
 
-    def load_trap_model(self,
-                        trap_model_path=None,
-                        cache_path=None,
-                        omega_rf=None,
-                        mass=None,
-                        v_rf=None,
-                        force_reload=False):
+    def load_trap_model(
+        self,
+        trap_model_path=None,
+        cache_path=None,
+        omega_rf=None,
+        mass=None,
+        v_rf=None,
+        force_reload=False,
+    ):
         """Load the trap model caching and trap parameters.
 
         All parameters have sane defaults.
@@ -241,25 +249,27 @@ class SURFMediator:
         """
         if mass is not None:
             self.mass = mass
-        return self.driver.load_config(trap_model_path,
-                                       cache_path,
-                                       omega_rf,
-                                       self.mass,
-                                       v_rf,
-                                       force_reload=force_reload)
+        return self.driver.load_config(
+            trap_model_path,
+            cache_path,
+            omega_rf,
+            self.mass,
+            v_rf,
+            force_reload=force_reload,
+        )
 
     def get_new_waveform(self,
                          z,
                          f_axial=None,
                          f_rad_x=None,
                          width=5e-6,
-                         dphidx=0.,
-                         dphidy=0.,
-                         dphidz=0.,
-                         rx_axial=0.,
-                         ry_axial=0.,
-                         phi_radial=0.,
-                         d3phidz3=0.,
+                         dphidx=0.0,
+                         dphidy=0.0,
+                         dphidz=0.0,
+                         rx_axial=0.0,
+                         ry_axial=0.0,
+                         phi_radial=0.0,
+                         d3phidz3=0.0,
                          name=None,
                          *,
                          electrodes=None,
@@ -302,8 +312,20 @@ class SURFMediator:
             If `None` the default electrodes are used.
         :param z_grid: z-grid on which to perform optimisation. If `None` SURF
             will use the default grid."""
-        well = self._mk_wells(z, f_axial, f_rad_x, width, dphidx, dphidy, dphidz,
-                              rx_axial, ry_axial, phi_radial, d3phidz3, name)
+        well = self._mk_wells(
+            z,
+            f_axial,
+            f_rad_x,
+            width,
+            dphidx,
+            dphidy,
+            dphidz,
+            rx_axial,
+            ry_axial,
+            phi_radial,
+            d3phidz3,
+            name,
+        )
         volt, el = self._volt_from_wells(well, electrodes, z_grid)
         wave = self._mk_waveform(volt, el, well)
         return wave
@@ -316,7 +338,9 @@ class SURFMediator:
             the last well in the waveform"""
         return self._mk_waveform(
             old_waveform.voltage_vec_list[old_waveform.wells_idx[well_idx]],
-            old_waveform.el_vec, old_waveform.fixed_wells[well_idx])
+            old_waveform.el_vec,
+            old_waveform.fixed_wells[well_idx],
+        )
 
     def modify(self,
                change_dict,
@@ -346,8 +370,8 @@ class SURFMediator:
             electrodes = wave.el_vec
         el_names = wave.el_vec
 
-        assert set(electrodes).issubset(set(el_names)), \
-            "\n{}\n{}".format(set(electrodes), set(el_names))
+        assert set(electrodes).issubset(set(el_names)), "\n{}\n{}".format(
+            set(electrodes), set(el_names))
 
         if z_grid is None:
             z_grid = self.default_z_grid
@@ -385,7 +409,7 @@ class SURFMediator:
             "volt_start": start_volt_dict,
             "volt_end": end_volt_dict,
             "n_step": n_step,
-            "dynamic_settings": dynamic_settings
+            "dynamic_settings": dynamic_settings,
         }
 
         volt_evol, el_evol = self.driver.dynamic(**evol_param)
@@ -447,8 +471,8 @@ class SURFMediator:
             electrodes = wave.el_vec
         el_names = wave.el_vec
 
-        assert set(electrodes).issubset(set(el_names)), \
-            "\n{}\n{}".format(set(electrodes), set(el_names))
+        assert set(electrodes).issubset(set(el_names)), "\n{}\n{}".format(
+            set(electrodes), set(el_names))
 
         if z_grid is None:
             z_grid = self.default_z_grid
@@ -469,9 +493,9 @@ class SURFMediator:
 
         # determine a sensible initial and final split well
         scan_start = deepcopy(target_well)
-        scan_start.rx_axial[0] = 0.
-        scan_start.ry_axial[0] = 0.
-        scan_start.phi_radial[0] = 0.
+        scan_start.rx_axial[0] = 0.0
+        scan_start.ry_axial[0] = 0.0
+        scan_start.phi_radial[0] = 0.0
         if axial_tilt is not None:
             scan_start.dphidz[0] = axial_tilt
         scan_start.d2phidaxial2[0] = scan_curv_start
@@ -498,31 +522,35 @@ class SURFMediator:
             name if out_name0 is None else out_name0,
             (name + "_1") if out_name1 is None else out_name1,
         ]
-        split_wells = Wells(name=names,
-                            z=[
-                                target_well.z[0] - well_separation / 2,
-                                target_well.z[0] + well_separation / 2
-                            ],
-                            width=[target_well.width[0]] * 2,
-                            dphidx=[target_well.dphidx[0]] * 2,
-                            dphidy=[target_well.dphidy[0]] * 2,
-                            dphidz=[target_well.dphidz[0]] * 2,
-                            rx_axial=[target_well.rx_axial[0]] * 2,
-                            ry_axial=[target_well.ry_axial[0]] * 2,
-                            phi_radial=[target_well.phi_radial[0]] * 2,
-                            d2phidaxial2=[target_well.d2phidaxial2[0]] * 2,
-                            d3phidz3=[target_well.d3phidz3[0]] * 2,
-                            d2phidradial_h2=[target_well.d2phidradial_h2[0]] * 2)
+        split_wells = Wells(
+            name=names,
+            z=[
+                target_well.z[0] - well_separation / 2,
+                target_well.z[0] + well_separation / 2,
+            ],
+            width=[target_well.width[0]] * 2,
+            dphidx=[target_well.dphidx[0]] * 2,
+            dphidy=[target_well.dphidy[0]] * 2,
+            dphidz=[target_well.dphidz[0]] * 2,
+            rx_axial=[target_well.rx_axial[0]] * 2,
+            ry_axial=[target_well.ry_axial[0]] * 2,
+            phi_radial=[target_well.phi_radial[0]] * 2,
+            d2phidaxial2=[target_well.d2phidaxial2[0]] * 2,
+            d3phidz3=[target_well.d3phidz3[0]] * 2,
+            d2phidradial_h2=[target_well.d2phidradial_h2[0]] * 2,
+        )
 
         # new wells & voltage-set
         final_wells = Wells(*(spectators[i][:split_idx] + split_wells[i] +
                               spectators[i][split_idx:]
                               for i in range(len(split_wells))))
         # ToDo: may want to check if there is sufficient space
-        final_volt, final_el = self._volt_from_wells(final_wells,
-                                                     electrodes=wave.el_vec,
-                                                     z_grid=z_grid,
-                                                     static_settings=static_settings)
+        final_volt, final_el = self._volt_from_wells(
+            final_wells,
+            electrodes=wave.el_vec,
+            z_grid=z_grid,
+            static_settings=static_settings,
+        )
 
         # interpolate start and finish
         wave.voltage_vec_list.extend(
@@ -594,8 +622,8 @@ class SURFMediator:
             electrodes = wave.el_vec
         el_names = wave.el_vec
 
-        assert set(electrodes).issubset(set(el_names)), \
-            "\n{}\n{}".format(set(electrodes), set(el_names))
+        assert set(electrodes).issubset(set(el_names)), "\n{}\n{}".format(
+            set(electrodes), set(el_names))
 
         if z_grid is None:
             z_grid = self.default_z_grid
@@ -631,9 +659,9 @@ class SURFMediator:
             dphidx=[np.mean(target_well.dphidx)],
             dphidy=[np.mean(target_well.dphidy)],
             dphidz=[np.mean(target_well.dphidz) if axial_tilt is None else axial_tilt],
-            rx_axial=[0.],
-            ry_axial=[0.],
-            phi_radial=[0.],
+            rx_axial=[0.0],
+            ry_axial=[0.0],
+            phi_radial=[0.0],
             d2phidaxial2=[scan_curv_start],
             d3phidz3=[np.mean(target_well.d3phidz3)],
             d2phidradial_h2=[np.mean(target_well.d2phidradial_h2)],
@@ -681,10 +709,12 @@ class SURFMediator:
                               for i in range(len(merged_well))))
 
         # ToDo: may want to check if wells cross other wells.
-        final_volt, final_el = self._volt_from_wells(final_wells,
-                                                     electrodes=wave.el_vec,
-                                                     z_grid=z_grid,
-                                                     static_settings=static_settings)
+        final_volt, final_el = self._volt_from_wells(
+            final_wells,
+            electrodes=wave.el_vec,
+            z_grid=z_grid,
+            static_settings=static_settings,
+        )
 
         # interpolate start and finish
         # use _poly_interpolate to achieve smoother ion acceleration
@@ -750,8 +780,8 @@ class SURFMediator:
             electrodes = wave.el_vec
         el_names = wave.el_vec
 
-        assert set(electrodes).issubset(set(el_names)), \
-            "\n{}\n{}".format(set(electrodes), set(el_names))
+        assert set(electrodes).issubset(set(el_names)), "\n{}\n{}".format(
+            set(electrodes), set(el_names))
 
         if z_grid is None:
             z_grid = self.default_z_grid
@@ -772,9 +802,9 @@ class SURFMediator:
         target_well = Wells(*([spectators[i].pop(split_idx)]
                               for i in range(len(spectators))))
         # determine a sensible initial split well
-        target_well.rx_axial[0] = 0.
-        target_well.ry_axial[0] = 0.
-        target_well.phi_radial[0] = 0.
+        target_well.rx_axial[0] = 0.0
+        target_well.ry_axial[0] = 0.0
+        target_well.phi_radial[0] = 0.0
         if axial_tilt is not None:
             target_well.dphidz[0] = axial_tilt
         target_well.d2phidaxial2[0] = curv_start
@@ -798,31 +828,35 @@ class SURFMediator:
             name if out_name0 is None else out_name0,
             (name + "_1") if out_name1 is None else out_name1,
         ]
-        split_wells = Wells(name=names,
-                            z=[
-                                target_well.z[0] - well_separation / 2,
-                                target_well.z[0] + well_separation / 2
-                            ],
-                            width=[target_well.width[0]] * 2,
-                            dphidx=[target_well.dphidx[0]] * 2,
-                            dphidy=[target_well.dphidy[0]] * 2,
-                            dphidz=[target_well.dphidz[0]] * 2,
-                            rx_axial=[target_well.rx_axial[0]] * 2,
-                            ry_axial=[target_well.ry_axial[0]] * 2,
-                            phi_radial=[target_well.phi_radial[0]] * 2,
-                            d2phidaxial2=[target_well.d2phidaxial2[0]] * 2,
-                            d3phidz3=[target_well.d3phidz3[0]] * 2,
-                            d2phidradial_h2=[target_well.d2phidradial_h2[0]] * 2)
+        split_wells = Wells(
+            name=names,
+            z=[
+                target_well.z[0] - well_separation / 2,
+                target_well.z[0] + well_separation / 2,
+            ],
+            width=[target_well.width[0]] * 2,
+            dphidx=[target_well.dphidx[0]] * 2,
+            dphidy=[target_well.dphidy[0]] * 2,
+            dphidz=[target_well.dphidz[0]] * 2,
+            rx_axial=[target_well.rx_axial[0]] * 2,
+            ry_axial=[target_well.ry_axial[0]] * 2,
+            phi_radial=[target_well.phi_radial[0]] * 2,
+            d2phidaxial2=[target_well.d2phidaxial2[0]] * 2,
+            d3phidz3=[target_well.d3phidz3[0]] * 2,
+            d2phidradial_h2=[target_well.d2phidradial_h2[0]] * 2,
+        )
 
         # new wells & voltage-set
         final_wells = Wells(*(spectators[i][:split_idx] + split_wells[i] +
                               spectators[i][split_idx:]
                               for i in range(len(split_wells))))
         # ToDo: may want to check if there is sufficient space
-        final_volt, final_el = self._volt_from_wells(final_wells,
-                                                     electrodes=wave.el_vec,
-                                                     z_grid=z_grid,
-                                                     static_settings=static_settings)
+        final_volt, final_el = self._volt_from_wells(
+            final_wells,
+            electrodes=wave.el_vec,
+            z_grid=z_grid,
+            static_settings=static_settings,
+        )
 
         # interpolate start and finish
         wave.voltage_vec_list.extend(
@@ -895,8 +929,8 @@ class SURFMediator:
             electrodes = wave.el_vec
         el_names = wave.el_vec
 
-        assert set(electrodes).issubset(set(el_names)), \
-            "\n{}\n{}".format(set(electrodes), set(el_names))
+        assert set(electrodes).issubset(set(el_names)), "\n{}\n{}".format(
+            set(electrodes), set(el_names))
 
         if z_grid is None:
             z_grid = self.default_z_grid
@@ -934,9 +968,9 @@ class SURFMediator:
             dphidx=[np.mean(target_well.dphidx)],
             dphidy=[np.mean(target_well.dphidy)],
             dphidz=[np.mean(target_well.dphidz) if axial_tilt is None else axial_tilt],
-            rx_axial=[0.],
-            ry_axial=[0.],
-            phi_radial=[0.],
+            rx_axial=[0.0],
+            ry_axial=[0.0],
+            phi_radial=[0.0],
             d2phidaxial2=[curv_start],
             d3phidz3=[np.mean(target_well.d3phidz3)],
             d2phidradial_h2=[np.mean(target_well.d2phidradial_h2)],
@@ -982,10 +1016,12 @@ class SURFMediator:
                               for i in range(len(merged_well))))
 
         # ToDo: may want to check if wells cross other wells.
-        final_volt, final_el = self._volt_from_wells(final_wells,
-                                                     electrodes=wave.el_vec,
-                                                     z_grid=z_grid,
-                                                     static_settings=static_settings)
+        final_volt, final_el = self._volt_from_wells(
+            final_wells,
+            electrodes=wave.el_vec,
+            z_grid=z_grid,
+            static_settings=static_settings,
+        )
 
         # interpolate start and finish
         # use _poly_interpolate to achieve smoother ion acceleration
@@ -1093,19 +1129,21 @@ class SURFMediator:
         q = self.charge * const("atomic unit of charge")
         return (q / (eps_4pi * field_curvature))**(1 / 3)
 
-    def _mk_wells(self,
-                  z,
-                  f_axial=None,
-                  f_rad_x=None,
-                  width=5e-6,
-                  dphidx=0.,
-                  dphidy=0.,
-                  dphidz=0.,
-                  rx_axial=0.,
-                  ry_axial=0.,
-                  phi_radial=0.,
-                  d3phidz3=0.,
-                  name=None):
+    def _mk_wells(
+        self,
+        z,
+        f_axial=None,
+        f_rad_x=None,
+        width=5e-6,
+        dphidx=0.0,
+        dphidy=0.0,
+        dphidz=0.0,
+        rx_axial=0.0,
+        ry_axial=0.0,
+        phi_radial=0.0,
+        d3phidz3=0.0,
+        name=None,
+    ):
         """Wells should be specified as parameter iterables of equal length.
 
         Each well is identified by its index within parameter lists. An
@@ -1181,5 +1219,17 @@ class SURFMediator:
         else:
             [n if n is not None else str(i) for i, n in enumerate(name)]
 
-        return Wells(name, z, width, dphidx, dphidy, dphidz, rx_axial, ry_axial,
-                     phi_radial, d2phidaxial2, d3phidz3, d2phidradial_h2)
+        return Wells(
+            name,
+            z,
+            width,
+            dphidx,
+            dphidy,
+            dphidz,
+            rx_axial,
+            ry_axial,
+            phi_radial,
+            d2phidaxial2,
+            d3phidz3,
+            d2phidradial_h2,
+        )

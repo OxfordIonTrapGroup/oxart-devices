@@ -1,4 +1,4 @@
-""" Driver for current stabilizer """
+"""Driver for current stabilizer"""
 
 from collections import OrderedDict
 import asyncio
@@ -22,7 +22,7 @@ class IIR:
 
     def __init__(self):
         self.ba = np.zeros(5, np.float32)
-        self.y_offset = 0.
+        self.y_offset = 0.0
         self.y_min = -self.full_scale - 1
         self.y_max = self.full_scale
 
@@ -34,29 +34,29 @@ class IIR:
         iir["y_max"] = self.y_max
         return iir
 
-    def configure_pi(self, kp, ki, g=0.):
+    def configure_pi(self, kp, ki, g=0.0):
         ki = np.copysign(ki, kp) * self.t_update * 2
         g = np.copysign(g, kp)
         eps = np.finfo(np.float32).eps
         if abs(ki) < eps:
-            a1, b0, b1 = 0., kp, 0.
+            a1, b0, b1 = 0.0, kp, 0.0
         else:
             if abs(g) < eps:
-                c = 1.
+                c = 1.0
             else:
-                c = 1. / (1. + ki / g)
-            a1 = 2 * c - 1.
+                c = 1.0 / (1.0 + ki / g)
+            a1 = 2 * c - 1.0
             b0 = ki * c + kp
             b1 = ki * c - a1 * kp
             if abs(b0 + b1) < eps:
                 raise ValueError("low integrator gain and/or gain limit")
         self.ba[0] = b0
         self.ba[1] = b1
-        self.ba[2] = 0.
+        self.ba[2] = 0.0
         self.ba[3] = a1
-        self.ba[4] = 0.
+        self.ba[4] = 0.0
 
-    def configure_biquad(self, zeros, poles, gain=1.):
+    def configure_biquad(self, zeros, poles, gain=1.0):
         """Calulate biquad iir filter coeficents
         The function constructs the iir coeficents for a transfer function with
         desired zeros and poles.
@@ -70,18 +70,18 @@ class IIR:
         def get_polynomial_coefs(factors):
             "convert factors to coeficents"
             if len(factors) == 0:
-                return [1., 0., 0.]
+                return [1.0, 0.0, 0.0]
             elif len(factors) == 1:
-                if factors[0] != 0.:
-                    return [1., 1. / factors[0], 0.]
+                if factors[0] != 0.0:
+                    return [1.0, 1.0 / factors[0], 0.0]
                 else:
-                    return [0., 1., 0.]
+                    return [0.0, 1.0, 0.0]
             elif len(factors) == 2:
                 div = factors[0] * factors[1]
-                if div == 0.:
-                    return [0., factors[0] + factors[1], 1.]
+                if div == 0.0:
+                    return [0.0, factors[0] + factors[1], 1.0]
                 else:
-                    return [1., (factors[0] + factors[1]) / div, 1. / div]
+                    return [1.0, (factors[0] + factors[1]) / div, 1.0 / div]
             else:
                 raise ValueError("Invalid number of factors")
 
@@ -125,7 +125,7 @@ class IIR:
 
 
 class CPU_DAC:
-    full_scale = 0xfff
+    full_scale = 0xFFF
     cpu_dac_range = 48  # mA
     conversion_factor = full_scale / cpu_dac_range
 
@@ -148,13 +148,13 @@ class CPU_DAC:
 
 
 class GPIO_HDR_SPI:
-    full_scale = 0xffff
+    full_scale = 0xFFFF
     cpu_dac_range = 250  # mA
     conversion_factor = full_scale / cpu_dac_range
 
     def set_gpio_hdr(self, gpio_hdr_word):
-        assert gpio_hdr_word >= 0 and gpio_hdr_word <= 0xffff, \
-            "GPIO_HDR_SPI setting out of range"
+        assert (gpio_hdr_word >= 0
+                and gpio_hdr_word <= 0xFFFF), "GPIO_HDR_SPI setting out of range"
         self.gpio_hdr_word = math.ceil(gpio_hdr_word * self.conversion_factor)
 
 
@@ -191,7 +191,9 @@ async def exchange_json(connection, request):
     except asyncio.TimeoutError:
         logger.exception(
             "Stabilizer failed to respond within %s seconds "
-            "(firmware possibly crashed); exiting.", TIMEOUT)
+            "(firmware possibly crashed); exiting.",
+            TIMEOUT,
+        )
         sys.exit(1)
     except ConnectionResetError:
         logger.exception("Connection to Stabilizer lost; exiting.")
@@ -204,15 +206,21 @@ async def exchange_json(connection, request):
 
 
 async def set_feedback(connection, channel, iir, dac, gpio_hdr):
-    up = OrderedDict([("channel", channel), ("iir", iir.as_dict()),
-                      ("cpu_dac", dac.as_dict()),
-                      ("gpio_hdr_spi", gpio_hdr.gpio_hdr_word)])
+    up = OrderedDict([
+        ("channel", channel),
+        ("iir", iir.as_dict()),
+        ("cpu_dac", dac.as_dict()),
+        ("gpio_hdr_spi", gpio_hdr.gpio_hdr_word),
+    ])
     return await exchange_json(connection, up)
 
 
 async def set_feedforward(connection, ff):
-    msg = OrderedDict([("sin_amplitudes", ff.sin_amps), ("cos_amplitudes", ff.cos_amps),
-                       ("offset", ff.offset)])
+    msg = OrderedDict([
+        ("sin_amplitudes", ff.sin_amps),
+        ("cos_amplitudes", ff.cos_amps),
+        ("offset", ff.offset),
+    ])
     return await exchange_json(connection, msg)
 
 
@@ -237,12 +245,14 @@ class Stabilizer:
     def ping(self):
         return True
 
-    async def set_feedback(self,
-                           frontend_offset=250,
-                           proportional_gain=1,
-                           integral_gain=0,
-                           feedback_offset=0,
-                           channel_offset=0):
+    async def set_feedback(
+        self,
+        frontend_offset=250,
+        proportional_gain=1,
+        integral_gain=0,
+        feedback_offset=0,
+        channel_offset=0,
+    ):
         d = CPU_DAC()
         d.set_out(feedback_offset)
         d.set_en(True)
@@ -255,13 +265,15 @@ class Stabilizer:
         assert self.channel in range(2)
         await set_feedback(self.fb_connection, self.channel, i, d, g)
 
-    async def set_feedback_biquad(self,
-                                  frontend_offset=250,
-                                  zeros=[],
-                                  poles=[],
-                                  gain=1.,
-                                  feedback_offset=0,
-                                  channel_offset=0):
+    async def set_feedback_biquad(
+        self,
+        frontend_offset=250,
+        zeros=[],
+        poles=[],
+        gain=1.0,
+        feedback_offset=0,
+        channel_offset=0,
+    ):
         d = CPU_DAC()
         d.set_out(feedback_offset)
         d.set_en(True)

@@ -24,7 +24,7 @@ class HOA2Dac:
         self.sr_trap_freq = 1e6
 
     def write_raw_voltages(self, voltages):
-        assert (len(voltages) == N_CHANNELS)
+        assert len(voltages) == N_CHANNELS
         for ch, v in enumerate(voltages):
             self.dac.set_channel(v, ch=ch, update=False)
         self.dac.pulse_ldac()

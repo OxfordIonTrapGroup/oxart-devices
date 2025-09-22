@@ -18,18 +18,24 @@ parser = argparse.ArgumentParser(description="Booster hardware in the loop "
 parser.add_argument("--booster", help="IP address of the Booster to test")
 parser.add_argument("--synth", help="Address of the synth to use for tests")
 parser.add_argument("--meter", help="IP address of the power meter RPC server")
-parser.add_argument("--p_min",
-                    help="Minimum synth power to use, set to give ~25dBm "
-                    "output power",
-                    type=float)
-parser.add_argument("--p_max",
-                    help="Maximum synth power to use, set to give ~35dBm "
-                    "output power",
-                    type=float)
-parser.add_argument("--chan",
-                    help="Booster channel connected to synth + power meter",
-                    type=int,
-                    default=0)
+parser.add_argument(
+    "--p_min",
+    help="Minimum synth power to use, set to give ~25dBm "
+    "output power",
+    type=float,
+)
+parser.add_argument(
+    "--p_max",
+    help="Maximum synth power to use, set to give ~35dBm "
+    "output power",
+    type=float,
+)
+parser.add_argument(
+    "--chan",
+    help="Booster channel connected to synth + power meter",
+    type=int,
+    default=0,
+)
 args = None
 
 # python -m oxart.devices.booster.tests --booster "10.255.6.79" --synth
@@ -86,22 +92,38 @@ class TestBooster(unittest.TestCase):
 
             print("Channel {}...".format(channel))
             print("29V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
-                  "std {:.3f} mA".format(np.mean(I29V * 1e3), np.min(I29V * 1e3),
-                                         np.max(I29V * 1e3), np.std(I29V * 1e3)))
+                  "std {:.3f} mA".format(
+                      np.mean(I29V * 1e3),
+                      np.min(I29V * 1e3),
+                      np.max(I29V * 1e3),
+                      np.std(I29V * 1e3),
+                  ))
             print("6V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
-                  "std {:.3f} mA".format(np.mean(I6V * 1e3), np.min(I6V * 1e3),
-                                         np.max(I6V * 1e3), np.std(I6V * 1e3)))
+                  "std {:.3f} mA".format(
+                      np.mean(I6V * 1e3),
+                      np.min(I6V * 1e3),
+                      np.max(I6V * 1e3),
+                      np.std(I6V * 1e3),
+                  ))
 
         cls.I29V = np.mean(cls.I29V, axis=1)
         cls.I6V = np.mean(cls.I6V, axis=1)
 
         print("Global statistics:")
         print("29V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
-              "std {:.3f} mA".format(np.mean(cls.I29V * 1e3), np.min(cls.I29V * 1e3),
-                                     np.max(cls.I29V * 1e3), np.std(cls.I29V * 1e3)))
+              "std {:.3f} mA".format(
+                  np.mean(cls.I29V * 1e3),
+                  np.min(cls.I29V * 1e3),
+                  np.max(cls.I29V * 1e3),
+                  np.std(cls.I29V * 1e3),
+              ))
         print("6V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
-              "std {:.3f} mA".format(np.mean(cls.I6V * 1e3), np.min(cls.I6V * 1e3),
-                                     np.max(cls.I6V * 1e3), np.std(cls.I6V * 1e3)))
+              "std {:.3f} mA".format(
+                  np.mean(cls.I6V * 1e3),
+                  np.min(cls.I6V * 1e3),
+                  np.max(cls.I6V * 1e3),
+                  np.std(cls.I6V * 1e3),
+              ))
 
         # get baseline measurement of amplifier gain and detector accuracy
         cls.dev.set_interlock(args.chan, 37)
@@ -146,7 +168,7 @@ class TestBooster(unittest.TestCase):
         self.assertTrue(abs(a - b) < eps)
 
     def _cmd(self, cmd):
-        self.dev.dev.write((cmd + '\n').encode())
+        self.dev.dev.write((cmd + "\n").encode())
         resp = self.dev.dev.readline().decode().strip().lower()
         if "?" in cmd:
             return resp

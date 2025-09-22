@@ -17,10 +17,13 @@ def main():
     parser.add_argument(
         "--device-serial",
         required=True,
-        help="Kasli serial number (as passed to OpenOCD, e.g. kasli_105)")
-    parser.add_argument("--device-name",
-                        required=True,
-                        help="Logical Kasli name as used for InfluxDB tag")
+        help="Kasli serial number (as passed to OpenOCD, e.g. kasli_105)",
+    )
+    parser.add_argument(
+        "--device-name",
+        required=True,
+        help="Logical Kasli name as used for InfluxDB tag",
+    )
     parser.add_argument("--influx-server",
                         default="10.255.6.4",
                         help="InfluxDB server address")
@@ -56,7 +59,7 @@ def main():
         "fields": data,
         "tags": {
             "name": args.device_name
-        }
+        },
     }])
 
 

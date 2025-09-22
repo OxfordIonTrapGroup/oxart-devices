@@ -11,10 +11,12 @@ from oxart.devices.agilent_6671a.driver import Agilent6671A
 def get_argparser():
     parser = argparse.ArgumentParser(
         description="ARTIQ controller for Agilent 6671A PSU")
-    parser.add_argument("-d",
-                        "--device",
-                        default="gpib://socket://10.255.6.10:1234-0",
-                        help="hardware address of device")
+    parser.add_argument(
+        "-d",
+        "--device",
+        default="gpib://socket://10.255.6.10:1234-0",
+        help="hardware address of device",
+    )
     sca.simple_network_args(parser, 4310)
     sca.verbosity_args(parser)
 

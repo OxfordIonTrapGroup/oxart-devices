@@ -5,6 +5,7 @@ from oitg.imaging.roi_tools import *
 
 class CameraSetup(EnvExperiment):
     """Set camera parameters"""
+
     _camera_name = "camera"
 
     def build(self):
@@ -53,12 +54,14 @@ class CameraSetup(EnvExperiment):
         ddb = self.get_device_db()
         dev = ddb[self._camera_name]
 
-        self.ccb.issue("create_applet",
-                       "Camera",
-                       "${python} -m oxart.applets.camera_viewer "
-                       "--server " + dev["host"] + " "
-                       "--serial " + dev["target_name"],
-                       group="monitor")
+        self.ccb.issue(
+            "create_applet",
+            "Camera",
+            "${python} -m oxart.applets.camera_viewer "
+            "--server " + dev["host"] + " "
+            "--serial " + dev["target_name"],
+            group="monitor",
+        )
 
 
 class ChooseROI(EnvExperiment):
@@ -68,13 +71,11 @@ class ChooseROI(EnvExperiment):
         self.setattr_device("core")
         self.setattr_device("camera")
 
-        self.roi_length = \
-            self.get_argument("ROI length", NumberValue(50, ndecimals=0))
-        self.roi_width = \
-            self.get_argument("ROI width", NumberValue(50, ndecimals=0))
+        self.roi_length = self.get_argument("ROI length", NumberValue(50, ndecimals=0))
+        self.roi_width = self.get_argument("ROI width", NumberValue(50, ndecimals=0))
 
-        self.ion_signal_width = \
-            self.get_argument("Ion signal width", NumberValue(30, ndecimals=0))
+        self.ion_signal_width = self.get_argument("Ion signal width",
+                                                  NumberValue(30, ndecimals=0))
 
         self.set_default_scheduling(pipeline_name="camera")
 

@@ -87,14 +87,17 @@ class PiezoWrapper:
 
 class UnknownLogicalChannel(Exception):
     """Logical channel given not found in mappings dictionary"""
+
     pass
 
 
 class UnknownDeviceName(Exception):
     """Device name for given logical channel not found in devices list"""
+
     pass
 
 
 class NoSetpointError(Exception):
     """No setpoint available for a slow scan piezo, needs calibration"""
+
     pass

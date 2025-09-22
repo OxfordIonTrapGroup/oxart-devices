@@ -16,7 +16,8 @@ def get_argparser():
     parser.add_argument(
         "-d",
         "--device",
-        help="VISA address (e.g. 'USB0::0x2A8D::0x1787::CN58454180::0::INSTR')")
+        help="VISA address (e.g. 'USB0::0x2A8D::0x1787::CN58454180::0::INSTR')",
+    )
 
     sca.simple_network_args(parser, 4301)
     sca.verbosity_args(parser)

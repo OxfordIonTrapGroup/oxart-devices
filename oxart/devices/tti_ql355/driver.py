@@ -23,7 +23,7 @@ class QL355:
         self._purge()
         assert self.ping()
 
-        ident = self.identify().split(',')
+        ident = self.identify().split(",")
         if ident[1].strip() == "QL355P":
             self.type = PsuType.QL355P
         elif ident[1].strip() == "QL355TP":
@@ -38,7 +38,7 @@ class QL355:
         to return, see aqctl_tti_ql355.
         """
         # Send a carriage return to clear the controller's input buffer
-        self.stream.write('\r'.encode())
+        self.stream.write("\r".encode())
         # Read any old gibberish from input until a timeout occurs
         while self.stream.read() != b"":
             pass
@@ -126,9 +126,8 @@ class QL355:
         return self.stream.readline().decode()
 
     def ping(self):
-        """ Returns True if we are connected to a PSU, otherwise returns False.
-        """
-        ident = self.identify().split(',')
+        """Returns True if we are connected to a PSU, otherwise returns False."""
+        ident = self.identify().split(",")
         if ident[0] not in ["THURLBY-THANDAR", "THURLBY THANDAR"]:
             return False
         if ident[1].strip() not in ["QL355P", "QL355TP"]:

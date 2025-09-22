@@ -1,19 +1,20 @@
 """
 Constants for use with IPCMini ion pump controller
 """
+
 import numpy as np
 
-stx = b'\x02'
-etx = b'\x03'
-read = b'\x30'
-write = b'\x31'
-addr = b'\x80'
+stx = b"\x02"
+etx = b"\x03"
+read = b"\x30"
+write = b"\x31"
+addr = b"\x80"
 
-ack = b'\x06'
-nack = b'\x15'
-win_unknown = b'\x32'
-data_error = b'\x33'  # wrong type or out of range
-win_disabled = b'\x35'
+ack = b"\x06"
+nack = b"\x15"
+win_unknown = b"\x32"
+data_error = b"\x33"  # wrong type or out of range
+win_disabled = b"\x35"
 
 
 def calculate_crc(bytes_):
@@ -31,7 +32,7 @@ def encode_write(win, data):
 
 
 def encode_message(win, com, data=None):
-    msg = addr + '{:03}'.format(win).encode() + com
+    msg = addr + "{:03}".format(win).encode() + com
     if data is not None:
         msg += data
     msg += etx
@@ -93,7 +94,7 @@ windows = {
     "mode": {
         "win": 8,
         "type": "N",
-        "docstring": "mode, allowed values are Serial/Remote/Local/LAN"
+        "docstring": "mode, allowed values are Serial/Remote/Local/LAN",
     },
     "hv_enable": {
         "win": 11,
@@ -102,7 +103,7 @@ windows = {
     "baud_rate": {
         "win": 108,
         "type": "N",
-        "docstring": "baud rate, allowed values are 1200/2400/4800/9600"
+        "docstring": "baud rate, allowed values are 1200/2400/4800/9600",
     },
     "status": {
         "win": 205,
@@ -133,7 +134,7 @@ windows = {
     "pressure_units": {
         "win": 600,
         "type": "N",
-        "docstring": "pressure units, allowed values are Torr/mbar/Pa"
+        "docstring": "pressure units, allowed values are Torr/mbar/Pa",
     },
     "autostart": {
         "win": 601,
@@ -158,17 +159,17 @@ windows = {
     "v_target": {
         "win": 613,
         "type": "N",
-        "docstring": "target voltage from 3000-7000 V"
+        "docstring": "target voltage from 3000-7000 V",
     },
     "i_protect": {
         "win": 614,
         "type": "N",
-        "docstring": "protection current in uA from 1-10000 in integer steps"
+        "docstring": "protection current in uA from 1-10000 in integer steps",
     },
     "setpoint": {
         "win": 615,
         "type": "A",
-        "docstring": "pressure setpoint in <pressure_units>"
+        "docstring": "pressure setpoint in <pressure_units>",
     },
     "temp_power": {
         "win": 800,
@@ -234,7 +235,7 @@ lookups = {
         32: "Interlock Cable",
         64: "Short Circuit",
         128: "Protect",
-    }
+    },
 }
 reverse_lookups = {
     name: {

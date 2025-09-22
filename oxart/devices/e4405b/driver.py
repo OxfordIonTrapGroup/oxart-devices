@@ -1,4 +1,4 @@
-""" Driver for E4405B spectrum analysers """
+"""Driver for E4405B spectrum analysers"""
 
 import numpy as np
 
@@ -23,18 +23,18 @@ class E4405B:
     def close(self):
         self.stream.close()
 
-    def find_peak(self, f0, freq, power, window=5.):
-        """ Returns the index of the point with the highest power in the
-        frequency range [f0-window/2.0, f0+window/2.0]. """
+    def find_peak(self, f0, freq, power, window=5.0):
+        """Returns the index of the point with the highest power in the
+        frequency range [f0-window/2.0, f0+window/2.0]."""
 
-        lower_idx = np.argmin(np.abs(freq - (f0 - window / 2.)))
-        upper_idx = np.argmin(np.abs(freq - (f0 + window / 2.)))
+        lower_idx = np.argmin(np.abs(freq - (f0 - window / 2.0)))
+        upper_idx = np.argmin(np.abs(freq - (f0 + window / 2.0)))
 
         peak = np.argmax(power[lower_idx:(upper_idx + 1)]) + lower_idx
         return peak
 
     def get_sweep_axis(self):
-        """ Returns a numpy array with the current frequency axis. """
+        """Returns a numpy array with the current frequency axis."""
         pts = self.get_sweep_pts()
         start = self.get_sweep_start()
         stop = self.get_sweep_stop()
@@ -46,58 +46,58 @@ class E4405B:
             return np.round(np.logspace(np.log10(start), np.log10(stop), pts))
 
     def set_sweep_span(self, span):
-        """ Sets the frequency span in Hz. """
+        """Sets the frequency span in Hz."""
         self.stream.write("FREQ:SPAN {}\n".format(span).encode())
 
     def get_sweep_span(self):
-        """ Returns the frequency span in Hz. """
+        """Returns the frequency span in Hz."""
         self.stream.write("FREQ:SPAN?\n".encode())
         return float(self.stream.readline().decode())
 
     def set_sweep_start(self, start):
-        """ Sets the frequency sweep start in Hz. """
+        """Sets the frequency sweep start in Hz."""
         self.stream.write("FREQ:START {}\n".format(start).encode())
 
     def get_sweep_start(self):
-        """ Returns the frequency sweep start in Hz. """
+        """Returns the frequency sweep start in Hz."""
         self.stream.write("FREQ:START?\n".encode())
         return float(self.stream.readline().decode())
 
     def set_sweep_stop(self, stop):
-        """ Sets the frequency sweep stop in Hz. """
+        """Sets the frequency sweep stop in Hz."""
         self.stream.write("FREQ:STOP {}\n".format(stop).encode())
 
     def get_sweep_stop(self):
-        """ Returns the frequency sweep stop in Hz. """
+        """Returns the frequency sweep stop in Hz."""
         self.stream.write("FREQ:STOP?\n".encode())
         return float(self.stream.readline().decode())
 
     def set_sweep_centre(self, centre):
-        """ Sets the frequency sweep centre in Hz. """
+        """Sets the frequency sweep centre in Hz."""
         self.stream.write("FREQ:CENTER {}\n".format(centre).encode())
 
     def get_sweep_centre(self):
-        """ Returns the frequency sweep centre in Hz. """
+        """Returns the frequency sweep centre in Hz."""
         self.stream.write("FREQ:CENTER?\n".encode())
         return float(self.stream.readline().decode())
 
     def set_sweep_pts(self, pts):
-        """ Sets the number of points in the sweep. """
+        """Sets the number of points in the sweep."""
         self.stream.write("SWEEP:POINTS {:d}\n".format(pts).encode())
 
     def get_sweep_pts(self):
-        """ Returns the number of points in the sweep. """
+        """Returns the number of points in the sweep."""
         self.stream.write("SWEEP:POINTS?\n".encode())
         return int(self.stream.readline().decode())
 
     def set_sweep_scale(self, scale):
-        """ Sets the frequency scale to either "lin" or "log"."""
+        """Sets the frequency scale to either "lin" or "log"."""
         if not scale.lower() in ["lin", "log"]:
             raise ValueError("Unrecognised fr equency scale.")
         self.stream.write("SWEEP:SPACING {}\n".format(scale.upper()).encode())
 
     def get_sweep_scale(self):
-        """ Returns either "lin" or "log". """
+        """Returns either "lin" or "log"."""
         self.stream.write("SWEEP:SPACING?\n".encode())
         return self.stream.readline().decode().lower().strip()
 
@@ -112,13 +112,13 @@ class E4405B:
         return self.stream.readline().decode().lower().strip()
 
     def auto_bandwidth(self, select):
-        '''Couples the resolution bandwidth to the frequency span.
-        Select either 0, 1 for False/True'''
+        """Couples the resolution bandwidth to the frequency span.
+        Select either 0, 1 for False/True"""
         self.stream.write("BANDWIDTH:AUTO {}\n".format(select).encode())
         return self.stream.readline().decode().lower().strip()
 
     def get_trace(self):
-        """ Returns the current trace in the amplitude units.  """
+        """Returns the current trace in the amplitude units."""
         self.stream.write(":TRACE? TRACE1\n".encode())
         return np.array(
-            [float(pt) for pt in self.stream.readline().decode().split(',')])
+            [float(pt) for pt in self.stream.readline().decode().split(",")])

@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 def get_argparser():
     parser = argparse.ArgumentParser(
         description="Cryogenics logger",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     parser.add_argument("-p",
                         "--poll-time",
                         help="time between measurements (s)",
@@ -40,10 +41,12 @@ def main():
         try:
             time.sleep(args.poll_time)
 
-            influx = influxdb.InfluxDBClient(host="10.255.6.4",
-                                             database=args.database,
-                                             username="admin",
-                                             password="admin")
+            influx = influxdb.InfluxDBClient(
+                host="10.255.6.4",
+                database=args.database,
+                username="admin",
+                password="admin",
+            )
 
             flow_cont = Client(args.address, args.port, "BrooksMassFlowController4850")
             try:
@@ -55,7 +58,7 @@ def main():
             influx.write_points([{"measurement": "cryo_T", "fields": {"Flow": flow}}])
 
             logger.info("{} - Cryostat flow: {}".format(
-                datetime.now().strftime('%Y-%m-%d %H:%M:%S'), flow))
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"), flow))
 
         except Exception as err:
             logger.warning("{}".format(err))

@@ -14,10 +14,12 @@ def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller for Lake "
                                      "Shore Cryogenics model 335 temperature"
                                      "controllers")
-    parser.add_argument("-d",
-                        "--device",
-                        default="gpib://socket://10.255.6.189:1234-5",
-                        help="device's hardware address")
+    parser.add_argument(
+        "-d",
+        "--device",
+        default="gpib://socket://10.255.6.189:1234-5",
+        help="device's hardware address",
+    )
 
     sca.simple_network_args(parser, 4300)
     sca.verbosity_args(parser)

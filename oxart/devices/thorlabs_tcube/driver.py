@@ -163,8 +163,8 @@ class Message:
 
     def pack(self):
         if self.has_data:
-            return st.pack("<HHBB", self.id.value, len(self.data), self.dest | 0x80,
-                           self.src) + self.data
+            return (st.pack("<HHBB", self.id.value, len(self.data), self.dest | 0x80,
+                            self.src) + self.data)
         else:
             return st.pack("<HBBBB", self.id.value, self.param1, self.param2, self.dest,
                            self.src)
@@ -547,8 +547,19 @@ class Tpz(_Tcube):
             value in the cycle until the postcycle_rest time has expired.
         """
         # triggering is not supported by the TPZ device
-        payload = st.pack("<HHHLLLLHLH", 1, mode, cycle_length, num_cycles, delay_time,
-                          precycle_rest, postcycle_rest, 0, 0, 0)
+        payload = st.pack(
+            "<HHHLLLLHLH",
+            1,
+            mode,
+            cycle_length,
+            num_cycles,
+            delay_time,
+            precycle_rest,
+            postcycle_rest,
+            0,
+            0,
+            0,
+        )
         await self.send(Message(MGMSG.PZ_SET_OUTPUTLUTPARAMS, data=payload))
 
     async def get_output_lut_parameters(self):
@@ -925,8 +936,11 @@ class Tdc(_Tcube):
         <Tdc.set_move_relative_parameters>`
         command.
         """
-        await self.send_request(MGMSG.MOT_MOVE_RELATIVE,
-                                [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED], 1)
+        await self.send_request(
+            MGMSG.MOT_MOVE_RELATIVE,
+            [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
+            1,
+        )
 
     async def move_relative(self, relative_distance):
         """Start a relative move
@@ -934,9 +948,11 @@ class Tdc(_Tcube):
             counts.
         """
         payload = st.pack("<Hl", 1, relative_distance)
-        await self.send_request(MGMSG.MOT_MOVE_RELATIVE,
-                                [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
-                                data=payload)
+        await self.send_request(
+            MGMSG.MOT_MOVE_RELATIVE,
+            [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
+            data=payload,
+        )
 
     async def move_absolute_memory(self):
         """Start an absolute move of distance in the controller's memory.
@@ -945,9 +961,11 @@ class Tdc(_Tcube):
         <Tdc.set_move_absolute_parameters>`
         command.
         """
-        await self.send_request(MGMSG.MOT_MOVE_ABSOLUTE,
-                                [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
-                                param1=1)
+        await self.send_request(
+            MGMSG.MOT_MOVE_ABSOLUTE,
+            [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
+            param1=1,
+        )
 
     async def move_absolute(self, absolute_distance):
         """Start an absolute move.
@@ -956,18 +974,22 @@ class Tdc(_Tcube):
             counts.
         """
         payload = st.pack("<Hl", 1, absolute_distance)
-        await self.send_request(MGMSG.MOT_MOVE_ABSOLUTE,
-                                [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
-                                data=payload)
+        await self.send_request(
+            MGMSG.MOT_MOVE_ABSOLUTE,
+            [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
+            data=payload,
+        )
 
     async def move_jog(self, direction):
         """Start a jog move.
         :param direction: The direction to jog. 1 is forward, 2 is backward.
         """
-        await self.send_request(MGMSG.MOT_MOVE_JOG,
-                                [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
-                                param1=1,
-                                param2=direction)
+        await self.send_request(
+            MGMSG.MOT_MOVE_JOG,
+            [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
+            param1=1,
+            param2=direction,
+        )
 
     async def move_velocity(self, direction):
         """Start a move.
@@ -991,9 +1013,12 @@ class Tdc(_Tcube):
             to stop in a controlled (profiled) manner.
         """
         if await self.is_moving():
-            await self.send_request(MGMSG.MOT_MOVE_STOP,
-                                    [MGMSG.MOT_MOVE_STOPPED, MGMSG.MOT_MOVE_COMPLETED],
-                                    1, stop_mode)
+            await self.send_request(
+                MGMSG.MOT_MOVE_STOP,
+                [MGMSG.MOT_MOVE_STOPPED, MGMSG.MOT_MOVE_COMPLETED],
+                1,
+                stop_mode,
+            )
 
     async def set_dc_pid_parameters(self,
                                     proportional,
@@ -1013,8 +1038,15 @@ class Tdc(_Tcube):
             setting the corresponding bit to 1. By default, all parameters are
             applied, and this parameter is set to 0x0F (1111).
         """
-        payload = st.pack("<HLLLLH", 1, proportional, integral, differential,
-                          integral_limit, filter_control)
+        payload = st.pack(
+            "<HLLLLH",
+            1,
+            proportional,
+            integral,
+            differential,
+            integral_limit,
+            filter_control,
+        )
         await self.send(Message(MGMSG.MOT_SET_DCPIDPARAMS, data=payload))
 
     async def get_dc_pid_parameters(self):
@@ -1140,7 +1172,7 @@ class Tdc(_Tcube):
             <Tpz.set_tpz_io_settings>`
             method.
         """
-        volt = int(voltage * 32767 / 150.)
+        volt = int(voltage * 32767 / 150.0)
         payload = st.pack("<HH", 1, volt)
         await self.send(Message(MGMSG.PZ_SET_OUTPUTVOLTS, data=payload))
 
@@ -1244,8 +1276,14 @@ class TpzSim:
         self.postcycle_rest = postcycle_rest
 
     def get_output_lut_parameters(self):
-        return (self.mode, self.cycle_length, self.num_cycles, self.delay_time,
-                self.precycle_rest, self.postcycle_rest)
+        return (
+            self.mode,
+            self.cycle_length,
+            self.num_cycles,
+            self.delay_time,
+            self.precycle_rest,
+            self.postcycle_rest,
+        )
 
     def start_lut_output(self):
         pass
@@ -1291,8 +1329,16 @@ class TdcSim:
         self.vel4 = vel4
 
     def get_pot_parameters(self):
-        return (self.zero_wnd, self.vel1, self.wnd1, self.vel2, self.wnd2, self.vel3,
-                self.wnd3, self.vel4)
+        return (
+            self.zero_wnd,
+            self.vel1,
+            self.wnd1,
+            self.vel2,
+            self.wnd2,
+            self.vel3,
+            self.wnd3,
+            self.vel4,
+        )
 
     def hub_get_bay_used(self):
         return False
@@ -1325,8 +1371,13 @@ class TdcSim:
         self.stop_mode = stop_mode
 
     def get_jog_parameters(self):
-        return (self.jog_mode, self.step_size, self.acceleration, self.max_velocity,
-                self.stop_mode)
+        return (
+            self.jog_mode,
+            self.step_size,
+            self.acceleration,
+            self.max_velocity,
+            self.stop_mode,
+        )
 
     def set_gen_move_parameters(self, backlash_distance):
         self.backlash_distance = backlash_distance
@@ -1396,8 +1447,13 @@ class TdcSim:
         self.filter_control = filter_control
 
     def get_dc_pid_parameters(self):
-        return (self.proportional, self.integral, self.differential,
-                self.integral_limit, self.filter_control)
+        return (
+            self.proportional,
+            self.integral,
+            self.differential,
+            self.integral_limit,
+            self.filter_control,
+        )
 
     def set_av_modes(self, mode_bits):
         self.mode_bits = mode_bits

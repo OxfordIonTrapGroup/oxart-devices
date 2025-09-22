@@ -20,7 +20,7 @@ def main():
 
     dev = PicomotorController(args.device)
     try:
-        simple_server_loop({'picomotorController': dev},
+        simple_server_loop({"picomotorController": dev},
                            sca.bind_address_from_args(args), args.port)
     finally:
         dev.close()

@@ -5,9 +5,18 @@ import time
 
 logger = logging.getLogger(__name__)
 
-StateType = Enum("StateType", [
-    "NotReferenced", "Configuration", "Moving", "Stepping", "Ready", "Disable", "Other"
-])
+StateType = Enum(
+    "StateType",
+    [
+        "NotReferenced",
+        "Configuration",
+        "Moving",
+        "Stepping",
+        "Ready",
+        "Disable",
+        "Other",
+    ],
+)
 
 
 class ConexMirror:
@@ -33,10 +42,10 @@ class ConexMirror:
 
     def _read_line(self):
         """Read a CR terminated line. Returns '' on timeout"""
-        s = ''
-        while len(s) == 0 or s[-1] != '\r':
+        s = ""
+        while len(s) == 0 or s[-1] != "\r":
             c = self.port.read().decode()
-            if c == '':  # Timeout
+            if c == "":  # Timeout
                 break
             s += c
             return s
@@ -44,8 +53,8 @@ class ConexMirror:
     def home(self):
         """Go to home position - required after reset of controller before any other
         operation. If blocking, do not return until homing complete"""
-        self.set_position('U', 0)
-        self.set_position('V', 0)
+        self.set_position("U", 0)
+        self.set_position("V", 0)
 
     def set_position(self, ax, pos, absolute=True, blocking=True):
         """Go to a position. If blocking, do no return until the stage has stopped
@@ -102,6 +111,6 @@ class ConexMirror:
             st = StateType.Ready
         elif state_code in ["3c", "3d"]:
             st = StateType.Disable
-        elif state_code == '46':
+        elif state_code == "46":
             st = StateType.Jogging
         return st

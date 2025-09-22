@@ -12,12 +12,14 @@ def get_argparser():
         description="ARTIQ controller for the "
         "Thorlabs MDT693B or MDT694B 3 (1) channel open-loop piezo controller")
     sca.simple_network_args(parser, 4002)
-    parser.add_argument("-d",
-                        "--device",
-                        default=None,
-                        required=True,
-                        help="serial device. See documentation for how to "
-                        "specify a USB Serial Number.")
+    parser.add_argument(
+        "-d",
+        "--device",
+        default=None,
+        required=True,
+        help="serial device. See documentation for how to "
+        "specify a USB Serial Number.",
+    )
     sca.verbosity_args(parser)
     return parser
 

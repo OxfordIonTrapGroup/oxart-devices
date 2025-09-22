@@ -32,7 +32,7 @@ def write(client, booster_name, measurement, data):
         "fields": {
             "ch{}".format(idx): value
             for idx, value in enumerate(data)
-        }
+        },
     }
     try:
         client.write_points([point])
@@ -62,7 +62,7 @@ def main():
         "i_6V": "I6V",
         "5V0MP": "V5VMP",
         "pwr_tx": "output_power",
-        "pwr_rfl": "input_power"
+        "pwr_rfl": "input_power",
     }
 
     ind = 0

@@ -32,7 +32,7 @@ class ArduinoDAC:
 
     def _send_command(self, command):
         try:
-            self.port.write((command + '\n').encode())
+            self.port.write((command + "\n").encode())
         except serial.SerialTimeoutException:
             logger.exception("Serial write timeout: Force exit")
             # This is hacky but makes the server exit
@@ -41,11 +41,11 @@ class ArduinoDAC:
 
     def _read_line(self):
         """Read a CR terminated line. Returns '' on timeout"""
-        s = ''
-        while len(s) == 0 or s[-1] != '\n':
+        s = ""
+        while len(s) == 0 or s[-1] != "\n":
             c = self.port.read().decode()
-            if c == '':  # Timeout
-                raise Exception('Serial read timeout')
+            if c == "":  # Timeout
+                raise Exception("Serial read timeout")
             s += c
         return s
 
@@ -75,19 +75,19 @@ class ArduinoDAC:
         updated on execution of this command, or later with 'update'
         """
         if update:
-            command = 'VU'
+            command = "VU"
         else:
-            command = 'V'
+            command = "V"
 
         if not self._validate_channel_index(channel):
             raise Exception("Bad channel index: {}".format(channel))
 
-        command += ' {}'.format(channel)
+        command += " {}".format(channel)
 
         if not self._validate_voltage(voltage):
             raise Exception("Bad voltage: {}".format(voltage))
 
-        command += ' {:.4f}\n'.format(voltage)
+        command += " {:.4f}\n".format(voltage)
 
         self._send_command(command)
 
@@ -96,8 +96,7 @@ class ArduinoDAC:
         logger.info("Setting voltage channel {} to {}".format(channel, voltage))
 
     def get_voltage(self, channel):
-        """Reads the voltage on the given channel
-        """
+        """Reads the voltage on the given channel"""
 
         if not self._validate_channel_index(channel):
             raise Exception("Bad channel index: {}".format(channel))

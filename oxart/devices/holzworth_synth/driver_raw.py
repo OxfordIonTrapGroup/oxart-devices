@@ -5,7 +5,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-class HolzworthSynthRaw():
+class HolzworthSynthRaw:
     """Raw driver to communicate with the Holzworth Synthesiser using SCPI commands over
     USB"""
 
@@ -17,15 +17,15 @@ class HolzworthSynthRaw():
 
         self.serialnum = self.dll.getAttachedDevices()
 
-        if self.serialnum.decode() == '':
+        if self.serialnum.decode() == "":
             raise Exception("No devices connected")
 
         rc = self.dll.openDevice(self.serialnum)
-        assert (rc > 0)
+        assert rc > 0
 
         self.dll.usbCommWrite.restype = ctypes.c_char_p
 
-        self.suffix_dict = {'Hz': 0, 'kHz': 3, 'MHz': 6, 'GHz': 9}  # SI suffixes.
+        self.suffix_dict = {"Hz": 0, "kHz": 3, "MHz": 6, "GHz": 9}  # SI suffixes.
         self.exponent_dict = {
             v: k
             for k, v in self.suffix_dict.items()
@@ -36,13 +36,13 @@ class HolzworthSynthRaw():
         arguments or limits=0, and returns the maximum and minimum allowed frequency
         when called with limits=1 and limits =-1 respectively"""
 
-        limits_dict = {0: '', 1: ':MAX', -1: ':MIN'}
-        command = ctypes.c_char_p((':FREQ' + limits_dict[limits] + '?').encode())
+        limits_dict = {0: "", 1: ":MAX", -1: ":MIN"}
+        command = ctypes.c_char_p((":FREQ" + limits_dict[limits] + "?").encode())
 
         rx = self.dll.usbCommWrite(self.serialnum, command)
 
         freq_string = rx.decode()
-        assert (freq_string != 'Invalid Command')
+        assert freq_string != "Invalid Command"
         [value, suffix] = freq_string.strip().split()
 
         try:
@@ -62,28 +62,28 @@ class HolzworthSynthRaw():
 
         try:
             # rounding to 3 d.p. as otherwise synth can set to the wrong frequency.
-            freq_string = str(round(freq / (10**exponent),
-                                    exponent + 3)) + self.exponent_dict[exponent]
+            freq_string = (str(round(freq / (10**exponent), exponent + 3)) +
+                           self.exponent_dict[exponent])
         except KeyError as e:
             raise Exception('Invalid exponent"' + e.args[0] + '"')
 
-        command = ctypes.c_char_p((':FREQ:' + freq_string).encode())
+        command = ctypes.c_char_p((":FREQ:" + freq_string).encode())
         rx = self.dll.usbCommWrite(self.serialnum, command)
-        assert (rx.decode() == 'Frequency Set')
+        assert rx.decode() == "Frequency Set"
 
     def get_pow(self, limits=0):
         """Returns the current set power of the Holzworth synth when called without
         arguments or limits=0, and returns the maximum and minimum allowed frequency
         when called with limits=1 and limits =-1 respectively"""
-        limits_dict = {0: '', 1: ':MAX', -1: ':MIN'}
-        command = ctypes.c_char_p((':PWR' + limits_dict[limits] + '?').encode())
+        limits_dict = {0: "", 1: ":MAX", -1: ":MIN"}
+        command = ctypes.c_char_p((":PWR" + limits_dict[limits] + "?").encode())
 
         rx = self.dll.usbCommWrite(self.serialnum, command)
 
         pow_string = rx.decode()
-        assert (pow_string != 'Invalid Command')
+        assert pow_string != "Invalid Command"
 
-        power = float(pow_string.strip(' dBm'))
+        power = float(pow_string.strip(" dBm"))
         return round(power, 3)  # rounding as the synth reads to 3 d.p. precision
 
     def set_pow(self, power):
@@ -94,20 +94,20 @@ class HolzworthSynthRaw():
 
         pow_string = str(round(power, 2))
 
-        command = ctypes.c_char_p((':PWR:' + pow_string + 'dBm').encode())
+        command = ctypes.c_char_p((":PWR:" + pow_string + "dBm").encode())
         rx = self.dll.usbCommWrite(self.serialnum, command)
-        assert (rx.decode() == 'Power Set')
+        assert rx.decode() == "Power Set"
 
     def identity(self):
         """Retrieves the Manufacturer, Device Name, Board Number, Firmware Version,
         Instrument Serial Number"""
-        command = ctypes.c_char_p((':IDN?').encode())
+        command = ctypes.c_char_p((":IDN?").encode())
         rx = self.dll.usbCommWrite(self.serialnum, command)
         return rx.decode()
 
     def ping(self):
         """Needed to check connnection is alive"""
-        if self.identity() == '':
+        if self.identity() == "":
             raise Exception("No devices connected")
         return True
 
@@ -115,4 +115,4 @@ class HolzworthSynthRaw():
         """Closes connection to the Holzworth. Must be called when disconnecting else
         future connections may not work"""
         self.dll.close_all()
-        print('Connection to Holzworth synth closed safely')
+        print("Connection to Holzworth synth closed safely")

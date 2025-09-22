@@ -5,7 +5,7 @@ import numpy as np
 
 
 def to_nsd(data, t_axis):
-    """ Convert data from time domain to frequency domain with noise
+    """Convert data from time domain to frequency domain with noise
     spectral density units.
 
     Normalization ensures that rms(data) = sum()
@@ -24,23 +24,23 @@ def to_nsd(data, t_axis):
 
 
 class MSO_S:
-    """ Driver for Keysight MSO-S mixed-signal scopes """
+    """Driver for Keysight MSO-S mixed-signal scopes"""
 
     def __init__(self, ip):
         self.dev = serial.serial_for_url("socket://{}:5025".format(ip))
 
     def get_waveform(self):
-        """ Returns waveform data from the scope's memory.
+        """Returns waveform data from the scope's memory.
 
         Does not trigger a measurement (see the root-level ':RUN' and ':DIG'
         commands for that).
         """
         self.dev.write(":WAV:DATA?\n".encode())
-        return np.array(self.dev.readline().decode().strip('\n,\r ').split(','),
+        return np.array(self.dev.readline().decode().strip("\n,\r ").split(","),
                         dtype=np.float32)
 
     def get_x_axis(self):
-        """ Returns an x-axis with a given number of points """
+        """Returns an x-axis with a given number of points"""
         self.dev.write(":WAV:POIN?\n".encode())
         num_pts = int(self.dev.readline().decode().strip())
         self.dev.write(":WAV:XOR?\n".encode())

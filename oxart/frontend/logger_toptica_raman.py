@@ -34,7 +34,8 @@ def get_argparser():
         default=60,
         type=int,
         help="Time (seconds) between messages from device after which connection is " +
-        "considered faulty and program exits")
+        "considered faulty and program exits",
+    )
     return parser
 
 
@@ -65,7 +66,7 @@ def main():
             "amp-seed-power": "laser1:amp:pd:seed:power",
             "amp-power": "laser1:amp:pd:amp:power",
             "shg-temp-act": "laser1:nlo:shg:tc:temp-act",
-            "shg-power": "laser1:nlo:pd:shg:power"
+            "shg-power": "laser1:nlo:pd:shg:power",
         }
         msg = {key: None for key in parameters.keys()}
         logger.info("Connecting to DLC Pro...")

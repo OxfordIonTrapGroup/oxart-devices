@@ -19,7 +19,7 @@ class Brooks4850:
     """Brooks 4850 mass flow controller driver"""
 
     def __init__(self, address):
-        """ Connect to a Brookes flowmeter"""
+        """Connect to a Brookes flowmeter"""
         self.c = serial_for_url(address)
         # read in gas info from the device
         self.max_flow, self.gas_id, self.gas_density = self.read_gas_info()
@@ -58,7 +58,7 @@ class Brooks4850:
         n_bytes"""
         n_read = 0
         data = bytes()
-        while (n_read < n_bytes):
+        while n_read < n_bytes:
 
             new_data = self.c.read(n_bytes)
 
@@ -91,7 +91,7 @@ class Brooks4850:
         command, payload = self._read_response(4)
 
         flow = struct.unpack(">H", payload)[0]
-        real_flow = self.max_flow * flow / 10000.
+        real_flow = self.max_flow * flow / 10000.0
         return real_flow
 
     def read_temperature(self):
@@ -100,7 +100,7 @@ class Brooks4850:
         command, payload = self._read_response(4)
 
         adc_temp = struct.unpack(">H", payload)[0]
-        temperature = 100 * ((adc_temp / 65535.) - 1 + (5 / 6.))
+        temperature = 100 * ((adc_temp / 65535.0) - 1 + (5 / 6.0))
         return temperature
 
     def read_gas_info(self):
@@ -108,8 +108,7 @@ class Brooks4850:
         self._send_command(CMD_READ_GASINFO)
         command, payload = self._read_response(8)
 
-        max_flow, gas_id, gas_density = \
-            struct.unpack(">HHH", payload)
+        max_flow, gas_id, gas_density = struct.unpack(">HHH", payload)
 
         return max_flow, gas_id, gas_density
 
@@ -171,7 +170,7 @@ class Brooks4850:
         command, payload = self._read_response(4)
 
         setpoint_raw = struct.unpack(">H", payload)[0]
-        setpoint = self.max_flow * setpoint_raw / 65535.
+        setpoint = self.max_flow * setpoint_raw / 65535.0
 
         return setpoint
 
@@ -195,7 +194,7 @@ if __name__ == "__main__":
     print("Temperature (C) = ", t)
 
     flow = f.read_flow()
-    print("Flow rate (sccm) = ", flow * 100.)
+    print("Flow rate (sccm) = ", flow * 100.0)
 
     max_flow, gas_id, gas_density = f.read_gas_info()
     print("max_flow = ", max_flow)

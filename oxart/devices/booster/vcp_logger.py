@@ -82,7 +82,7 @@ def write_point(args, client, name, fields, tags={}):
         "tags": {
             "name": name,
         },
-        "fields": fields
+        "fields": fields,
     }
     for tag in tags:
         point["tags"][tag] = tags[tag]

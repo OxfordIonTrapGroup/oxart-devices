@@ -82,7 +82,7 @@ class Thermostat:
             chunk = self._socket.recv(4096)
             if not chunk:
                 return None
-            buf = self._lines[-1] + chunk.decode('utf-8', errors='ignore')
+            buf = self._lines[-1] + chunk.decode("utf-8", errors="ignore")
             self._lines = buf.split("\n")
 
         line = self._lines[0]
@@ -90,7 +90,7 @@ class Thermostat:
         return line
 
     def _command(self, *command):
-        self._socket.sendall((" ".join(command).strip() + "\n").encode('utf-8'))
+        self._socket.sendall((" ".join(command).strip() + "\n").encode("utf-8"))
 
         line = self._read_line()
         response = json.loads(line)
