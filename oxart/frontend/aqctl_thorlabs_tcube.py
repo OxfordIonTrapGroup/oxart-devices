@@ -5,7 +5,8 @@ import sys
 import os
 import asyncio
 
-from oxart.devices.thorlabs_tcube.driver import Tdc, Tpz, TdcSim, TpzSim
+from oxart.devices.thorlabs_tcube.driver import Tdc, Tpz, TdcSim, TpzSim, Kpc, KpcSim
+
 from sipyco.pc_rpc import simple_server_loop
 from sipyco import common_args
 
@@ -16,7 +17,7 @@ def get_argparser():
                         "--product",
                         required=True,
                         help="type of the Thorlabs T-Cube device to control: "
-                        "tdc001/tpz001")
+                        "tdc001/tpz001/kpc101")
     parser.add_argument("-d",
                         "--device",
                         default=None,
@@ -49,6 +50,8 @@ def main():
             dev = TdcSim()
         elif product == "tpz001":
             dev = TpzSim()
+        elif product == "kpc101":
+            dev = KpcSim()
         else:
             print("Invalid product string (-P/--product), "
                   "choose from tdc001 or tpz001")
@@ -60,6 +63,10 @@ def main():
             dev = Tpz(args.device)
             loop = asyncio.get_event_loop()
             loop.run_until_complete(dev.get_tpz_io_settings())
+        elif product == "kpc101":
+            dev = Kpc(args.device)
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(dev.get_kpc_io_settings())
         else:
             print("Invalid product string (-P/--product), "
                   "choose from tdc001 or tpz001")
