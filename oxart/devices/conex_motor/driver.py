@@ -44,11 +44,11 @@ class Conex:
             if s != StateType.Ready:
                 raise Exception("Controller in unexpected state {}".format(s))
 
-        # Can't write limits when not referenced, so store for later if stage is not homed
-        # yet. This is slightly unsatisfactory, as we duplicate hardware state, but we want
-        # to make it as hard as possible for the user accidentally to end up putting the stage
-        # to a position larger than the specified position_limit even if they manually need to
-        # home() first.
+        # Can't write limits when not referenced, so store for later if stage is not
+        # homed yet. This is slightly unsatisfactory, as we duplicate hardware state,
+        # but we want to make it as hard as possible for the user accidentally to end
+        # up putting the stage to a position larger than the specified position_limit
+        # even if they manually need to home() first.
         self._cached_lower_limit = 0
         if position_limit is None:
             # KLUDGE: Hard-coded limit for the linear micrometer motors we are using;
@@ -105,7 +105,7 @@ class Conex:
         return s
 
     def _execute_checked_command(self, command, delay_before_status_read=None):
-        """Execute the given response-less command, and check the hardware error 
+        """Execute the given response-less command, and check the hardware error
         status afterwards (raising a ConexError if not nominal).
         """
         self._send_command(command)
@@ -133,7 +133,7 @@ class Conex:
             self._execute_checked_command("PW0", delay_before_status_read=10.0)
 
     def _execute_query(self, command_name, suffix=""):
-        """Execute the given command and wait for the response, checking the response format."""
+        """Execute the given command and wait for the response, checking the format."""
         self._send_command(command_name + suffix)
         response = self._read_line()
         if response[:3] != f"{CHANNEL_IDX}{command_name}":
@@ -164,7 +164,7 @@ class Conex:
     def home(self):
         """Go to home position—required after reset of controller before any
         other operation.
-        
+
         Blocks until the operation is complete.
         """
         # 0: mech-zero + encoder index
@@ -176,7 +176,8 @@ class Conex:
                 ht = self._execute_query("HT", "?")
                 if ht != type:
                     logger.warning(
-                        f"Changing home type (in persistent storage) from {ht} to {type}"
+                        f"Changing home type (in persistent storage) from {ht} "
+                        f"to {type}"
                     )
                     self._execute_config_mode_command(f"HT{type}")
                 self._execute_checked_command("OR")
@@ -196,11 +197,11 @@ class Conex:
             # Always at least attempt to set limits.
             try:
                 self.set_lower_limit(self._cached_lower_limit)
-            except:
+            except Exception:
                 logger.exception("Failed to write lower limit")
             try:
                 self.set_upper_limit(self._cached_upper_limit)
-            except:
+            except Exception:
                 logger.exception("Failed to write upper limit")
 
     def set_position(self, pos, blocking=True):
@@ -247,8 +248,10 @@ class Conex:
             raise ValueError("Could not interpret responses '{}'".format(pos_str))
 
     def set_upper_limit(self, limit, persist=False):
-        """Set the upper limit.  
-        If persist=True, also write it into non-volatile memory (write endurance limited to ~100 cycles)."""
+        """Set the upper limit.
+        If persist=True, also write it into non-volatile memory
+        (write endurance limited to ~100 cycles).
+        """
         self._cached_upper_limit = limit
 
         # Use setpoint for check to avoid LSB fluctuations (e.g. around zero) causing
@@ -264,8 +267,10 @@ class Conex:
             self._execute_checked_command(cmd)
 
     def set_lower_limit(self, limit, persist=False):
-        """Set the lower limit.  
-        If persist=True, also write it into non-volatile memory (write endurance limited to ~100 cycles)."""
+        """Set the lower limit.
+        If persist=True, also write it into non-volatile memory
+        (write endurance limited to ~100 cycles).
+        """
         self._cached_lower_limit = limit
 
         # Use setpoint for check to avoid LSB fluctuations (e.g. around zero) causing
@@ -273,7 +278,8 @@ class Conex:
         curr_pos = self.get_position_setpoint()
         if limit > curr_pos:
             raise ValueError(
-                f"Requested lower limit {limit} mm outside range for current position {curr_pos} mm"
+                f"Requested lower limit {limit} mm outside range for"
+                f"current position {curr_pos} mm"
             )
         cmd = f"SL{limit}"
         if persist:
