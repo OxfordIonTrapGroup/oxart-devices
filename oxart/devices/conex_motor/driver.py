@@ -177,8 +177,7 @@ class Conex:
                 if ht != type:
                     logger.warning(
                         f"Changing home type (in persistent storage) from {ht} "
-                        f"to {type}"
-                    )
+                        f"to {type}")
                     self._execute_config_mode_command(f"HT{type}")
                 self._execute_checked_command("OR")
             except ConexError as e:
@@ -277,10 +276,8 @@ class Conex:
         # spurious failures.
         curr_pos = self.get_position_setpoint()
         if limit > curr_pos:
-            raise ValueError(
-                f"Requested lower limit {limit} mm outside range for"
-                f"current position {curr_pos} mm"
-            )
+            raise ValueError(f"Requested lower limit {limit} mm outside range for"
+                             f"current position {curr_pos} mm")
         cmd = f"SL{limit}"
         if persist:
             # run in config mode to write to flash
