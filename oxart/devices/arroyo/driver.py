@@ -88,7 +88,7 @@ class Arroyo:
 
         Only valid if photodiode responsivity has been configured.
         """
-        self._write(f"laser:mpd {power:.3f}")
+        self._write(f"laser:mdp {power:.3f}")
 
     def get_laser_pd_power(self):
         """Get actual laser photodiode power in mW
