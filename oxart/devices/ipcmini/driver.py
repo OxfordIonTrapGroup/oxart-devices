@@ -1,4 +1,9 @@
-import telnetlib
+import sys
+if sys.version_info.major <= 3 and sys.version_info.minor <= 12:
+    # telnetlib last in standard library in version 3.12
+    import telnetlib
+else:
+    import telnetlib3.telnetlib as telnetlib
 from . import constants as c
 
 
