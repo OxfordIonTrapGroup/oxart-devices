@@ -11,6 +11,7 @@ from llama.influxdb import aggregate_stats_default
 from llama.rpc import add_chunker_methods, run_simple_rpc_server
 from llama.channels import ChunkedChannel
 from oxart.devices.scpi_dmm.driver import ScpiDmm
+import datetime
 import logging
 import threading
 
@@ -49,9 +50,15 @@ def setup_interface(args, influx_pusher, loop):
 
     def poller_thread():
         while True:
-            device.initiate_measurement()
-            value = device.fetch_result()
-            loop.call_soon_threadsafe(lambda: channel.push(value))
+            value = device.measure()
+            if abs(value) > 1e9:
+                # The 34461A sporadically responds with b'+9.90000000E+37\n'; perhaps
+                # this is when the front panel would report "Overload". Avoid
+                # contaminating the data.
+                ts = datetime.datetime.now()
+                logger.warning(f"[{ts}] Ignoring nonsensical measurement: {value}")
+                continue
+            loop.call_soon_threadsafe(channel.push, value)
 
     threading.Thread(target=poller_thread, daemon=True).start()
 
