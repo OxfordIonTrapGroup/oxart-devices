@@ -128,9 +128,18 @@ class QL355:
     def ping(self):
         """ Returns True if we are connected to a PSU, otherwise returns False.
         """
-        ident = self.identify().split(',')
-        if ident[0] not in ["THURLBY-THANDAR", "THURLBY THANDAR"]:
-            return False
-        if ident[1].strip() not in ["QL355P", "QL355TP"]:
+        ident_raw = self.identify()
+        # Sometimes, a TTi QL355TP responded with an empty line instead of the
+        # ident string (?), but appears to recover afterwards. Give it a few
+        # attempts.
+        for attempt in range(5):
+            if attempt > 0:
+                logger.warning("Retrying identify()")
+            ident = ident_raw.split(',')
+            if (ident[0] in ["THURLBY-THANDAR", "THURLBY THANDAR"]
+                    and ident[1].strip() in ["QL355P", "QL355TP"]):
+                break
+            logger.warning("Received unexpected ident string: '%s'", ident_raw)
+        else:
             return False
         return True
