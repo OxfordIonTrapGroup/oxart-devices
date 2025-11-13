@@ -1,5 +1,6 @@
 """
-Generic driver for communicating with an MQTT broker beyond the stabilizer. Mostly wrapping gmqtt clients for convenience.
+Generic driver for communicating with an MQTT broker beyond the stabilizer.
+Mostly wrapping gmqtt clients for convenience.
 Requires `gmqtt`
 """
 # TODO: Unify with the existing driver in the previous file.
@@ -34,7 +35,10 @@ class NetworkAddress(NamedTuple):
         return ".".join(map(str, self.ip))
 
     def is_unspecified(self):
-        """Mirrors `smoltcp::wire::IpAddress::is_unspecified` in Rust for compatibility with stabilizer, for IPv4 addresses"""
+        """
+        Mirrors `smoltcp::wire::IpAddress::is_unspecified` in Rust for compatibility
+        with stabilizer, for IPv4 addresses
+        """
         return self.ip == [0, 0, 0, 0]
 
 
@@ -63,7 +67,7 @@ class MqttInterface:
             :Keyword Arguments:
                 * *will_message* (``gmqtt.Message``) -- Last will and testament message
                 * *timeout* (``float``) -- Connection timeout
-                * *maxsize* (``int``) -- Max number of mqtt requests awaiting a response.
+                * *maxsize* (``int``) -- Max number of mqtt requests awaiting response
                 * *kwargs* -- Additional keyword arguments to pass to the constructor
 
             :return: A new instance of MqttInterface
@@ -81,7 +85,8 @@ class MqttInterface:
         #: indexed by the sequence id we used as the MQTT correlation data.
         self._pending = dict[bytes, asyncio.Future]()
 
-        #: Use incrementing sequence id as correlation data to map responses to requests.
+        #: Use incrementing sequence id as correlation data to map
+        #: responses to requests.
         self._next_seq_id = 0
 
         self._timeout = 2.0
@@ -203,12 +208,14 @@ class MqttInterface:
 
     async def lookup_retained_topics(self, topics):
         """
-        Subscribes to given topics and checks if it gets a response within a short timeout window.
+        Subscribes to given topics and checks if it gets a response within a short
+        timeout window.
         """
         if not isinstance(topics, Iterable):
             topics = [topics]
 
-        full_topic = lambda topic: f"{self._topic_base}/{topic}"
+        def full_topic(topic):
+            return f"{self._topic_base}/{topic}"
 
         decoded_values = [None for _ in topics]
         for (i, topic) in enumerate(topics):
