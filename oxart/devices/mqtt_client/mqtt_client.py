@@ -1,5 +1,5 @@
-"""
-Generic driver for communicating with an MQTT broker beyond the stabilizer.
+"""Generic driver for communicating with an MQTT broker beyond the stabilizer.
+
 Mostly wrapping gmqtt clients for convenience.
 Requires `gmqtt`
 """
@@ -46,9 +46,8 @@ NetworkAddress.UNSPECIFIED = NetworkAddress([0, 0, 0, 0], 0)
 
 
 class MqttInterface:
-    """
-    Wraps a gmqtt Client to provide a request/response-type interface using the MQTT 5
-    response topics/correlation data machinery.
+    """Wraps a gmqtt Client to provide a request/response-type interface using the
+    MQTT 5 response topics/correlation data machinery.
 
     A timeout is also applied to every request (which is necessary for robustness, as
     Stabilizer only supports QoS 0 for now).
@@ -56,21 +55,18 @@ class MqttInterface:
 
     def __init__(self, topic_base: str, broker_address: NetworkAddress, *args,
                  **kwargs):
-        r"""
-        Factory method to create a new MQTT connection
-            :param broker_address: Address of the MQTT broker
-            :type broker_address: NetworkAddress
-            :param topic_base: Base topic of the device to connect to.
-            :type topic_base: str
-            :param args: Additional arguments to pass to the constructor
+        r"""Factory method to create a new MQTT connection :param broker_address:
+        Address of the MQTT broker :type broker_address: NetworkAddress :param
+        topic_base: Base topic of the device to connect to. :type topic_base: str
+        :param args: Additional arguments to pass to the constructor.
 
-            :Keyword Arguments:
-                * *will_message* (``gmqtt.Message``) -- Last will and testament message
-                * *timeout* (``float``) -- Connection timeout
-                * *maxsize* (``int``) -- Max number of mqtt requests awaiting response
-                * *kwargs* -- Additional keyword arguments to pass to the constructor
+        :Keyword Arguments:
+            * *will_message* (``gmqtt.Message``) -- Last will and testament message
+            * *timeout* (``float``) -- Connection timeout
+            * *maxsize* (``int``) -- Max number of mqtt requests awaiting response
+            * *kwargs* -- Additional keyword arguments to pass to the constructor
 
-            :return: A new instance of MqttInterface
+        :return: A new instance of MqttInterface
         """
         will_message: Optional[MqttMessage] = kwargs.pop("will_message", None)
         self._timeout: Optional[float] = kwargs.pop("timeout", None)
@@ -130,8 +126,7 @@ class MqttInterface:
                              retain=retain)
 
     async def request(self, topic: str, argument: Any, retain: bool = False):
-        """Send a request to Stabilizer and wait for the response.
-        """
+        """Send a request to Stabilizer and wait for the response."""
         if len(self._pending) > self._maxsize:
             # By construction, `correlation_data` should always be removed from
             # `_pending` either by `_on_message()` or after `_timeout`. If something
@@ -207,10 +202,8 @@ class MqttInterface:
         return 0
 
     async def lookup_retained_topics(self, topics):
-        """
-        Subscribes to given topics and checks if it gets a response within a short
-        timeout window.
-        """
+        """Subscribes to given topics and checks if it gets a response within a short
+        timeout window."""
         if not isinstance(topics, Iterable):
             topics = [topics]
 

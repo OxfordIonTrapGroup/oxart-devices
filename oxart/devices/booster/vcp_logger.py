@@ -6,8 +6,9 @@ from requests.exceptions import ConnectionError
 
 
 def parse_status_table(lines):
-    """Parse the status table into a dictionary with parameter names as keys,
-    with values being vectors of parameter values over the channels.
+    """Parse the status table into a dictionary with parameter names as keys, with
+    values being vectors of parameter values over the channels.
+
     An example line of the table is:
     IN8V0 [mA]\t0.039\t0.018\t0.013\t0.021\t0.008\t0.109\t0.008\t0.010
     """

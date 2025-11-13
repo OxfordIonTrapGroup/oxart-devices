@@ -1,8 +1,8 @@
-"""This driver requires PyJulia & working julia install with configured PyCall
+"""This driver requires PyJulia & working julia install with configured PyCall.
 
 PyJulia doesn't play nice with conda. You should call this driver from the same
-environment that you configured for PyCall in Julia. Instructions to configure
-PyCall with conda are given in the README file of the SURF Julia library.
+environment that you configured for PyCall in Julia. Instructions to configure PyCall
+with conda are given in the README file of the SURF Julia library.
 """
 
 import numpy as np
@@ -85,8 +85,7 @@ class SURF:
                     mass=None,
                     v_rf=None,
                     force_reload=False):
-        """
-        Load trap model and default solver settings from the specified file and
+        """Load trap model and default solver settings from the specified file and
         set solution solution cache path.
 
         :param trap_model_path: Path to the SURF trap model file
@@ -149,7 +148,7 @@ class SURF:
         return self.get_config()
 
     def get_div_grad_phi(self, z):
-        """return div(grad(Phi)) at z position"""
+        """Return div(grad(Phi)) at z position."""
         # hack: field names are unicode (not a valid python identifier)
         # The work-around is to evaluate the field names in julia
 
@@ -164,7 +163,7 @@ class SURF:
         return div_grad_phi
 
     def get_config(self):
-        """Dictionary containing configuration Settings"""
+        """Dictionary containing configuration Settings."""
         conf = {
             "trap_model_path": self.trap_model_path,
             "cache_path": self.cache_path,
@@ -193,7 +192,7 @@ class SURF:
         return conf
 
     def static(self, **param_dict):
-        """Controls static solver and handles julia objects
+        """Controls static solver and handles julia objects.
 
         This is required as sipyco can't serialise the julia objects.
 
@@ -249,7 +248,7 @@ class SURF:
         return voltages, elec_fn.names
 
     def split(self, **param_dict):
-        """Controls split solver and handles julia objects
+        """Controls split solver and handles julia objects.
 
         This is required as sipyco can't serialise the julia objects.
 
@@ -343,7 +342,7 @@ class SURF:
         return voltages, elec_fn.names, sep_vec
 
     def dynamic_split(self, **param_dict):
-        """Controls dynamic split solver and handles julia objects
+        """Controls dynamic split solver and handles julia objects.
 
         This is required as sipyco can't serialise the julia objects.
 
@@ -434,7 +433,7 @@ class SURF:
         return voltages, elec_fn.names, sep_vec
 
     def dynamic(self, **param_dict):
-        """Controls dynamic solver and handles julia objects
+        """Controls dynamic solver and handles julia objects.
 
         This is required as sipyco can't serialise the julia objects.
 
@@ -517,7 +516,7 @@ class SURF:
         return voltages, elec_fn.names
 
     def get_all_electrode_names(self):
-        """Return a list of all electrode names defined in the trap model"""
+        """Return a list of all electrode names defined in the trap model."""
         return self.elec_fn.names
 
     def _mk_wells(self, z, width, dphidx, dphidy, dphidz, rx_axial, ry_axial,
@@ -541,7 +540,8 @@ class SURF:
         :param d2phidaxial2: axial well strength
         :param d3phidz3: cubic z-field term (for splitting)
         :param d2phidradial_h2: horizontal radial mode frequency
-        :param **kwargs: additional kwargs are ignored"""
+        :param **kwargs: additional kwargs are ignored
+        """
         return self.jl.eval("PotentialWells")(z, width, dphidx, dphidy, dphidz,
                                               rx_axial, ry_axial, phi_radial,
                                               d2phidaxial2, d3phidz3, d2phidradial_h2)
@@ -550,23 +550,23 @@ class SURF:
         """Trajectory smoothly evolving wells_start to wells_end.
 
         :param wells_start: struct returned by self.mk_wells()
-        :param wells_end: struct returned by self.mk_wells(). This should have
-            the same number of wells as wells_start.
-        :param n_step: numper of steps from start to end (both included)
-
-        returns trajectory (Tuple of n_step wells structs)
+        :param wells_end: struct returned by self.mk_wells(). This should have the same
+            number of wells as wells_start.
+        :param n_step: numper of steps from start to end (both included) returns
+            trajectory (Tuple of n_step wells structs)
         """
         return self.jl.eval("SURF.ModelTrajectories.create_shuttle_trajectory")(
             wells_start, wells_end, n_step)
 
     def _mk_grids(self, zs, elec_fn, field_fn):
-        """Sample electrodes and external fields at positions zs
+        """Sample electrodes and external fields at positions zs.
 
-        return (ElectrodesGrid, FieldGrid)"""
+        return (ElectrodesGrid, FieldGrid)
+        """
         return self.grid_cache.get(zs, elec_fn, field_fn)
 
     def _select_elec(self, elec, names):
-        """Select a subset of electrodes to use"""
+        """Select a subset of electrodes to use."""
         # julia is 1-indexed
         indices = [elec.names.index(name) + 1 for name in names]
         return self.jl.eval("select_electrodes")(elec, indices)
@@ -575,15 +575,13 @@ class SURF:
         return self.jl.eval("SURF." + solver + ".Settings")(*args)
 
     def _solve_static(self, wells, elec_grid, field_grid, settings):
-        """Find voltages to best produce target wells
+        """Find voltages to best produce target wells.
 
         :param wells: struct as returned by mk_wells
         :param elec_grid: gridded electrodes as returned by mk_grid
         :param field_grid: gridded external field as returned by mk_grid
         :param settings: solver settings struct
-
-        :returns: voltage vector, elements match order of electrodes in
-            elec_grid
+        :returns: voltage vector, elements match order of electrodes in elec_grid
         """
         weights_fn = self.jl.eval("mk_gaussian_weights")
         cull_fn = self.jl.eval("get_cull_indices")
@@ -603,13 +601,12 @@ class SURF:
 
         :param trajectory: as returned by mk_trajectory
         :param v_set_start: vector specifying start voltages for electrodes
-        :param v_set_end: vector specifying end voltages for electrodes
-            (order matches v_set_start)
-        :param elec_grid: gridded electrodes as returned by mk_grid
-            (order matches v_sets)
+        :param v_set_end: vector specifying end voltages for electrodes (order matches
+            v_set_start)
+        :param elec_grid: gridded electrodes as returned by mk_grid (order matches
+            v_sets)
         :param field_grid: gridded external field as returned by mk_grid
         :param settings: solver settings struct
-
         :returns: voltage array, (n_electrode, time_step)
         """
         weights_fn = self.jl.eval("mk_gaussian_weights")
@@ -629,13 +626,12 @@ class SURF:
                      field_fn, elec_grid, field_grid, settings):
         """Find voltages for splitting/merging a well with spectator wells.
 
-        The solver operates on a single well. This well evolves from well_start
-        to well_end.
+        The solver operates on a single well. This well evolves from well_start to
+        well_end.
 
-        :param scan_start: as returned by mk_wells. Only a single well is
-            supported.
-        :param scan_end: as returned by mk_wells. Only a single well is
-            supported. This should only differ from scan_start in d2phidaxial2
+        :param scan_start: as returned by mk_wells. Only a single well is supported.
+        :param scan_end: as returned by mk_wells. Only a single well is supported. This
+            should only differ from scan_start in d2phidaxial2
         :param spectator: as returned by mk_wells. Static wells present during
             splitting.
         :param n_step: number of time steps in the splitting waveform
@@ -643,7 +639,6 @@ class SURF:
         :param elec_fn: ElectrodesFn of electrodes to be used
         :param field_fn: FieldFn of external field
         :param settings: solver settings struct
-
         :return: voltage array, (n_electrode, time_step)
         """
         weights_fn = self.jl.eval("mk_gaussian_weights")
@@ -656,7 +651,8 @@ class SURF:
     def _solve_dynamic_split(self, split_well, start_separation, end_separation, n_step,
                              spectator, elec_fn, field_fn, elec_grid, field_grid,
                              settings):
-        """Find voltages for splitting/merging a well with spectator wells dynamically
+        """Find voltages for splitting/merging a well with spectator wells
+        dynamically.
 
         The solver operates on a single well. This well evolves from well_start
         to well_end.
@@ -685,7 +681,7 @@ class SURF:
         pass
 
     def get_model_fields(self, zs, volt_dict):
-        """get a dict of trap fields at specified positions for given voltages"""
+        """Get a dict of trap fields at specified positions for given voltages."""
         el_vec = list(volt_dict.keys())
         volt_vec_list = [list(volt_dict.values())]
         return {

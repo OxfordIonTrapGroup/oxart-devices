@@ -1,6 +1,5 @@
-"""
-High-level experimentalist's interface for arming the pulse picker
-setup and specifying its timing parameters.
+"""High-level experimentalist's interface for arming the pulse picker setup and
+specifying its timing parameters.
 
 Note that there is quite some potential for confusion due to overloaded
 terminology here. In normal experimentalist's usage, as well as this
@@ -31,14 +30,16 @@ from .bme_delay_gen import Driver, OutputGateMode, PulseParameters
 
 
 class InvalidTimingError(Exception):
-    """Raised when the user specifies a set of parameters that violate the
-    hardware timing constraints."""
+    """Raised when the user specifies a set of parameters that violate the hardware
+    timing constraints."""
     pass
 
 
 class TimingParams:
-    """Stores different pulse picker timing parameters. All times in
-    microseconds."""
+    """Stores different pulse picker timing parameters.
+
+    All times in microseconds.
+    """
 
     #: 80 MHz repetition rate
     LASER_PERIOD_US = 12.5e-3
@@ -52,12 +53,12 @@ class TimingParams:
         self._allow_long_pulses = allow_long_pulses
 
         self.offset_on_us = -0.0007
-        """Timing offset to apply between nominally synchronous pulses to the
-        ON switches; positive meaning channel B being later."""
+        """Timing offset to apply between nominally synchronous pulses to the ON
+        switches; positive meaning channel B being later."""
 
         self.offset_off_us = 0.00165
-        """Timing offset to apply between nominally synchronous pulses to the
-        OFF switches; positive meaning channel B being later."""
+        """Timing offset to apply between nominally synchronous pulses to the OFF
+        switches; positive meaning channel B being later."""
 
         self.pre_open_us = 0.2069
         """Wait time between initial OFF pulse and ON pair."""
@@ -69,17 +70,16 @@ class TimingParams:
         """Time between ON pair (i.e. optical pulse duration)."""
 
         self.align_us = 0.00
-        """Extra shift of the ON pair on top of pre_open_us, for useful units
-        when calibrating the timing relation to the laser pulse train."""
+        """Extra shift of the ON pair on top of pre_open_us, for useful units when
+        calibrating the timing relation to the laser pulse train."""
 
         self.ensure_valid()
 
     def ensure_valid(self):
-        """
-        Verify that the timing parameters are sane, raising an error if not.
+        """Verify that the timing parameters are sane, raising an error if not.
 
-        This is quite important, as the hardware switches can be damaged by
-        triggering them in an inadequate way.
+        This is quite important, as the hardware switches can be damaged by triggering
+        them in an inadequate way.
         """
 
         if self.open_us < 0:
@@ -106,16 +106,13 @@ class TimingParams:
 
 
 class PulsePickerTiming:
-    """
-    Create a new high-level interface for using the passed delay generator
-    to drive a pulse picker head.
+    """Create a new high-level interface for using the passed delay generator to
+    drive a pulse picker head.
 
-    :param delay_gen: The BME_SG08p instance to use. It will be configured
-        for the pulse picker head, its outputs initially disabled. None for
-        simulation mode.
-    :param allow_long_pulses: Whether to allow (optical) pulses that are
-        longer than sensible for calibrating single-pulse picking
-        (2 * LASER_PERIOD_US).
+    :param delay_gen: The BME_SG08p instance to use. It will be configured for the pulse
+        picker head, its outputs initially disabled. None for simulation mode.
+    :param allow_long_pulses: Whether to allow (optical) pulses that are longer than
+        sensible for calibrating single-pulse picking (2 * LASER_PERIOD_US).
     """
 
     def __init__(self, delay_gen: Driver, allow_long_pulses: bool = False):
@@ -144,8 +141,8 @@ class PulsePickerTiming:
 
     def enable_free(self, min_period_us=10.0):
         """Enable pulsing in a free-running manner, where pulses are triggered
-        whenever the laser sync trigger is asserted, but with a minimum period
-        (hold-off/inhibit) of min_period_us."""
+        whenever the laser sync trigger is asserted, but with a minimum period (hold-
+        off/inhibit) of min_period_us."""
         if self._delay_gen:
             self._delay_gen.set_trigger(False, min_period_us)
         self._enabled = True
@@ -155,13 +152,11 @@ class PulsePickerTiming:
     # meta-programming magic.
 
     def get_offset_on_us(self):
-        """
-        """
+        """"""
         return self._times.offset_on_us
 
     def set_offset_on_us(self, value):
-        """
-        """
+        """"""
         new = copy.copy(self._times)
         new.offset_on_us = value
         new.ensure_valid()
@@ -169,13 +164,11 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_offset_off_us(self):
-        """
-        """
+        """"""
         return self._times.offset_off_us
 
     def set_offset_off_us(self, value):
-        """
-        """
+        """"""
         new = copy.copy(self._times)
         new.offset_off_us = value
         new.ensure_valid()
@@ -183,13 +176,11 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_pre_open_us(self):
-        """
-        """
+        """"""
         return self._times.pre_open_us
 
     def set_pre_open_us(self, value):
-        """
-        """
+        """"""
         new = copy.copy(self._times)
         new.pre_open_us = value
         new.ensure_valid()
@@ -197,13 +188,11 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_post_open_us(self):
-        """
-        """
+        """"""
         return self._times.post_open_us
 
     def set_post_open_us(self, value):
-        """
-        """
+        """"""
         new = copy.copy(self._times)
         new.post_open_us = value
         new.ensure_valid()
@@ -211,13 +200,11 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_open_us(self):
-        """
-        """
+        """"""
         return self._times.open_us
 
     def set_open_us(self, value):
-        """
-        """
+        """"""
         new = copy.copy(self._times)
         new.open_us = value
         new.ensure_valid()
@@ -225,13 +212,11 @@ class PulsePickerTiming:
         self._update_pulses()
 
     def get_align_us(self):
-        """
-        """
+        """"""
         return self._times.align_us
 
     def set_align_us(self, value):
-        """
-        """
+        """"""
         new = copy.copy(self._times)
         new.align_us = value
         new.ensure_valid()

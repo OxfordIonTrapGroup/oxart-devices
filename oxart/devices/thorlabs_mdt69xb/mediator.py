@@ -3,14 +3,15 @@ import time
 
 
 class PiezoWrapper:
-    """
-    Wraps multiple piezo controllers to allow reference to channels by an
-    easily remappable logical name. The arguments are:
-        'devices', the list of piezo controllers,
-        'mappings', a dictionary mapping logical devices names to
-            (device,channel) tuples, and
-        'slow_scan', a dictionary mapping the logical devices which require
-            incremented voltage steps to the maximum step size in volts.
+    """Wraps multiple piezo controllers to allow reference to channels by an easily
+    remappable logical name.
+
+    The arguments are:
+    'devices', the list of piezo controllers,
+    'mappings', a dictionary mapping logical devices names to
+        (device,channel) tuples, and
+    'slow_scan', a dictionary mapping the logical devices which require
+        incremented voltage steps to the maximum step size in volts.
     """
 
     def __init__(self, dmgr, devices, mappings, slow_scan):
@@ -23,8 +24,8 @@ class PiezoWrapper:
     def set_channel(self, logical_ch, value, force=False):
         """Set a channel to a value.
 
-        'force' flag should only be used when calibrating a slow scan
-        channel"""
+        'force' flag should only be used when calibrating a slow scan channel
+        """
         # Look up device and channel
         (device, channel) = self._get_dev_channel(logical_ch)
 
@@ -59,9 +60,8 @@ class PiezoWrapper:
         return device.get_channel(channel)
 
     def save_setpoints(self, logical_ch):
-        """
-        Deprecated, since we save setpoints every time we set, so we no
-        longer need to call this function explicitly.
+        """Deprecated, since we save setpoints every time we set, so we no longer
+        need to call this function explicitly.
 
         Save setpoints for controller with given logical channel.
         """
@@ -69,7 +69,7 @@ class PiezoWrapper:
         dev.save_setpoints()
 
     def _get_dev_channel(self, logical_ch):
-        """Return a (device handle, channel) tuple given a logical channel"""
+        """Return a (device handle, channel) tuple given a logical channel."""
         # Look up (device name, channel name) in mappings dictionary
         try:
             (device_name, channel) = self.mappings[logical_ch]
@@ -86,15 +86,15 @@ class PiezoWrapper:
 
 
 class UnknownLogicalChannel(Exception):
-    """Logical channel given not found in mappings dictionary"""
+    """Logical channel given not found in mappings dictionary."""
     pass
 
 
 class UnknownDeviceName(Exception):
-    """Device name for given logical channel not found in devices list"""
+    """Device name for given logical channel not found in devices list."""
     pass
 
 
 class NoSetpointError(Exception):
-    """No setpoint available for a slow scan piezo, needs calibration"""
+    """No setpoint available for a slow scan piezo, needs calibration."""
     pass

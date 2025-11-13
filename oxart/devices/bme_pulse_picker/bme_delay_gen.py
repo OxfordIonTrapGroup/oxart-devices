@@ -50,8 +50,7 @@ def _check_status(code):
 
 @unique
 class StatusFlag(Enum):
-    """
-    Hardware status register flags.
+    """Hardware status register flags.
 
     The definitions can be found in the "Programming BME_SG08P3" chapter of the BME_G0X
     manual, in the "Command register (read)" section.
@@ -99,14 +98,13 @@ class StatusFlag(Enum):
 
 
 class Driver:
-    """
-    Interface to the driver DLL for the delay generator PCI cards by BME
-    (Bergmann Messgeräte Entwicklung KG).
+    """Interface to the driver DLL for the delay generator PCI cards by BME (Bergmann
+    Messgeräte Entwicklung KG).
 
-    There should typically only be one instance of this class per process. Note
-    also that the class does not currently uninitialise and unload the DLL upon
-    destruction (although that would be easily fixable), so creating many objects
-    would eventually deplete the process handle pool.
+    There should typically only be one instance of this class per process. Note also
+    that the class does not currently uninitialise and unload the DLL upon destruction
+    (although that would be easily fixable), so creating many objects would eventually
+    deplete the process handle pool.
     """
 
     def __init__(self):
@@ -116,11 +114,10 @@ class Driver:
             raise DelayGenException("Failed to load delay generator DLL: {}".format(e))
 
         def get_fn(name, param_types, returns_status=True):
-            """
-            Look up a function from the DLL handle.
+            """Look up a function from the DLL handle.
 
-            If returns_status is True, applies a wrapper that converts non-zero
-            status code return values into exceptions.
+            If returns_status is True, applies a wrapper that converts non-zero status
+            code return values into exceptions.
             """
             fn = getattr(lib, name)
             fn.argtypes = param_types
@@ -162,8 +159,7 @@ class Driver:
             raise DelayGenException("Error binding to function from DLL: {}".format(e))
 
     def init_single_pci_card(self):
-        """
-        For a system with a single delay generator card installed, detect the
+        """For a system with a single delay generator card installed, detect the
         parameters of that card and return an interface to it.
 
         Currently, only the model BME_SG08p is supported.
@@ -203,8 +199,8 @@ class ClockSource(Enum):
 
 @unique
 class OutputGateMode(Enum):
-    """Modes for the delay generator to combine pairs of adjacent channels
-    instead of directly routing them to the respective outputs."""
+    """Modes for the delay generator to combine pairs of adjacent channels instead of
+    directly routing them to the respective outputs."""
 
     #: Route channels to the respective outputs.
     direct = 0
@@ -239,12 +235,11 @@ class PulseParameters:
 
 
 class BME_SG08p:
-    """
-    Interface to a BME SG08p delay generator card.
+    """Interface to a BME SG08p delay generator card.
 
-    Many settings (trigger inputs, etc.) are currently hard-coded to match a
-    specific application in the Oxford Old Lab, and should be made configurable
-    for a general-purpose driver.
+    Many settings (trigger inputs, etc.) are currently hard-coded to match a specific
+    application in the Oxford Old Lab, and should be made configurable for a general-
+    purpose driver.
 
     :param driver_lib: A handle to the driver DLL.
     :param device_idx: The index of the device to use, as per the DLL's conception.
@@ -283,11 +278,9 @@ class BME_SG08p:
         self.reset()
 
     def reset(self) -> None:
-        """
-        Reset the card configuration to the default state, with the default
+        """Reset the card configuration to the default state, with the default
         trigger settings, no special gate functions enabled and all the delay
-        channels being disabled.
-        """
+        channels being disabled."""
 
         self._deactivate_safely()
 
@@ -323,8 +316,7 @@ class BME_SG08p:
         self._lib.activate_dg(self._device_idx)
 
     def set_clock_source(self, source: ClockSource) -> None:
-        """
-        """
+        """"""
         self._deactivate_safely()
         self._set_clock_params(source)
         self._lib.activate_dg(self._device_idx)
@@ -350,8 +342,7 @@ class BME_SG08p:
             self._device_idx)
 
     def set_trigger(self, use_external_gate: bool, inhibit_us: float) -> None:
-        """
-        """
+        """"""
         self._deactivate_safely()
         self._set_trigger_params(use_external_gate, inhibit_us)
         self._lib.activate_dg(self._device_idx)
@@ -375,8 +366,7 @@ class BME_SG08p:
             self._device_idx)
 
     def set_output_gates(self, modes: Iterable[OutputGateMode]) -> None:
-        """
-        """
+        """"""
         mode_ab, mode_cd, mode_ef = modes
 
         # The hardware goes into xor pulse mode if both flags are set.
@@ -404,8 +394,7 @@ class BME_SG08p:
         self._lib.activate_dg(self._device_idx)
 
     def set_pulse_parameters(self, params: List[PulseParameters]) -> None:
-        """
-        """
+        """"""
         if len(params) != self.CHANNEL_COUNT:
             raise DelayGenException("Expected one pulse parameter specification "
                                     "for each of the {} channels, not {}".format(
@@ -417,10 +406,8 @@ class BME_SG08p:
         self._lib.activate_dg(self._device_idx)
 
     def _deactivate_safely(self):
-        """
-        Deactivate the delay generator without interrupting any currently running
-        sequences.
-        """
+        """Deactivate the delay generator without interrupting any currently running
+        sequences."""
         # The below procedure is in line with what the BME_G0X help recommends in the
         # "Modifying Parameters Synchronuously" [sic] section.
         #
@@ -437,8 +424,7 @@ class BME_SG08p:
         return self._lib.read_dg_status(self._device_idx)
 
     def read_status_flags(self) -> Set[StatusFlag]:
-        """
-        """
+        """"""
         status_word = self._read_status_word()
 
         result = set()

@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""
-Reads the Kasli FPGA on-die temperature/voltage sensors and writes them to
+"""Reads the Kasli FPGA on-die temperature/voltage sensors and writes them to
 InfluxDB.
 
-This relies on a JTAG connection (usually via the micro-USB port on the front
-panel).
+This relies on a JTAG connection (usually via the micro-USB port on the front panel).
 """
 
 import argparse

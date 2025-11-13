@@ -31,7 +31,7 @@ class Measurement(Enum):
 
 
 class RPCInterface(Thermostat):
-    """Wraps Thermostat driver with llama functionality"""
+    """Wraps Thermostat driver with llama functionality."""
 
     def __init__(self, influx_channels, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -41,7 +41,7 @@ class RPCInterface(Thermostat):
                 add_chunker_methods(self, c)
 
     def report(self):
-        """Retrieve current status"""
+        """Retrieve current status."""
         reports = super().report()
         self._log_report_to_influx(reports)
         return reports

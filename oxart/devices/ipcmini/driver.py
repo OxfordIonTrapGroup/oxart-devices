@@ -8,7 +8,7 @@ from . import constants as c
 
 
 class IPCMini:
-    """Interface to IPCMini Ion Pump Controller"""
+    """Interface to IPCMini Ion Pump Controller."""
 
     def __init__(self, host, port=23):
         self.tn = telnetlib.Telnet(host, port)

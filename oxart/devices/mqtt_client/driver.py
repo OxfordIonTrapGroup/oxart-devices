@@ -1,6 +1,7 @@
-"""
-Simple driver for sending MQTT commands to a Sinara stabilizer or a mezzanine board on
-it. Requires Quartiq miniconf-mqtt package from https://github.com/quartiq/miniconf.
+"""Simple driver for sending MQTT commands to a Sinara stabilizer or a mezzanine
+board on it.
+
+Requires Quartiq miniconf-mqtt package from https://github.com/quartiq/miniconf.
 """
 
 from miniconf import Miniconf
@@ -34,18 +35,16 @@ class MQTTClient:
         self.paths = self.list_paths()
 
     def _check_path(self, path: str):
-        """
-        Check that the requested path exists at topic '/settings/{path}'.
+        """Check that the requested path exists at topic '/settings/{path}'.
+
         :param path: Path to check. Does not start with '/'.
         """
 
         return path in self.paths
 
     def _cleanup_path_name(self, path: str):
-        """
-        Removes any slashes before the name of the path and checks that
-        '/settings/{path}' is a valid topic.
-        """
+        """Removes any slashes before the name of the path and checks that
+        '/settings/{path}' is a valid topic."""
 
         if path[0] == "/":
             path = path[1:]
@@ -54,10 +53,10 @@ class MQTTClient:
         return path
 
     def set_setting(self, setting: str, value: Any):
-        """
-        Set value of a setting.
-        :param setting: name of setting (or path to setting if the topic is not
-            directly under '/settings').
+        """Set value of a setting.
+
+        :param setting: name of setting (or path to setting if the topic is not directly
+            under '/settings').
         :param value: value to set. Must be JSON serialisable.
         """
 
@@ -70,8 +69,8 @@ class MQTTClient:
         asyncio.run(_set())
 
     def get_setting(self, setting: str):
-        """
-        Get value of a setting.
+        """Get value of a setting.
+
         :param setting: value of setting (or path to setting if the topic is not
             directly under '/settings').
         """
@@ -86,9 +85,7 @@ class MQTTClient:
         return asyncio.run(_get())
 
     def list_paths(self):
-        """
-        Return a list of all the valid topics under '/settings'.
-        """
+        """Return a list of all the valid topics under '/settings'."""
 
         async def _list_paths():
             return await asyncio.wait_for(self.interface.list_paths(), self.timeout)

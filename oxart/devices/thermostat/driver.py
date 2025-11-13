@@ -13,7 +13,7 @@ class CommandError(Exception):
 
 
 class _ReportMode:
-    """Context manager for the report mode of Thermostat
+    """Context manager for the report mode of Thermostat.
 
     At entering the context manager, thermostat's report mode is enabled. To receive the
     incoming reports, use the asynchronous generator `self.receive_continuously()`. At
@@ -112,7 +112,7 @@ class Thermostat:
             return False
 
     def get_pwm(self):
-        """Retrieve PWM limits for the TEC
+        """Retrieve PWM limits for the TEC.
 
         Example::
             [{'channel': 0,
@@ -132,7 +132,7 @@ class Thermostat:
         return self._get_conf("pwm")
 
     def get_pid(self):
-        """Retrieve PID control state
+        """Retrieve PID control state.
 
         Example::
             [{'channel': 0,
@@ -155,7 +155,8 @@ class Thermostat:
         return self._get_conf("pid")
 
     def get_steinhart_hart(self):
-        """Retrieve Steinhart-Hart parameters for resistance to temperature conversion
+        """Retrieve Steinhart-Hart parameters for resistance to temperature
+        conversion.
 
         Example::
             [{'params': {'b': 3800.0, 'r0': 10000.0, 't0': 298.15}, 'channel': 0},
@@ -164,7 +165,7 @@ class Thermostat:
         return self._get_conf("s-h")
 
     def get_postfilter(self):
-        """Retrieve DAC postfilter configuration
+        """Retrieve DAC postfilter configuration.
 
         Example::
             [{'rate': None, 'channel': 0},
@@ -173,7 +174,7 @@ class Thermostat:
         return self._get_conf("postfilter")
 
     def report(self):
-        """Retrieve current status
+        """Retrieve current status.
 
         Example of yielded data::
             [{'channel': 0,
@@ -196,7 +197,7 @@ class Thermostat:
         return self._get_conf("report")
 
     def set_param(self, topic, channel, field="", value=""):
-        """Set configuration parameters
+        """Set configuration parameters.
 
         Examples::
             tec.set_param("pwm", 0, "max_v", 2.0)
@@ -214,16 +215,16 @@ class Thermostat:
         self._command(topic, str(channel), field, value)
 
     def power_up(self, channel, target):
-        """Start closed-loop mode"""
+        """Start closed-loop mode."""
         self.set_param("pid", channel, "target", value=target)
         self.set_param("pwm", channel, "pid")
 
     def save_config(self):
-        """Save current configuration to EEPROM"""
+        """Save current configuration to EEPROM."""
         self._command("save")
 
     def load_config(self):
-        """Load current configuration from EEPROM"""
+        """Load current configuration from EEPROM."""
         self._command("load")
 
     def close(self):

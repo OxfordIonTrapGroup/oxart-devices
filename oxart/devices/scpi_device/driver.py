@@ -5,8 +5,9 @@ logger = logging.getLogger(__name__)
 
 
 class SCPIDevice:
-    """
-    Base class for *all* SCPI devices. Implements IEEE-488.2 standard functions.
+    """Base class for *all* SCPI devices.
+
+    Implements IEEE-488.2 standard functions.
     """
 
     def __init__(self, addr, port=5025, serial_number=None):
@@ -59,12 +60,12 @@ class SCPIDevice:
         return self.query("*IDN?")
 
     def check_error(self):
-        """Reads and clears the most recent error"""
+        """Reads and clears the most recent error."""
         return self.query("*SYST:ERR?")
 
     def check_operation_complete(self):
         return bool(self.query("*OPC?"))
 
     def reset(self):
-        """Reset values to default"""
+        """Reset values to default."""
         self.send("*RST")

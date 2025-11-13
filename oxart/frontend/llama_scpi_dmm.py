@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""
-Continuously polls measurements from a SCPI-enabled digital multimeter, logs the results
-to InfluxDB, and also provides an ARTIQ controller interface.
+"""Continuously polls measurements from a SCPI-enabled digital multimeter, logs the
+results to InfluxDB, and also provides an ARTIQ controller interface.
 
 The multimeter settings (measurement type, range, etc.) are expected to already be
 configured appropriately and will not be changed by this program.

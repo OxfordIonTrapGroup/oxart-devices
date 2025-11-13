@@ -61,9 +61,10 @@ class ArduinoDDS:
         self.ser.write(data.encode())
 
     def set_profile(self, profile, freq, phase=0.0, amp=1.0):
-        """Sets a DDS profile frequency (Hz), phase (degrees), and
-        amplitude (full-scale). Phase defaults to 0 and amplitude
-        defaults to 1
+        """Sets a DDS profile frequency (Hz), phase (degrees), and amplitude (full-
+        scale).
+
+        Phase defaults to 0 and amplitude defaults to 1
         """
 
         if amp < 0 or amp > 1:
@@ -90,7 +91,7 @@ class ArduinoDDS:
             logger.debug("Setting profile {} with {}".format(profile, new_profile))
 
     def _set_profile_lsb(self, profile, freq, phase, amp):
-        """Freq, phase, amp are all in units of lsb"""
+        """Freq, phase, amp are all in units of lsb."""
         if profile < 0 or profile > 7 or not isinstance(profile, int):
             raise ValueError("DDS profile should be an integer between 0 and 7")
         if amp > 0x3fff or amp < 0 or not isinstance(amp, int):
@@ -129,7 +130,7 @@ class ArduinoDDSSim:
         pass
 
     def set_profile_lsb(self, profile, freq, phase, amp):
-        """Freq, phase, amp are all in units of lsb"""
+        """Freq, phase, amp are all in units of lsb."""
         pass
 
     def reset(self):
