@@ -1,7 +1,7 @@
 """
 Generic driver for communicating with an MQTT broker beyond the stabilizer. Mostly wrapping gmqtt clients for convenience.
 Requires `gmqtt`
-""" 
+"""
 # TODO: Unify with the existing driver in the previous file.
 
 import logging
@@ -13,7 +13,6 @@ from contextlib import suppress
 from typing import NamedTuple, List, Any, Optional
 from collections.abc import Iterable
 from gmqtt import Client as MqttClient, Message as MqttMessage
-
 
 logger = logging.getLogger(__name__)
 
@@ -51,12 +50,8 @@ class MqttInterface:
     Stabilizer only supports QoS 0 for now).
     """
 
-    def __init__(
-            self,
-            topic_base: str,
-            broker_address: NetworkAddress,
-            *args, **kwargs
-        ):
+    def __init__(self, topic_base: str, broker_address: NetworkAddress, *args,
+                 **kwargs):
         r"""
         Factory method to create a new MQTT connection
             :param broker_address: Address of the MQTT broker
@@ -101,7 +96,7 @@ class MqttInterface:
     async def __aenter__(self):
         await self.connect()
         return self
-    
+
     async def __aexit__(self, *_args):
         await self.disconnect()
 
@@ -114,7 +109,7 @@ class MqttInterface:
             logger.error("Failed to connect to MQTT broker: %s", connect_exception)
             raise connect_exception
         self._client.subscribe(f"{self._response_base}/#")
-    
+
     async def disconnect(self):
         await self._client.disconnect()
 
@@ -124,12 +119,10 @@ class MqttInterface:
         This is e.g. appropriate for publishing UI changes.
         """
         payload = json.dumps(value).encode("utf-8")
-        self._client.publish(
-            f"{self._topic_base}/{topic}",
-            payload,
-            qos=0,
-            retain=retain
-        )
+        self._client.publish(f"{self._topic_base}/{topic}",
+                             payload,
+                             qos=0,
+                             retain=retain)
 
     async def request(self, topic: str, argument: Any, retain: bool = False):
         """Send a request to Stabilizer and wait for the response.
@@ -207,14 +200,14 @@ class MqttInterface:
                 err.__cause__ = e
                 result.set_exception(err)
         return 0
-    
+
     async def lookup_retained_topics(self, topics):
         """
         Subscribes to given topics and checks if it gets a response within a short timeout window.
         """
         if not isinstance(topics, Iterable):
             topics = [topics]
-        
+
         full_topic = lambda topic: f"{self._topic_base}/{topic}"
 
         decoded_values = [None for _ in topics]
@@ -230,7 +223,7 @@ class MqttInterface:
 
             self._on_message_override = decoder
             self._client.subscribe(full_topic(topic))
-            
+
             try:
                 await asyncio.wait_for(event.wait(), self._timeout)
             except TimeoutError:
