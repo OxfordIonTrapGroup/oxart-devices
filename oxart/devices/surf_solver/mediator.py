@@ -26,8 +26,8 @@ Waveform.__doc__ = """Represents the electrode voltage evolution
 class SURFMediator:
     """A high level interface to calculate electrode voltages for ion dynamics.
 
-    The bare bones interface of the SURF driver is abstracted to simplify
-    creating and chaining common operations.
+    The bare bones interface of the SURF driver is abstracted to simplify creating and
+    chaining common operations.
     """
 
     def __init__(self,
@@ -84,11 +84,12 @@ class SURFMediator:
         self.charge, self.mass = charge, mass
 
     def _mk_waveform(self, volt_vec, el_vec, wells):
-        """Create a new waveform object
+        """Create a new waveform object.
 
         The waveform will start at the specified voltages and well parameters
 
-        electrodes and voltages are matched by index"""
+        electrodes and voltages are matched by index
+        """
         el_vec = tuple(el for el in el_vec)  # unpack into tuple
         wave = Waveform(voltage_vec_list=[volt_vec],
                         el_vec=el_vec,
@@ -97,7 +98,7 @@ class SURFMediator:
         return wave
 
     def concatenate(self, *waves):
-        """Concatenate waveforms"""
+        """Concatenate waveforms."""
         concat_wave = deepcopy(waves[0])
         for wave in waves[1:]:
             assert concat_wave.el_vec == wave.el_vec
@@ -112,14 +113,15 @@ class SURFMediator:
                          electrodes=None,
                          z_grid=None,
                          static_settings=None):
-        """Find the voltage-sets to produce specified potential wells
+        """Find the voltage-sets to produce specified potential wells.
 
         :param wells: Wells object
         :param electrodes: Name electrodes that may be used. if `None` the
             default electrodes are used.
         :param z_grid: vector of z-axis grid points to use for optimisation.
             `None` defaults to the default grid supplied with the trap model.
-        :param static_settings: settings for the static solver. User beware!"""
+        :param static_settings: settings for the static solver. User beware!
+        """
         if electrodes is None:
             electrodes = self.default_electrodes
         el_names = self.get_all_electrode_names()
@@ -141,11 +143,11 @@ class SURFMediator:
         return v_vec[:, 0], el_vec
 
     def get_model_fields(self, zs, volt_dict):
-        """get a dict of trap fields at specified positions for given voltages
+        """Get a dict of trap fields at specified positions for given voltages.
 
         :param zs: list of z-positions to evaluate [in m]
-        :param volt_dict: dictionary {<electrode_name>: <electrode voltage>}
-            unspecified voltages are assumed to be zero.
+        :param volt_dict: dictionary {<electrode_name>: <electrode voltage>} unspecified
+            voltages are assumed to be zero.
         """
         return self.driver.get_model_fields(zs, volt_dict)
 
@@ -154,27 +156,28 @@ class SURFMediator:
 
         :param zs: list of z-positions to evaluate [in m]
         :param wave: Waveform object
-        :param field: Quantity of trap model to evaluate: 'phi', 'dphidx',
-            'dphidy', 'dphidz', 'd2phidx2', 'd2phidy2', 'd2phidz2', 'd2phidxdy',
-            'd2phidxdz', 'd2phidydz', 'd3phidz3', or 'd4phidz4'.
+        :param field: Quantity of trap model to evaluate: 'phi', 'dphidx', 'dphidy',
+            'dphidz', 'd2phidx2', 'd2phidy2', 'd2phidz2', 'd2phidxdy', 'd2phidxdz',
+            'd2phidydz', 'd3phidz3', or 'd4phidz4'.
         :returns: Matrix of field values
         """
         return self.driver.get_model_field(zs, wave.voltage_vec_list, wave.el_vec,
                                            field)
 
     def get_all_electrode_names(self):
-        """Return a list of all electrode names defined in the trap model"""
+        """Return a list of all electrode names defined in the trap model."""
         return self.driver.get_all_electrode_names()
 
     def get_default_electrode_names(self):
-        """Return the electrodes used by default"""
+        """Return the electrodes used by default."""
         if self.default_electrodes is None:
             return self.get_all_electrode_names()
         else:
             return self.default_electrodes
 
     def get_z_grid(self, custom_spacing=None):
-        """Z grid points with optional custom spacing with same range as user default
+        """Z grid points with optional custom spacing with same range as user
+        default.
 
         :param custom_spacing: Grid spacing. If not specified, the user default is used.
         """
@@ -185,11 +188,10 @@ class SURFMediator:
             return np.arange(np.min(user_default), np.max(user_default), custom_spacing)
 
     def get_sum_square_freq(self, z):
-        """Return the single ion sum of square mode frequencies of the model
+        """Return the single ion sum of square mode frequencies of the model.
 
-        The correct model RF amplitude can be selected by scaling the RF
-        amplitude such that the sum of square frequencies matches those
-        measured experimentally
+        The correct model RF amplitude can be selected by scaling the RF amplitude such
+        that the sum of square frequencies matches those measured experimentally
 
         :param z: position where the sum of square frequencies is found [in m]
         """
@@ -264,7 +266,7 @@ class SURFMediator:
                          *,
                          electrodes=None,
                          z_grid=None):
-        """Start a new Waveform with given potential wells
+        """Start a new Waveform with given potential wells.
 
         Each well is identified by its index within parameter lists. An
         optional more user-friendly name may also be specified for later
@@ -301,7 +303,8 @@ class SURFMediator:
         :param electrodes: list naming electrodes to be used in the waveform.
             If `None` the default electrodes are used.
         :param z_grid: z-grid on which to perform optimisation. If `None` SURF
-            will use the default grid."""
+            will use the default grid.
+        """
         well = self._mk_wells(z, f_axial, f_rad_x, width, dphidx, dphidy, dphidz,
                               rx_axial, ry_axial, phi_radial, d3phidz3, name)
         volt, el = self._volt_from_wells(well, electrodes, z_grid)
@@ -312,8 +315,9 @@ class SURFMediator:
         """Returns a new waveform starting with a well in `old_waveform`
 
         :param old_waveform: old waveform to continue from
-        :param well_idx: index of potential well to continue with. Defaults to
-            the last well in the waveform"""
+        :param well_idx: index of potential well to continue with. Defaults to the last
+            well in the waveform
+        """
         return self._mk_waveform(
             old_waveform.voltage_vec_list[old_waveform.wells_idx[well_idx]],
             old_waveform.el_vec, old_waveform.fixed_wells[well_idx])
@@ -327,7 +331,7 @@ class SURFMediator:
                z_grid=None,
                static_settings=None,
                dynamic_settings=None):
-        """Calculate evolution to modified parameters
+        """Calculate evolution to modified parameters.
 
         :param change_dict: dictionary of changes to last Wells in wave
             change_dict should encode changes as:
@@ -341,7 +345,8 @@ class SURFMediator:
         :param static_settings: settings for the static solver. User beware!
         :param dynamic_settings: settings for the dynamic solver. User beware!
 
-        :return: updated waveform"""
+        :return: updated waveform
+        """
         if electrodes is None:
             electrodes = wave.el_vec
         el_names = wave.el_vec
@@ -416,7 +421,7 @@ class SURFMediator:
               z_grid=None,
               static_settings=None,
               split_settings=None):
-        """Calculate evolution to modified parameters
+        """Calculate evolution to modified parameters.
 
         :param name: name of well to be split
         :param wave: waveform to modify. Modified in place!
@@ -442,7 +447,8 @@ class SURFMediator:
         :param static_settings: settings for the static solver. User beware!
         :param split_settings: settings for the split solver. User beware!
 
-        :return: updated waveform"""
+        :return: updated waveform
+        """
         if electrodes is None:
             electrodes = wave.el_vec
         el_names = wave.el_vec
@@ -557,7 +563,7 @@ class SURFMediator:
               static_settings=None,
               dynamic_settings=None,
               split_settings=None):
-        """Calculate evolution to modified parameters
+        """Calculate evolution to modified parameters.
 
         :param name0: name of well0 to be merged
         :param name1: name of well1 to be merged. Must be adjacent to well0
@@ -589,7 +595,8 @@ class SURFMediator:
         :param dynamic_settings: settings for the dynamic solver. User beware!
         :param split_settings: settings for the split solver. User beware!
 
-        :return updated waveform"""
+        :return updated waveform
+        """
         if electrodes is None:
             electrodes = wave.el_vec
         el_names = wave.el_vec
@@ -716,7 +723,7 @@ class SURFMediator:
                       z_grid=None,
                       static_settings=None,
                       split_settings=None):
-        """Calculate evolution to modified parameters
+        """Calculate evolution to modified parameters.
 
         :param name: name of well to be split
         :param wave: waveform to modify. Modified in place!
@@ -857,7 +864,7 @@ class SURFMediator:
                       static_settings=None,
                       dynamic_settings=None,
                       split_settings=None):
-        """Calculate evolution to modified parameters
+        """Calculate evolution to modified parameters.
 
         :param name0: name of well0 to be merged
         :param name1: name of well1 to be merged. Must be adjacent to well0
@@ -890,7 +897,8 @@ class SURFMediator:
         :param dynamic_settings: settings for the dynamic solver. User beware!
         :param split_settings: settings for the split solver. User beware!
 
-        :return updated waveform"""
+        :return updated waveform
+        """
         if electrodes is None:
             electrodes = wave.el_vec
         el_names = wave.el_vec
@@ -1001,7 +1009,7 @@ class SURFMediator:
         return wave
 
     def spawn_wells(self, z, wave, n_step=5, *, z_grid=None, **kwargs):
-        """Spawn new wells in a waveform
+        """Spawn new wells in a waveform.
 
         Each well is identified by its index within parameter lists. An
         optional more user-friendly name may also be specified for later
@@ -1036,7 +1044,8 @@ class SURFMediator:
             well index.
 
         :param z_grid: z-grid on which to perform optimisation. If `None` SURF
-            will use the default grid."""
+            will use the default grid.
+        """
         old_wells = wave.fixed_wells[-1]
         old_volt = wave.voltage_vec_list[-1]
 
@@ -1056,18 +1065,17 @@ class SURFMediator:
 
         Assumes electrode ordering in both voltage vectors is identical.
 
-        May be used to connect different (similar) waveforms or
-        evolve to/from non SURF voltages"""
+        May be used to connect different (similar) waveforms or evolve to/from non SURF
+        voltages
+        """
         return [volt0 + (volt1 - volt0) * t for t in np.linspace(0, 1, n_step)]
 
     def _poly_interpolate(self, volt0, volt1, n_step):
-        """Smoothly evolve between 2 voltage vectors.
-        May be used to connect different (similar) waveforms or
-        evolve to/from non SURF voltages.
+        """Smoothly evolve between 2 voltage vectors. May be used to connect
+        different (similar) waveforms or evolve to/from non SURF voltages.
 
-        The polynomial has been chosen to have d2voltage/dt2 = 0 at
-        the start and end of the interpolation.
-        (Inspired by H Kaufmann et al 2014 New J. Phys. 16 073012)
+        The polynomial has been chosen to have d2voltage/dt2 = 0 at the start and end of
+        the interpolation. (Inspired by H Kaufmann et al 2014 New J. Phys. 16 073012)
 
         Assumes electrode ordering in both voltage vectors is identical.
         """
@@ -1088,7 +1096,7 @@ class SURFMediator:
                        (self.mass * const("atomic mass constant"))) / (2 * np.pi)
 
     def field_to_two_ion_sep(self, field_curvature):
-        """Convert field curvature to two-ion separation"""
+        """Convert field curvature to two-ion separation."""
         eps_4pi = 4 * np.pi * const("vacuum electric permittivity")
         q = self.charge * const("atomic unit of charge")
         return (q / (eps_4pi * field_curvature))**(1 / 3)
@@ -1138,7 +1146,8 @@ class SURFMediator:
             broadcast. Default: 0.
         :param name: List of string names for wells. Elements set to None will
             use the well index as a name. If unspecified, all names are the
-            well index."""
+            well index.
+        """
         if f_axial is None:
             f_axial = self.default_f_axial
         if f_rad_x is None:

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class OphirPowerMeter:
-    """Interface to Ophir Starlite power meters"""
+    """Interface to Ophir Starlite power meters."""
 
     def __init__(self, serial_number=None, channel=0):
         self.channel = channel
@@ -74,9 +74,8 @@ class OphirPowerMeter:
         self.com.SetWavelength(self.device, self.channel, index)
 
     def get_range_names(self):
-        """Return a list of power ranges supported by the sensor as
-        human-readable strings.
-        """
+        """Return a list of power ranges supported by the sensor as human-readable
+        strings."""
         _, range_names = self.com.GetRanges(self.device, self.channel)
         return range_names
 

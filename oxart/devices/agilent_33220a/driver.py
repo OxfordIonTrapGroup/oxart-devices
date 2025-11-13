@@ -2,7 +2,7 @@ import socket
 
 
 class Agilent33220A:
-    """Driver for Agilent 33220A AWGs"""
+    """Driver for Agilent 33220A AWGs."""
 
     def __init__(self, host, port, timeout=10):
 
