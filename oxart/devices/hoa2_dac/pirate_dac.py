@@ -51,8 +51,10 @@ class PirateDac:
 
     def set_channel(self, v, ch=0, update=True):
         """Set channel to a given voltage.
-        If update, pulse LDAC and update immediately,
-        else batch and update together on LDAC"""
+
+        If update, pulse LDAC and update immediately, else batch and update together on
+        LDAC
+        """
 
         if v > 10 or v < -10:
             raise ValueError("Voltage out of range")

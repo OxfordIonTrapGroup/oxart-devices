@@ -1,4 +1,4 @@
-""" Driver for Lake Shore Cryogenics Model 335 Temperature controllers """
+"""Driver for Lake Shore Cryogenics Model 335 Temperature controllers."""
 
 from oxart.devices.streams import get_stream
 
@@ -25,7 +25,8 @@ class LakeShore335:
         return idn[0:2] == ['LSCI', 'MODEL335']
 
     def get_manual_heater_output(self, output=1):
-        """ Returns the output power/current of the heater, scale 0-100%.
+        """Returns the output power/current of the heater, scale 0-100%.
+
         Must set heater mode to open loop first.
         : param output: either 1 or 2 for heater channels
         : return: output power/current of the heater, scale 0-100%
@@ -34,7 +35,7 @@ class LakeShore335:
         return float(self.stream.readline())
 
     def set_manual_heater_output(self, value, output=1):
-        """ Sets the output power/current of the heater, scale 0-100%. Depends on
+        """Sets the output power/current of the heater, scale 0-100%. Depends on
         display setting in heater_setup function. Must set heater mode to open loop
         first.
 
@@ -46,7 +47,8 @@ class LakeShore335:
         return output, value
 
     def get_heater_output(self, output=1):
-        """ Returns the output power/current of the heater, scale 0-100%.
+        """Returns the output power/current of the heater, scale 0-100%.
+
         : param output: either 1 or 2 for heater channels
         : return: output power/current of the heater, scale 0-100%
         """

@@ -21,7 +21,7 @@ class BBShutter:
             GPIO.output(pin, GPIO.LOW)
 
     def set_shutter(self, channel, state):
-        """Set a shutter state"""
+        """Set a shutter state."""
         if channel > 3 or channel < 0:
             raise ValueError("Channel out of range")
 
@@ -29,15 +29,15 @@ class BBShutter:
         self.states[channel] = not (not (state))
 
     def get_shutter(self, channel):
-        """Get a shutter state"""
+        """Get a shutter state."""
         if channel > 3 or channel < 0:
             raise ValueError("Channel out of range")
         return self.states[channel]
 
     def open_shutter(self, channel):
-        """Set a shutter to the open = not blocking beam state"""
+        """Set a shutter to the open = not blocking beam state."""
         self.set_shutter(channel, True)
 
     def close_shutter(self, channel):
-        """Set a shutter to the closed = blocking beam state"""
+        """Set a shutter to the closed = blocking beam state."""
         self.set_shutter(channel, False)

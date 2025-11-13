@@ -6,8 +6,8 @@ logger = logging.getLogger(__name__)
 
 
 class HolzworthSynthRaw():
-    """Raw driver to communicate with the Holzworth Synthesiser using SCPI commands over
-    USB"""
+    """Raw driver to communicate with the Holzworth Synthesiser using SCPI commands
+    over USB."""
 
     def __init__(self):
 
@@ -32,9 +32,9 @@ class HolzworthSynthRaw():
         }  # swap keys for values
 
     def get_freq(self, limits=0):
-        """Returns the current set frequency of the Holzworth synth when called without
-        arguments or limits=0, and returns the maximum and minimum allowed frequency
-        when called with limits=1 and limits =-1 respectively"""
+        """Returns the current set frequency of the Holzworth synth when called
+        without arguments or limits=0, and returns the maximum and minimum allowed
+        frequency when called with limits=1 and limits =-1 respectively."""
 
         limits_dict = {0: '', 1: ':MAX', -1: ':MIN'}
         command = ctypes.c_char_p((':FREQ' + limits_dict[limits] + '?').encode())
@@ -52,7 +52,7 @@ class HolzworthSynthRaw():
         return round(freq, 3)  # rounding as the synth reads to 3 d.p. precision
 
     def set_freq(self, freq):
-        """Sets the output frequency of the Holzworth synth"""
+        """Sets the output frequency of the Holzworth synth."""
 
         if (freq < 1e5) or (freq > 2.048e9):
             raise Exception("Frequency out of range")
@@ -74,7 +74,7 @@ class HolzworthSynthRaw():
     def get_pow(self, limits=0):
         """Returns the current set power of the Holzworth synth when called without
         arguments or limits=0, and returns the maximum and minimum allowed frequency
-        when called with limits=1 and limits =-1 respectively"""
+        when called with limits=1 and limits =-1 respectively."""
         limits_dict = {0: '', 1: ':MAX', -1: ':MIN'}
         command = ctypes.c_char_p((':PWR' + limits_dict[limits] + '?').encode())
 
@@ -87,7 +87,7 @@ class HolzworthSynthRaw():
         return round(power, 3)  # rounding as the synth reads to 3 d.p. precision
 
     def set_pow(self, power):
-        """Sets the output power of the Holzworth synth"""
+        """Sets the output power of the Holzworth synth."""
 
         if (power < -100) or (power > 15):
             raise Exception("Power out of range")
@@ -100,19 +100,21 @@ class HolzworthSynthRaw():
 
     def identity(self):
         """Retrieves the Manufacturer, Device Name, Board Number, Firmware Version,
-        Instrument Serial Number"""
+        Instrument Serial Number."""
         command = ctypes.c_char_p((':IDN?').encode())
         rx = self.dll.usbCommWrite(self.serialnum, command)
         return rx.decode()
 
     def ping(self):
-        """Needed to check connnection is alive"""
+        """Needed to check connnection is alive."""
         if self.identity() == '':
             raise Exception("No devices connected")
         return True
 
     def close(self):
-        """Closes connection to the Holzworth. Must be called when disconnecting else
-        future connections may not work"""
+        """Closes connection to the Holzworth.
+
+        Must be called when disconnecting else future connections may not work
+        """
         self.dll.close_all()
         print('Connection to Holzworth synth closed safely')

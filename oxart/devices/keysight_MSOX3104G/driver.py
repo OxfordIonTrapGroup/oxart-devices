@@ -11,7 +11,7 @@ def list_resources():
 
 
 class MSOX3104G:
-    """Keysight InfiniiVision MSOX3104G driver"""
+    """Keysight InfiniiVision MSOX3104G driver."""
 
     def __init__(self, address: str):
         self._rm = pyvisa.ResourceManager('@py')

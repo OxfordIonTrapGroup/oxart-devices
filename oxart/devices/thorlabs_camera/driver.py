@@ -77,12 +77,12 @@ class Camera(Thorlabs.ThorlabsTLCamera):
         return super().get_gain_range()
 
     def set_roi(self, hstart=260, hend=800, vstart=0, vend=50, hbin=1, vbin=1):
-        """Warning! This seems to be inconsistent up to some pixels
-        in the vertical axis. Don't forget to check the roi limits
-        with self.get_roi_limits(). The region of interest
-        should be larger than the min value and smaller than the max
-        (the size of the detector). Check with self.get_roi() to see
-        the effective frame size.
+        """Warning!
+
+        This seems to be inconsistent up to some pixels in the vertical axis. Don't
+        forget to check the roi limits with self.get_roi_limits(). The region of
+        interest should be larger than the min value and smaller than the max (the size
+        of the detector). Check with self.get_roi() to see the effective frame size.
         """
         super().set_roi(hstart=hstart,
                         hend=hend,
@@ -93,8 +93,9 @@ class Camera(Thorlabs.ThorlabsTLCamera):
 
     def get_roi_limits_dict(self, hbin=1, vbin=1):
         """Override parent class to output a dictionary.
-        [LV] I believe sipyco does not allow some object
-        types passing through the server.
+
+        [LV] I believe sipyco does not allow some object types passing through the
+        server.
         """
         xlim, ylim = super().get_roi_limits(hbin, vbin)
         limits = {

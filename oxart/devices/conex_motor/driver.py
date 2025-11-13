@@ -88,7 +88,10 @@ class Conex:
             raise
 
     def _read_line(self):
-        """Read a CR terminated line. Returns '' on timeout"""
+        """Read a CR terminated line.
+
+        Returns '' on timeout
+        """
         s = ""
         while not s or s[-1] != "\n":
             c = self.port.read().decode()
@@ -106,8 +109,7 @@ class Conex:
 
     def _execute_checked_command(self, command, delay_before_status_read=None):
         """Execute the given response-less command, and check the hardware error
-        status afterwards (raising a ConexError if not nominal).
-        """
+        status afterwards (raising a ConexError if not nominal)."""
         self._send_command(command)
         if delay_before_status_read is not None:
             time.sleep(delay_before_status_read)
@@ -115,11 +117,11 @@ class Conex:
 
     def _execute_config_mode_command(self, command):
         """Switch to configuration mode (PW1), execute the given response-less
-        command, switch back to regular mode (PW0). Hardware errors are checked
-        along the way (raising a ConexError if not nominal).
+        command, switch back to regular mode (PW0). Hardware errors are checked along
+        the way (raising a ConexError if not nominal).
 
-        Note that according to the documentation, the nominal endurance of the
-        non-volatile is only 100 writes (i.e. switches out of configuration mode). This
+        Note that according to the documentation, the nominal endurance of the non-
+        volatile is only 100 writes (i.e. switches out of configuration mode). This
         should thus be avoided if possible.
         """
         self._execute_checked_command("PW1", delay_before_status_read=1.0)
@@ -133,7 +135,8 @@ class Conex:
             self._execute_checked_command("PW0", delay_before_status_read=10.0)
 
     def _execute_query(self, command_name, suffix=""):
-        """Execute the given command and wait for the response, checking the format."""
+        """Execute the given command and wait for the response, checking the
+        format."""
         self._send_command(command_name + suffix)
         response = self._read_line()
         if response[:3] != f"{CHANNEL_IDX}{command_name}":
@@ -152,17 +155,16 @@ class Conex:
         raise ConexError(code, message)
 
     def reset(self):
-        """
-        Clear any latched hardware errors (RS) and re-save
-        the current software limits so they survive the reset.
-        """
+        """Clear any latched hardware errors (RS) and re-save the current software
+        limits so they survive the reset."""
 
         # Perform the actual hardware reset
         self._execute_checked_command("RS")
         time.sleep(0.1)
 
     def home(self):
-        """Move the stage until home position is reached and reference encoders there.
+        """Move the stage until home position is reached and reference encoders
+        there.
 
         This is required after reset of the controller, before any other operation can
         be launched. Blocks until homing is complete.
@@ -212,8 +214,10 @@ class Conex:
                 logger.exception("Failed to write upper limit")
 
     def set_position(self, pos, blocking=True):
-        """Go to an absolute position. If blocking, do no return until the stage
-        has stopped moving"""
+        """Go to an absolute position.
+
+        If blocking, do no return until the stage has stopped moving
+        """
         self._execute_checked_command("PA{}".format(pos))
         if blocking:
             while True:
@@ -225,7 +229,7 @@ class Conex:
                     raise ValueError("State is not moving ({})".format(s))
 
     def stop(self):
-        """Stop motion"""
+        """Stop motion."""
         self._execute_checked_command("ST")
 
     def get_position(self):
@@ -256,8 +260,9 @@ class Conex:
 
     def set_upper_limit(self, limit, persist=False):
         """Set the upper limit.
-        If persist=True, also write it into non-volatile memory
-        (write endurance limited to ~100 cycles).
+
+        If persist=True, also write it into non-volatile memory (write endurance limited
+        to ~100 cycles).
         """
         self._cached_upper_limit = limit
 
@@ -275,8 +280,9 @@ class Conex:
 
     def set_lower_limit(self, limit, persist=False):
         """Set the lower limit.
-        If persist=True, also write it into non-volatile memory
-        (write endurance limited to ~100 cycles).
+
+        If persist=True, also write it into non-volatile memory (write endurance limited
+        to ~100 cycles).
         """
         self._cached_lower_limit = limit
 
@@ -311,7 +317,7 @@ class Conex:
         return pos
 
     def get_status(self):
-        """Return the status code of the controller"""
+        """Return the status code of the controller."""
         code = self._execute_query("TS", "?")
         state_code = code[4:6].lower()
         if state_code in ["0a", "0b", "0c", "0d", "0e", "0f", "10"]:

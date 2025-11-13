@@ -1,4 +1,4 @@
-""" Driver for current stabilizer """
+"""Driver for current stabilizer."""
 
 from collections import OrderedDict
 import asyncio
@@ -57,13 +57,13 @@ class IIR:
         self.ba[4] = 0.
 
     def configure_biquad(self, zeros, poles, gain=1.):
-        """Calulate biquad iir filter coeficents
-        The function constructs the iir coeficents for a transfer function with
-        desired zeros and poles.
-        :param zeros: list of upto two zero locations in Hz, must be real or
-            complex conjugate pairs.
-        :param poles: list of upto two pole locations in Hz, must be real or
-            complex conjugate pairs.
+        """Calulate biquad iir filter coeficents The function constructs the iir
+        coeficents for a transfer function with desired zeros and poles.
+
+        :param zeros: list of upto two zero locations in Hz, must be real or complex
+            conjugate pairs.
+        :param poles: list of upto two pole locations in Hz, must be real or complex
+            conjugate pairs.
         :param gain: gain scaling factor of transfer function.
         """
 
@@ -86,11 +86,10 @@ class IIR:
                 raise ValueError("Invalid number of factors")
 
         def z_transform(s_coefs, t_update):
-            """
-            z-transformation of second order s polynomial in coefficients
+            """Z-transformation of second order s polynomial in coefficients.
 
-            This uses Tustin’s transformation
-            see https://arxiv.org/pdf/1508.06319.pdf
+            This uses Tustin’s transformation see
+            https://arxiv.org/pdf/1508.06319.pdf
 
             We drop a factor of 1/(1 + z^-1)^2 which is common to both
             polynomials

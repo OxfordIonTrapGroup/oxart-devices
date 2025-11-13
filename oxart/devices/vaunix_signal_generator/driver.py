@@ -1,5 +1,4 @@
-"""Module for instance of a Vaunix LabBrick Signal Generator
-"""
+"""Module for instance of a Vaunix LabBrick Signal Generator."""
 
 from ctypes import *
 from os.path import dirname, join
@@ -88,8 +87,7 @@ class VaunixSG(object):
 
     def get_on(self):
         """This function returns a bool value which is True when the synthesizer is
-        “on”, or False when the
-        synthesizer has been set “off”."""
+        “on”, or False when the synthesizer has been set “off”."""
         on = vnx.fnLSG_GetRF_On(self.dev)
         if int(on) == 1:
             return True
@@ -97,19 +95,22 @@ class VaunixSG(object):
             return False
 
     def set_ref_internal(self, internal):
-        """This function configures the synthesizer to use the internal reference
-        if internal = True. If internal = False, then the synthesizer is configured
-        to use an external frequency reference.
+        """This function configures the synthesizer to use the internal reference if
+        internal = True. If internal = False, then the synthesizer is configured to
+        use an external frequency reference.
 
-        22/09/2025: it seems we need to flip logical value here to get
-        correct result (see caqtus notes)
+        22/09/2025: it seems we need to flip logical value here to get correct result
+        (see caqtus notes)
         """
         vnx.fnLSG_SetUseInternalRef(self.dev, not (internal))
 
     def get_ref_internal(self):
         """This function returns a bool value which is True when the synthesizer is
-        configured to use its internal frequency reference. It returns a value of False
-        when the synthesizer is configured to use an external frequency reference."""
+        configured to use its internal frequency reference.
+
+        It returns a value of False when the synthesizer is configured to use an
+        external frequency reference.
+        """
         internal = vnx.fnLSG_GetUseInternalRef(self.dev)
         if int(internal) == 1:
             return False
@@ -117,13 +118,15 @@ class VaunixSG(object):
             return True
 
     def save_settings(self):
-        """The LabBrick synthesizers can save their settings, and then resume operating
-        with the saved settings when they are powered up. Set the desired parameters,
-        then use this function to save the settings."""
+        """The LabBrick synthesizers can save their settings, and then resume
+        operating with the saved settings when they are powered up.
+
+        Set the desired parameters, then use this function to save the settings.
+        """
         vnx.fnLSG_SaveSettings(self.dev)
 
     def set_frequency(self, freq):
-        """Sets frequency, rounded to nearest multiple of 100 kHz"""
+        """Sets frequency, rounded to nearest multiple of 100 kHz."""
 
         # convert frequency to integer number of 100kHz units:
         freq_100kHz = round(freq / (100 * kHz))
@@ -137,7 +140,7 @@ class VaunixSG(object):
             raise RuntimeError("SetFrequency returned error", result)
 
     def set_power(self, pow):
-        """Sets frequency, rounded to nearest multiple of 0.5 dBm"""
+        """Sets frequency, rounded to nearest multiple of 0.5 dBm."""
 
         # convert frequency to integer number of 0.5 dBm units:
         pow_05dBm = round(pow * 2)
@@ -154,13 +157,13 @@ class VaunixSG(object):
             print("SetPowerLevel returned error", result)
 
     def get_frequency(self):
-        """Gets the frequency in Hertz"""
+        """Gets the frequency in Hertz."""
         result = vnx.fnLSG_GetFrequency(self.dev)  # returns a multiple of 100 kHz
         freq_Hz = result * 100 * kHz
         return freq_Hz
 
     def get_power(self):
-        """Gets the power in dBm"""
+        """Gets the power in dBm."""
         result = vnx.fnLSG_GetPowerLevel(self.dev)  # returns as a multiple of 0.25dBm
         power_dBm = (self.max_power_025dBm - result) / 4
         return power_dBm

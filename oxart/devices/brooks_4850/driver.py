@@ -16,10 +16,10 @@ class CorruptionError(RuntimeError):
 
 
 class Brooks4850:
-    """Brooks 4850 mass flow controller driver"""
+    """Brooks 4850 mass flow controller driver."""
 
     def __init__(self, address):
-        """ Connect to a Brookes flowmeter"""
+        """Connect to a Brookes flowmeter."""
         self.c = serial_for_url(address)
         # read in gas info from the device
         self.max_flow, self.gas_id, self.gas_density = self.read_gas_info()
@@ -54,8 +54,7 @@ class Brooks4850:
         self.c.write(data)
 
     def _read_response(self, n_bytes):
-        """Read a response from the device, waiting for
-        n_bytes"""
+        """Read a response from the device, waiting for n_bytes."""
         n_read = 0
         data = bytes()
         while (n_read < n_bytes):
@@ -84,9 +83,8 @@ class Brooks4850:
         return command, payload
 
     def read_flow(self):
-        """Read the current value of the flow meter
-        in sccm (standard cubic centimeters per minute)
-        for the selected gas"""
+        """Read the current value of the flow meter in sccm (standard cubic
+        centimeters per minute) for the selected gas."""
         self._send_command(CMD_SEND_ONE_DATA)
         command, payload = self._read_response(4)
 
@@ -95,7 +93,7 @@ class Brooks4850:
         return real_flow
 
     def read_temperature(self):
-        """Read the temperature of the device"""
+        """Read the temperature of the device."""
         self._send_command(CMD_READ_VAR_INT16, struct.pack("B", 15))
         command, payload = self._read_response(4)
 
@@ -104,7 +102,7 @@ class Brooks4850:
         return temperature
 
     def read_gas_info(self):
-        """Read info about the selected gas"""
+        """Read info about the selected gas."""
         self._send_command(CMD_READ_GASINFO)
         command, payload = self._read_response(8)
 
@@ -116,7 +114,7 @@ class Brooks4850:
     def set_zero_offset(self):
         # NOTE THIS ISN'T WORKING CORRECTLY YET, I THINK - BUT NEEDS TESTING
         # WHEN FLOWING
-        """Zero the flow controller reading to the current value"""
+        """Zero the flow controller reading to the current value."""
         self._send_command(CMD_WRITE_VAR_CHAR, struct.pack(">BB", 3, 1))
         command, payload = self._read_response(1)
 
@@ -143,7 +141,7 @@ class Brooks4850:
             log.info("Flowmeter successfully zeroed, new zero = " + str(new_zero))
 
     def reset_zero(self):
-        """Reset the flow controller zero to the default value"""
+        """Reset the flow controller zero to the default value."""
         self._send_command(CMD_WRITE_VAR_CHAR, struct.pack(">BB", 3, 2))
         command, payload = self._read_response(1)
 
@@ -166,7 +164,7 @@ class Brooks4850:
             raise RuntimeError("Error updating set point source")
 
     def read_setpoint(self):
-        """Read the current flow rate setpoint in sccm"""
+        """Read the current flow rate setpoint in sccm."""
         self._send_command(CMD_READ_VAR_INT16, struct.pack("B", 20))
         command, payload = self._read_response(4)
 
@@ -176,7 +174,7 @@ class Brooks4850:
         return setpoint
 
     def set_setpoint(self, setpoint):
-        """set the current flow rate setpoint in sccm"""
+        """Set the current flow rate setpoint in sccm."""
         if setpoint > self.max_flow or setpoint < 0:
             raise ValueError("Setpoint {} is out of range (0,{})!".format(
                 setpoint, self.max_flow))
