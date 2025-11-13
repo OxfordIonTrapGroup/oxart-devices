@@ -162,23 +162,31 @@ class Conex:
         time.sleep(0.1)
 
     def home(self):
-        """Go to home position—required after reset of controller before any
-        other operation.
+        """Move the stage until home position is reached and reference encoders there.
 
-        Blocks until the operation is complete.
+        This is required after reset of the controller, before any other operation can
+        be launched. Blocks until homing is complete.
+
+        Note: In principle, the CONEX controllers support different homing modes. This
+        sounds like it could be very useful, especially since there is one the CONEX-CC
+        manual describes as "use current position as HOME". However, this turns out to
+        be both not actually useful, and very prone to issues: While home-to-current
+        actually does work, the controller – at least for the TRA12CC stages used in lab
+        one – doesn't allow negative positions (the lower limit is clamped to 0). Thus,
+        this is not usable for recovering fine adjustment capability after a power loss.
+        At the same time, the different homing modes are not clearly documented
+        (mechanical zero vs. EoR- switch with/without encoder index), and attempting to
+        use a mode not supported by a particular actuator can just result in the
+        actuator traveling through its entire range irrespective of any limits
+        configured. The modes documented by a particular actuator are not documented,
+        and the manufacturer software does not allow the user to set them either (except
+        through the raw command console). Thus, we do not expose an interface for
+        setting the homing type (HT) for now.
         """
-        # 0: mech-zero + encoder index
-        self._home_with_type("4")
-
-    def _home_with_type(self, type):
         try:
             try:
                 ht = self._execute_query("HT", "?")
-                if ht != type:
-                    logger.warning(
-                        f"Changing home type (in persistent storage) from {ht} "
-                        f"to {type}")
-                    self._execute_config_mode_command(f"HT{type}")
+                logger.info(f"home()ing; HT configured as {ht}")
                 self._execute_checked_command("OR")
             except ConexError as e:
                 if e.code != "K":
