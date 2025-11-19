@@ -16,7 +16,7 @@ def get_argparser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("-s",
-                        "--server",
+                        "--dlc-server",
                         required=True,
                         help="Laser controller address / hostname.")
     parser.add_argument("--firmware",
@@ -91,7 +91,7 @@ def main():
         logger.info("Connecting to DLC Pro...")
         while True:
             async with dlcpro_sdk.Client(dlcpro_sdk.NetworkConnection(
-                    args.server)) as dlc:
+                    args.dlc_server)) as dlc:
                 logger.info("Established connection to DLC Pro")
                 while True:
                     time.sleep(args.poll)
