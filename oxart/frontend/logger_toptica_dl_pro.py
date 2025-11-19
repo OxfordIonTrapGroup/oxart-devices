@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import argparse
 import asyncio
-from asyncio import wait_for
 import time
-from influxdb import InfluxDBClient
 import importlib
 import logging
+import json
+from asyncio import wait_for
+from influxdb import InfluxDBClient
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,14 @@ def get_argparser():
                         default=30,
                         type=int,
                         help="Measurement polling period (seconds)")
+    parser.add_argument("--config-file",
+                        help="Path to json file configuring parameters to monitor.")
+    parser.add_argument("-v",
+                        "--verbose",
+                        help="Increase output verbosity",
+                        action="count",
+                        default=0)
+
     parser.add_argument(
         "--timeout",
         default=60,
@@ -44,12 +53,26 @@ def get_argparser():
     return parser
 
 
+def setup_logging(verbose_arg):
+    levels = [logging.WARNING, logging.INFO, logging.DEBUG]
+    level = levels[min(verbose_arg, len(levels) - 1)]  # cap to last level index
+    logging.basicConfig(level=level)
+
+
 def main():
     args = get_argparser().parse_args()
+
+    setup_logging(args.verbose)
 
     # Import corresponding DLC Pro module for the required firmware
     dlcpro_sdk = importlib.import_module(
         ".lasersdk.asyncio.dlcpro.{}".format(args.firmware), "toptica")
+
+    # Get the parameters to monitor from config file
+    with open(args.config_file, 'r') as json_file:
+        logger.info(f"Loading parameters from {args.config_file}...")
+        parameters = json.load(json_file)
+        logger.debug(f"Loaded parameters to monitor: {parameters}")
 
     loop = asyncio.get_event_loop()
     influx_client = InfluxDBClient(host=args.influx_server,
@@ -64,19 +87,6 @@ def main():
             print("ConnectionError: Influxdb down?")
 
     async def stream_data():
-        # Dictionary containing location of parameters in dlc
-        parameters = {
-            "dl-current-act": "laser1:dl:cc:current-act",
-            "dl-voltage-act": "laser1:dl:cc:voltage-act",
-            "dl-temp-act": "laser1:dl:tc:temp-act",
-            "amp-current-act": "laser1:amp:cc:current-act",
-            "amp-voltage-act": "laser1:amp:cc:voltage-act",
-            "amp-temp-act": "laser1:amp:tc:temp-act",
-            "amp-seed-power": "laser1:amp:pd:seed:power",
-            "amp-power": "laser1:amp:pd:amp:power",
-            "pzt-voltage-act": "laser1:dl:pc:voltage-act",
-            "pzt-voltage-set": "laser1:dl:pc:voltage-set",
-        }
         msg = {key: None for key in parameters.keys()}
         logger.info("Connecting to DLC Pro...")
         while True:
@@ -97,7 +107,7 @@ def main():
                         write_point(msg)
                         continue
                     break
-            logger.info("Connection to DLC Pro lost. Trying to reconnect...")
+            logger.warning("Connection to DLC Pro lost. Trying to reconnect...")
 
     loop.run_until_complete(stream_data())
 
