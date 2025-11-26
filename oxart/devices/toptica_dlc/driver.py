@@ -9,6 +9,7 @@ LOCK_STATE_PARAM = "laser1:dl:lock:state"
 
 
 class TopticaDLC:
+
     def __init__(self, dlc_client, timeout=10):
         """
         :param dlc_client: toptica.lasersdk.dlcpro.vXXX.DLCpro context with
@@ -58,10 +59,15 @@ class TopticaDLC:
 
         :raises ConnectionError: when unable to read the latest lock state
         """
+        # Yapf seems to have issues with the long line here
+        # yapf: disable
         try:
             self.last_known_lock_state = await wait_for(
-                self.dlc.get(LOCK_STATE_PARAM, float), timeout=self.timeout
+                self.dlc.get(LOCK_STATE_PARAM, float),
+                timeout=self.timeout
             )
+        # yapf: enable
+
         except Exception as exception:
             logger.error(f"Is DLC pro connected to network?: {exception}")
             raise ConnectionError
