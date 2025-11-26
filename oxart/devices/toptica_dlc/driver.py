@@ -12,7 +12,8 @@ class TopticaDLC:
 
     def __init__(self, dlc_client, timeout=10):
         """
-        :param dlc_client: toptica.lasersdk.dlcpro.vXXX.DLCpro context with an active connection
+        :param dlc_client: toptica.lasersdk.dlcpro.vXXX.DLCpro context with
+        an active connection
         """
         self.dlc = dlc_client
         self.last_known_lock_state = 0
@@ -43,10 +44,12 @@ class TopticaDLC:
         Possible values are:
         0 - Idle: no scan, no lock
         1 - Scanning: scan controller enabled
-        2 - Selecting: "Scanning" plus an additional evaluating signal to find the lock-
-            point candidates
-        3 - Selected: "Selecting" plus one lockpoint candidate selected as actual lockpoint
-        4 - Locking: start of locking procedure; scanning to the lockpoint and activating
+        2 - Selecting: "Scanning" plus an additional evaluating signal to find the
+            lockpoint candidates
+        3 - Selected: "Selecting" plus one lockpoint candidate selected as actual
+            lockpoint
+        4 - Locking: start of locking procedure; scanning to the lockpoint and
+            activating
             the PID controller(s).
         5 - Locked: scan controller deactivated and PID lock(s) closed
         6 - On Hold: PIDs on hold, waiting for being activated again
