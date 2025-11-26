@@ -13,9 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 def get_argparser():
-    parser = argparse.ArgumentParser(
-        description=
-        "ARTIQ controller to read lock status from TopticaDLCpro with lock module")
+    parser = argparse.ArgumentParser(description=(
+        "ARTIQ controller to read lock status from TopticaDLCpro with lock module"))
 
     parser.add_argument("--dlc-server",
                         required=True,
