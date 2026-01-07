@@ -2,13 +2,13 @@ import json
 from asyncio import wait_for
 from logging import getLogger
 
-import websockets
+# Requires websockets > 15.0
+from websockets.asyncio.client import connect
 
 logger = getLogger(__name__)
 
 
 class SolstisNotifier:
-
     def __init__(
         self,
         server,
@@ -27,8 +27,9 @@ class SolstisNotifier:
         """Connect to the Solstis websocket server and receive messages until
         connection drops."""
         logger.info("Connecting to Solstis at {}:{}".format(self.server, self.port))
-        async with websockets.connect("ws://{}:{}".format(self.server, self.port),
-                                      ping_interval=None) as websocket:
+        async with connect(
+            "ws://{}:{}".format(self.server, self.port), ping_interval=None
+        ) as websocket:
             while True:
                 try:
                     raw_msg = await wait_for(websocket.recv(), timeout=self.timeout)
