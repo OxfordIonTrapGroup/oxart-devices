@@ -21,7 +21,7 @@ class IIR:
     I_set_range = 21  # mA
 
     def __init__(self):
-        self.ba = np.zeros(5, np.float32)
+        self.ba = np.zeros(5)
         self.y_offset = 0.
         self.y_min = -self.full_scale - 1
         self.y_max = self.full_scale
@@ -130,7 +130,7 @@ class CPU_DAC:
 
     def __init__(self):
         self.en = True
-        self.out = np.zeros(1, np.float32)
+        self.out = 0.0
 
     def set_out(self, out):
         assert out >= 0 and out <= 48, "cpu dac setting out of range"
