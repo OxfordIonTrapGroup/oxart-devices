@@ -54,15 +54,14 @@ class RS_FSWP:
         self.fsw.system.display.update.set(True)
 
     def set_continuous(self, continuous: bool = True):
-        """
-        Choose whether to run a continuous scan or take one scan at a time.
+        """Choose whether to run a continuous scan or take one scan at a time.
+
         :param continuous: Whether to make the scan continuous or not
         """
         self.fsw.initiate.continuous.set(continuous)
 
     def set_scan_start_and_end(self, scan_start: float, scan_end: float):
-        """
-        Set the start and end fequencies of a scan.
+        """Set the start and end fequencies of a scan.
 
         :param scan_start: Scan start frequency in Hz.
         :param scan_end: Scan end frequency in Hz.
@@ -72,8 +71,7 @@ class RS_FSWP:
         self.fsw.sense.frequency.stop.set(scan_end)
 
     def get_scan_start_and_end(self) -> Tuple[float, float]:
-        """
-        Get the start and end frequencies of a scan in Hz.
+        """Get the start and end frequencies of a scan in Hz.
 
         :return: Tuple (start_frequency, end_frequency) in Hz.
         """
@@ -82,94 +80,81 @@ class RS_FSWP:
         return start_frequency, end_frequency
 
     def set_power_reference_level(self, reference_level: float):
-        """
-        Set the power (y-axis) reference level.
+        """Set the power (y-axis) reference level.
 
         :param reference_level: Reference level in dBm.
         """
         self.fsw.display.window.trace.y.scale.refLevel.set(reference_level)
 
     def get_power_reference_level(self) -> float:
-        """
-        Get the power (y-axis) reference level.
+        """Get the power (y-axis) reference level.
 
         :return: Reference level in dBm.
         """
         return self.fsw.display.window.trace.y.scale.refLevel.get()
 
     def set_resolution_bandwidth(self, bandwidth: float):
-        """
-        Set the resolution bandwidth (RBW).
+        """Set the resolution bandwidth (RBW).
 
         :param bandwidth: Resolution bandwidth in Hz.
         """
         self.fsw.sense.bandwidth.resolution.set(bandwidth)
 
     def set_auto_resolution_bandwidth(self, state: bool = True):
-        """
-        Whether to let the instrument set the RBW automatically.
+        """Whether to let the instrument set the RBW automatically.
 
         :param state: If True, set RBW to auto.
         """
         self.fsw.sense.bandwidth.resolution.auto.set(state)
 
     def get_resolution_bandwidth(self) -> float:
-        """
-        Get current resolution bandwidth (RBW)
+        """Get current resolution bandwidth (RBW)
 
         :return: Resolution bandwidth in dBm.
         """
         return self.fsw.sense.bandwidth.resolution.get()
 
     def set_num_points(self, num_points: int):
-        """
-        Set the number of points per scan sweep.
-        """
+        """Set the number of points per scan sweep."""
         self.fsw.sense.sweep.points.set(num_points)
 
     def get_num_points(self) -> int:
-        """
-        Get the current number of points per scan sweep.
+        """Get the current number of points per scan sweep.
 
         :return: Number of points.
         """
         return self.fsw.sense.sweep.points.get()
 
     def set_sweep_time(self, sweep_time: float):
-        """
-        Set the time for a single sweep.
+        """Set the time for a single sweep.
 
         :param sweep_time: Sweep time in s.
         """
         self.fsw.sense.sweep.time.set(sweep_time)
 
     def set_auto_sweep_time(self, state: bool = True):
-        """
-        Whether to let the instrument automatically.
+        """Whether to let the instrument automatically.
 
         :param state: If True, set sweep time to auto.
         """
         self.fsw.sense.sweep.time.auto.set(state)
 
     def get_sweep_time(self) -> float:
-        """
-        Get the current sweep time.
+        """Get the current sweep time.
 
         :return: Sweep time in s.
         """
         return self.fsw.sense.sweep.time.get()
 
     def set_marker(self, trace_number: int = 1, window=None, marker=None):
-        """
-        Set a marker at the desired trace. By default, sets marker 1 onto trace 1 in
-        window 1.
+        """Set a marker at the desired trace. By default, sets marker 1 onto trace 1
+        in window 1.
 
         :param trace_number: The trace on which to set the marker.
         :param window: Optionally, the window onto which to set the marker. If passed,
             of the form repcap.Window.Nr<n>
         :param marker: Optionally, the marker that is to be set. If passed, of the form
             repcap.Marker.Nr<n>
-
         :return: Tuple containing the window onto which the number has been set and the
             marker.
         """
@@ -181,16 +166,14 @@ class RS_FSWP:
         return window, marker
 
     def set_marker_at_peak(self, trace_number: int = 1, window=None, marker=None):
-        """
-        Set a marker to follow the peak frequency of the desired trace. By default,
-        sets marker 1 onto trace 1 in window 1.
+        """Set a marker to follow the peak frequency of the desired trace. By
+        default, sets marker 1 onto trace 1 in window 1.
 
         :param trace_number: The trace on which to set the marker.
         :param window: Optionally, the window onto which to set the marker. If passed,
             of the form repcap.Window.Nr<n>
-        :param marker: Optionally, the marker that is to be set. If passed, of the
-            form repcap.Marker.Nr<n>
-
+        :param marker: Optionally, the marker that is to be set. If passed, of the form
+            repcap.Marker.Nr<n>
         :return: Tuple containing the window onto which the number has been set and the
             marker.
         """
@@ -199,26 +182,22 @@ class RS_FSWP:
         return window, marker
 
     def get_marker_frequency(self, window, marker) -> float:
-        """
-        Get frequency at which the marker is set. This is useful if the marker has been
-            set to follow the peak of a trace.
+        """Get frequency at which the marker is set. This is useful if the marker has
+        been set to follow the peak of a trace.
 
         :param window: The window onto which the marker is set, of the form
             repcap.Window.Nr<n>
         :param marker: The marker, of the form repcap.Marker.Nr<n>
-
         :return: Marker frequency in Hz.
         """
         return self.fsw.calculate.marker.x.get(window, marker)
 
     def get_marker_amplitude(self, window, marker) -> float:
-        """
-        Get the amplitude at the marker's frequency.
+        """Get the amplitude at the marker's frequency.
 
         :param window: The window onto which the marker is set, of the form
             repcap.Window.Nr<n>
         :param marker: The marker, of the form repcap.Marker.Nr<n>
-
         :return: Marker amplitude in dBm.
         """
         return self.fsw.calculate.marker.y.get(window, marker)
@@ -231,8 +210,7 @@ class RS_FSWP:
         ref_level_dBm: float = -20,
         num_points: int = 1001,
     ):
-        """
-        Set up a single scan.
+        """Set up a single scan.
 
         Params:
         :min_freq_Hz: Scan minimum frequency in Hz
@@ -281,12 +259,10 @@ class RS_FSWP:
         self.set_auto_sweep_time()
 
     def get_scan_params(self):
-        """
-        Return the currently set scan parameters.
+        """Return the currently set scan parameters.
 
-        :returns:
-            Tuple[min_frequency_Hz, max_frequency_Hz,
-            resolution_Hz, ref_level_dB, num_points]
+        :returns: Tuple[min_frequency_Hz, max_frequency_Hz, resolution_Hz, ref_level_dB,
+            num_points]
         """
 
         min_freq_Hz, max_freq_Hz = self.get_scan_start_and_end()
@@ -296,8 +272,7 @@ class RS_FSWP:
         return min_freq_Hz, max_freq_Hz, resolution_Hz, ref_level_dB, num_points
 
     def scan_and_get_peak(self) -> Tuple[float, float]:
-        """
-        Runs a single scan and return the frequency and amplitude of the peak
+        """Runs a single scan and return the frequency and amplitude of the peak
         frequency in the scan.
 
         :return: A tuple with the peak frequency in Hz and amplitude in dBm.

@@ -4,7 +4,7 @@ from oitg.imaging.roi_tools import *
 
 
 class CameraSetup(EnvExperiment):
-    """Set camera parameters"""
+    """Set camera parameters."""
     _camera_name = "camera"
 
     def build(self):
@@ -63,7 +63,7 @@ class CameraSetup(EnvExperiment):
 
 
 class ChooseROI(EnvExperiment):
-    """Set camera ROI"""
+    """Set camera ROI."""
 
     def build(self):
         self.setattr_device("core")

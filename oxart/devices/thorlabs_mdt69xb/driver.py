@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def _get_data_dir():
-    """Get the name of the data directory and create it if necessary"""
+    """Get the name of the data directory and create it if necessary."""
     dir_ = appdirs.user_data_dir("oxart-devices", "oitg")
     os.makedirs(dir_, exist_ok=True)
     return dir_
@@ -67,7 +67,7 @@ class PiezoController:
     # Basic sending/receiving operations
     #
     def _send(self, cmd):
-        """Wrapper for send that will exit server if error occurs"""
+        """Wrapper for send that will exit server if error occurs."""
         try:
             str_ = cmd + '\r'
             logger.debug("Sending " + repr(str_))
@@ -85,7 +85,10 @@ class PiezoController:
             _ = self._read_line()
 
     def _read_line(self):
-        """Read a CR terminated line. Returns '' on timeout"""
+        """Read a CR terminated line.
+
+        Returns '' on timeout
+        """
         line = ''
         while len(line) == 0 or line[-1] != '\r':
             c = self.port.read().decode()
@@ -97,26 +100,35 @@ class PiezoController:
         return line
 
     def _purge(self):
-        """Make sure we start from a clean slate with the controller"""
+        """Make sure we start from a clean slate with the controller."""
         self._send('')
         self._reset_input_timeout()
 
     def _reset_input_timeout(self):
-        """Read everything off the input and discard"""
+        """Read everything off the input and discard."""
         _ = self.port.read().decode()
         while _ != '':
             _ = self.port.read().decode()
 
     def _reset_input(self):
-        """Reset the input. Firmware version specific."""
+        """Reset the input.
+
+        Firmware version specific.
+        """
         raise NotImplementedError
 
     def _set(self, *args, **kwargs):
-        """Send a set type command. Firmware version specific."""
+        """Send a set type command.
+
+        Firmware version specific.
+        """
         raise NotImplementedError
 
     def _get(self, *args, **kwargs):
-        """Send a get type command. Firmware version specific."""
+        """Send a get type command.
+
+        Firmware version specific.
+        """
         raise NotImplementedError
 
     def _get_float(self, cmd, **kwargs):
@@ -124,7 +136,7 @@ class PiezoController:
         return float(self._strip_brackets(response))
 
     def _get_multiline(self, cmd, **kwargs):
-        """Has to wait for timeout"""
+        """Has to wait for timeout."""
         cmd_str = '{}?'.format(cmd)
         self._send_command(cmd_str)
         para = ''
@@ -138,7 +150,7 @@ class PiezoController:
     # v1.06
     #
     def _set_1_06(self, cmd, val, check=False):
-        """<= v1.06 set command"""
+        """<= v1.06 set command."""
         cmd_str = '{}={}'.format(cmd, val)
         self._send_command(cmd_str)
 
@@ -148,7 +160,7 @@ class PiezoController:
             _ = self.port.read().decode()
 
     def _get_1_06(self, cmd, check=False):
-        """<= v1.06 get command"""
+        """<= v1.06 get command."""
         cmd_str = '{}?'.format(cmd)
         self._send_command(cmd_str)
 
@@ -172,7 +184,7 @@ class PiezoController:
     # v1.09
     #
     def _set_1_09(self, cmd, val, check=True):
-        """>= v1.09 set command"""
+        """>= v1.09 set command."""
         cmd_str = '{}={}'.format(cmd, val)
         self._send_command(cmd_str)
 
@@ -182,7 +194,7 @@ class PiezoController:
             self._reset_input_1_09()
 
     def _get_1_09(self, cmd, check=True):
-        """>= v1.09 get command"""
+        """>= v1.09 get command."""
         cmd_str = '{}?'.format(cmd)
         self._send_command(cmd_str)
 
@@ -221,13 +233,13 @@ class PiezoController:
     # Get/Set commands
     #
     def _get_echo(self):
-        """Get echo mode of controller"""
+        """Get echo mode of controller."""
         response = self._get("echo")
         self.echo = response == "[Echo On]"
         return self.echo
 
     def _set_echo(self, enable):
-        """Set echo mode of controller"""
+        """Set echo mode of controller."""
         # NB "echo=" command is awful, in that it always elicits a response
         # of '[Echo On]\r' or '[Echo Off]\r' regardless, unlike all other set
         # commands which just set the value quietly
@@ -236,7 +248,7 @@ class PiezoController:
         self.echo = enable
 
     def _get_all_commands(self):
-        """Get the list of recognised commands from the device
+        """Get the list of recognised commands from the device.
 
         Equivalent to sending a single '?\r' to the device.
         """
@@ -245,9 +257,9 @@ class PiezoController:
     def get_id(self):
         """Returns the identity paragraph.
 
-        This includes the device model, serial number, and firmware version.
-        This function needs to wait for a serial timeout, hence is a little
-        slow"""
+        This includes the device model, serial number, and firmware version. This
+        function needs to wait for a serial timeout, hence is a little slow
+        """
         # Due to the crappy Thorlabs protocol (no clear finish marker) we have
         # to wait for a timeout to ensure that we have read everything
         # (only for true for versions <1.09)
@@ -284,41 +296,42 @@ class PiezoController:
     def get_channel_output(self, channel):
         """Returns the current *output* voltage for a given channel.
 
-        Note that this may well differ from the set voltage by a few volts due
-        to ADC and DAC offsets."""
+        Note that this may well differ from the set voltage by a few volts due to ADC
+        and DAC offsets.
+        """
         self._check_valid_channel(channel)
         cmd = channel + 'voltage'
         return self._get_float(cmd)
 
     def get_channel(self, channel):
-        """Return the last voltage set via USB for a given channel"""
+        """Return the last voltage set via USB for a given channel."""
         self._check_valid_channel(channel)
         return self.channels[channel]
 
     def get_voltage_limit(self):
         """Returns the output limit setting in Volts.
 
-        This is either 75V, 100V or 150V, set by the switch on the device
-        back panel)"""
+        This is either 75V, 100V or 150V, set by the switch on the device back panel)
+        """
         return self._get_float('vlimit')
 
     #
     # Boring check/parsing functions
     #
     def _check_valid_channel(self, channel):
-        """Raises a ValueError if the channel is not valid"""
+        """Raises a ValueError if the channel is not valid."""
         if channel not in self.channels:
             raise ValueError("Channel must be one of 'x', 'y', or 'z'")
 
     def _check_voltage_in_limit(self, voltage):
         """Raises a ValueError if the voltage is not in limit for the current
-        controller settings"""
+        controller settings."""
         if voltage > self.v_limit or voltage < 0:
             raise ValueError("Voltage must be between 0 and vlimit={}".format(
                 self.v_limit))
 
     def _strip_brackets(self, line):
-        """Take string enclosed in square brackets and return string"""
+        """Take string enclosed in square brackets and return string."""
         match = re.search(r"\[(.*)\]", line)
         if match:
             return match.group(1)
@@ -328,7 +341,7 @@ class PiezoController:
     # Save file operations
     #
     def _load_setpoints(self):
-        """Load setpoints from a file"""
+        """Load setpoints from a file."""
         try:
             self.channels = pyon.load_file(self.abs_filename)
             logger.info("Loaded '{}', channels: {}".format(self.filename,
@@ -338,7 +351,7 @@ class PiezoController:
                 self.filename, self.data_dir))
 
     def _save_setpoints(self):
-        """Write the setpoints out to file"""
+        """Write the setpoints out to file."""
         pyon.store_file(self.abs_filename, self.channels)
         logger.debug("Saved '{}', channels: {}".format(self.filename, self.channels))
 
@@ -372,12 +385,12 @@ class SimulationPiezoController:
 
 
 class ParseError(Exception):
-    """Raised when piezo controller output cannot be parsed as expected"""
+    """Raised when piezo controller output cannot be parsed as expected."""
 
 
 class DriverError(Exception):
-    """Exception raised when this driver fails"""
+    """Exception raised when this driver fails."""
 
 
 class CommandNotDefined(Exception):
-    """Raised if piezo controller does not recognise command"""
+    """Raised if piezo controller does not recognise command."""

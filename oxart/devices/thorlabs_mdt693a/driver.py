@@ -7,8 +7,9 @@ logger = logging.getLogger(__name__)
 
 class PiezoController:
     """Driver for Thorlabs MDT693A 3-channel open-loop piezo controller.
-    NB The knobs on the piezo controller must be set to 0 voltage (i.e. turned
-    fully counter-clockwise) before using the driver to set the voltages.
+
+    NB The knobs on the piezo controller must be set to 0 voltage (i.e. turned fully
+    counter-clockwise) before using the driver to set the voltages.
     """
 
     def __init__(self, device):
@@ -33,7 +34,7 @@ class PiezoController:
         return self.dev.readline().decode()
 
     def _read_line(self):
-        """Send a command, and return the output of the command as a string"""
+        """Send a command, and return the output of the command as a string."""
         s = self.dev.readline().decode()
         a1 = re.search(r'\[(.*)\]', s)
         a2 = re.search(r'\*([0-9\.]+\Z)', s)

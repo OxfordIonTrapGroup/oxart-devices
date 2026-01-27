@@ -34,8 +34,8 @@ class QL355:
     def _purge(self):
         """Make sure we start from a clean slate with the controller.
 
-        NB the stream must be configured in non-blocking mode for this method
-        to return, see aqctl_tti_ql355.
+        NB the stream must be configured in non-blocking mode for this method to return,
+        see aqctl_tti_ql355.
         """
         # Send a carriage return to clear the controller's input buffer
         self.stream.write('\r'.encode())
@@ -48,10 +48,11 @@ class QL355:
         self.stream.close()
 
     def _check_valid_channel(self, channel, is_enable=False):
-        """Raises a ValueError if the channel number is not valid for
-        this PSU type.
-        is_enable is True if we want to check if this channel is valid
-        only for enable commands"""
+        """Raises a ValueError if the channel number is not valid for this PSU type.
+
+        is_enable is True if we want to check if this channel is valid only for enable
+        commands
+        """
 
         ex = ValueError("Channel number {} not valid for {}".format(channel, self.type))
         if self.type is PsuType.QL355P:
@@ -74,7 +75,7 @@ class QL355:
         self.stream.write("V{} {}\n".format(channel + 1, voltage).encode())
 
     def get_voltage_limit(self, channel=0):
-        """Returns the voltage limit for channel in volts"""
+        """Returns the voltage limit for channel in volts."""
         self._check_valid_channel(channel)
         self.stream.write("V{}?\n".format(channel + 1).encode())
         response = self.stream.readline().decode().split()
@@ -95,7 +96,7 @@ class QL355:
         self.stream.write("I{} {}\n".format(channel + 1, current).encode())
 
     def get_current_limit(self, channel=0):
-        """Returns the current limit for channel in amps"""
+        """Returns the current limit for channel in amps."""
         self._check_valid_channel(channel)
         self.stream.write("I{}?\n".format(channel + 1).encode())
         response = self.stream.readline().decode().split()
@@ -104,33 +105,41 @@ class QL355:
         return float(response[1])
 
     def set_output_enable(self, enable, channel=0):
-        """Enable / disable a channel"""
+        """Enable / disable a channel."""
         self._check_valid_channel(channel, is_enable=True)
         self.stream.write("OP{} {}\n".format(channel + 1, int(bool(enable))).encode())
 
     def get_voltage(self, channel=0):
-        """Returns the actual (measured) output voltage in volts"""
+        """Returns the actual (measured) output voltage in volts."""
         self._check_valid_channel(channel)
         self.stream.write("V{}O?\n".format(channel + 1).encode())
         return float(self.stream.readline().decode().rstrip()[:-1])
 
     def get_current(self, channel=0):
-        """Returns the actual (measured) output current in amps"""
+        """Returns the actual (measured) output current in amps."""
         self._check_valid_channel(channel)
         self.stream.write("I{}O?\n".format(channel + 1).encode())
         return float(self.stream.readline().decode().rstrip()[:-1])
 
     def identify(self):
-        """Returns device identity string"""
+        """Returns device identity string."""
         self.stream.write("*IDN?\n".encode())
         return self.stream.readline().decode()
 
     def ping(self):
-        """ Returns True if we are connected to a PSU, otherwise returns False.
-        """
-        ident = self.identify().split(',')
-        if ident[0] not in ["THURLBY-THANDAR", "THURLBY THANDAR"]:
-            return False
-        if ident[1].strip() not in ["QL355P", "QL355TP"]:
+        """Returns True if we are connected to a PSU, otherwise returns False."""
+        ident_raw = self.identify()
+        # Sometimes, a TTi QL355TP responded with an empty line instead of the
+        # ident string (?), but appears to recover afterwards. Give it a few
+        # attempts.
+        for attempt in range(5):
+            if attempt > 0:
+                logger.warning("Retrying identify()")
+            ident = ident_raw.split(',')
+            if (ident[0] in ["THURLBY-THANDAR", "THURLBY THANDAR"]
+                    and ident[1].strip() in ["QL355P", "QL355TP"]):
+                break
+            logger.warning("Received unexpected ident string: '%s'", ident_raw)
+        else:
             return False
         return True

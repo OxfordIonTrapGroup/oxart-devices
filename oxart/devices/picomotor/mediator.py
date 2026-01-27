@@ -1,7 +1,8 @@
 class PicoMirror:
-    """
-    Wraps multiple picomotor controllers and channels to allow addressing a
-    mirror by instance. The arguments are:
+    """Wraps multiple picomotor controllers and channels to allow addressing a mirror
+    by instance.
+
+    The arguments are:
         'motor_horizontal',
         'motor_vertical',
     each of which is a pair of (device, channel number) the respective motor

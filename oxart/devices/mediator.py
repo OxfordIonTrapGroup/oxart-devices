@@ -28,8 +28,8 @@ def _wrap_function(func_name, func, channel_arg_idx=None):
 
 
 def multi_channel_dev_mediator(mediator_cls):
-    """ Monkeypatch mediator classes for multi-channel devices to wrap all
-    methods from the device driver.
+    """Monkeypatch mediator classes for multi-channel devices to wrap all methods
+    from the device driver.
 
     The decorated mediator allow one to call any method of the base driver,
     replacing channel arguments with a channel_name, which is a key in the

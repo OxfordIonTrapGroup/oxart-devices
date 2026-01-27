@@ -32,7 +32,10 @@ class ConexMirror:
         self.port.write(command.encode())
 
     def _read_line(self):
-        """Read a CR terminated line. Returns '' on timeout"""
+        """Read a CR terminated line.
+
+        Returns '' on timeout
+        """
         s = ''
         while len(s) == 0 or s[-1] != '\r':
             c = self.port.read().decode()
@@ -48,8 +51,10 @@ class ConexMirror:
         self.set_position('V', 0)
 
     def set_position(self, ax, pos, absolute=True, blocking=True):
-        """Go to a position. If blocking, do no return until the stage has stopped
-        moving"""
+        """Go to a position.
+
+        If blocking, do no return until the stage has stopped moving
+        """
         if absolute:
             self._send_command("PA{}{}".format(ax, pos))
         else:
@@ -63,17 +68,18 @@ class ConexMirror:
                     return
 
     def stop(self):
-        """Stop motion"""
+        """Stop motion."""
         self._send_command("ST")
 
     def reset(self):
-        """hardware Reset"""
+        """Hardware Reset."""
         self._send_command("RS")
 
     def get_position(self, ax):
-        """Returns the current position. In MOVING state, the position changes
-        according to the calculation of the motion profiler. In READY state, the
-        setpoint position is equal to the target position.
+        """Returns the current position.
+
+        In MOVING state, the position changes according to the calculation of the motion
+        profiler. In READY state, the setpoint position is equal to the target position.
         """
         self._send_command("TP{}".format(ax))
         line = self._read_line()
@@ -85,7 +91,7 @@ class ConexMirror:
         return pos
 
     def get_status(self):
-        """Return the status code of the controller"""
+        """Return the status code of the controller."""
         self._send_command("TS")
         line = self._read_line().strip()
         state_code = line[7:9].lower()

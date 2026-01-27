@@ -3,7 +3,7 @@ import time
 
 
 class BoosterVCP:
-    """ Skeletal Booster VCP driver for debugging only """
+    """Skeletal Booster VCP driver for debugging only."""
 
     def __init__(self, device):
         self.dev = serial.serial_for_url(device)
@@ -16,7 +16,7 @@ class BoosterVCP:
         assert self.ping()
 
     def _cmd(self, cmd, lines=1, termination=None):
-        """ Sends a command and returns the response string """
+        """Sends a command and returns the response string."""
         self.dev.write((cmd + '\n').encode())
 
         # echo
@@ -46,19 +46,19 @@ class BoosterVCP:
         return resp
 
     def get_version(self):
-        """ Returns the device version string """
+        """Returns the device version string."""
         return self._cmd('version')
 
     def get_eth_diag(self):
-        """ Returns ethernet diagnostic information """
+        """Returns ethernet diagnostic information."""
         return self._cmd('ethdbg', 6)
 
     def get_logstash(self):
-        """ Returns ethernet diagnostic information """
+        """Returns ethernet diagnostic information."""
         return self._cmd('logstash', termination='>')
 
     def ping(self):
-        """ Returns True if we are connected to a Booster """
+        """Returns True if we are connected to a Booster."""
         try:
             if not self.get_version().startswith("RFPA"):
                 return False

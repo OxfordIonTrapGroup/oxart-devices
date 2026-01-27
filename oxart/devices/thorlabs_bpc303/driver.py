@@ -70,7 +70,7 @@ class _APTCardSlotDevice:
                 return msg
 
     def _triage_message(self, msg):
-        """Triage an incoming message in case of errors or action required"""
+        """Triage an incoming message in case of errors or action required."""
         msg_id = msg._id
         data = msg.data
 
@@ -90,11 +90,11 @@ class _APTCardSlotDevice:
                 self.ack_status_update()
 
     def identify(self, bay_id):
-        """ Corresponding screen will start blinking on frontpanel """
+        """Corresponding screen will start blinking on frontpanel."""
         self._send_message(Message(MGMSG.MOD_IDENTIFY, param1=bay_id - 1))
 
     def set_enable(self, bay_id, enable=True, channel=0):
-        """ Enables a bay """
+        """Enables a bay."""
         active = 1 if enable else 2
         self._send_message(
             Message(MGMSG.MOD_SET_CHANENABLESTATE,
@@ -103,7 +103,7 @@ class _APTCardSlotDevice:
                     dest=self.bays[bay_id - 1]))
 
     def get_enable(self, bay_id, channel=0):
-        """ Return whether that bay is enabled """
+        """Return whether that bay is enabled."""
         msg = self._send_request(MGMSG.MOD_REQ_CHANENABLESTATE,
                                  wait_for=[MGMSG.MOD_GET_CHANENABLESTATE],
                                  dest=self.bays[bay_id - 1],
@@ -177,7 +177,7 @@ class BPC303(_APTCardSlotDevice):
     # Functions interfacing with the mediator
     #
     def set_channel(self, channel_char, value):
-        """Set one of the axes ('x', 'y', 'z') to a certain value"""
+        """Set one of the axes ('x', 'y', 'z') to a certain value."""
         self._check_valid_channel(channel_char)
         bay_id = ord(channel_char) - ord('w')
         if self.enable_feedback:
@@ -186,7 +186,7 @@ class BPC303(_APTCardSlotDevice):
             self.set_voltage(bay_id, value)
 
     def get_channel(self, channel_char):
-        """ Get last value set from this driver (don't query hardware) """
+        """Get last value set from this driver (don't query hardware)"""
         self._check_valid_channel(channel_char)
         bay_idx = ord(channel_char) - ord('x')
         if self.enable_feedback:
@@ -195,7 +195,7 @@ class BPC303(_APTCardSlotDevice):
             return self.voltages["volt_{}".format(bay_idx)]
 
     def get_channel_output(self, channel_char):
-        """ Get actual output value (query hardware) """
+        """Get actual output value (query hardware)"""
         self._check_valid_channel(channel_char)
         bay_id = ord(channel_char) - ord('w')
         if self.enable_feedback:
@@ -207,8 +207,8 @@ class BPC303(_APTCardSlotDevice):
     # Internal functions
     #
     def set_voltage(self, bay_id, voltage, channel=0):
-        """
-        Set a piezo to a given voltage.
+        """Set a piezo to a given voltage.
+
         In closed-loop control, this is ignored.
         """
         voltage = float(voltage)
@@ -228,8 +228,8 @@ class BPC303(_APTCardSlotDevice):
         return v / 32767 * PZ_MAX_VOLTAGE
 
     def set_position(self, bay_id, position, channel=0):
-        """
-        Set a piezo to a given position.
+        """Set a piezo to a given position.
+
         In open-loop mode, this is ignored.
         """
         position = float(position)
@@ -252,11 +252,11 @@ class BPC303(_APTCardSlotDevice):
         return self.enable_feedback
 
     def set_enable_feedback(self, bay_id, enable=True, smooth=True, channel=0):
-        """
-        When in closed‐loop mode, position is maintained by a feedback signal
-        from the piezo actuator.
-        If set to Smooth, the transition from open to closed loop (or vice versa)
-        is achieved over a longer period in order to minimize voltage transients.
+        """When in closed‐loop mode, position is maintained by a feedback signal from
+        the piezo actuator.
+
+        If set to Smooth, the transition from open to closed loop (or vice versa) is
+        achieved over a longer period in order to minimize voltage transients.
         """
         if enable:
             mode = 0x02
@@ -312,20 +312,20 @@ class BPC303(_APTCardSlotDevice):
     #
     def _check_voltage_in_limit(self, voltage):
         """Raises a ValueError if the voltage is not in limit for the current
-        controller settings"""
+        controller settings."""
         if voltage > PZ_MAX_VOLTAGE or voltage < 0:
             raise ValueError("{}V not between 0 and vlimit={}".format(
                 voltage, PZ_MAX_VOLTAGE))
 
     def _check_position_in_limit(self, position):
         """Raises a ValueError if the position is not in limit for the current
-        controller settings"""
+        controller settings."""
         if position > PZ_TRAVEL_UM or position < 0:
             raise ValueError("Position {}μm not between 0μm and travel={}μm".format(
                 position, PZ_TRAVEL_UM))
 
     def _check_valid_channel(self, channel):
-        """Raises a ValueError if the channel is not valid"""
+        """Raises a ValueError if the channel is not valid."""
         if channel not in 'xyz':
             raise ValueError("Channel must be one of 'x', 'y', or 'z'")
 
@@ -333,7 +333,7 @@ class BPC303(_APTCardSlotDevice):
     # Save file operations
     #
     def _load_setpoints(self):
-        """Load setpoints from a file"""
+        """Load setpoints from a file."""
         try:
             self.voltages, self.positions = pyon.load_file(self.fname)
             logger.info("Loaded '{}', voltages: {}, positions: {}".format(
@@ -342,7 +342,7 @@ class BPC303(_APTCardSlotDevice):
             logger.warning("Couldn't find '{}', no setpoints loaded".format(self.fname))
 
     def _save_setpoints(self):
-        """Write the setpoints out to file"""
+        """Write the setpoints out to file."""
         pyon.store_file(self.fname, [self.voltages, self.positions])
         logger.debug("Saved '{}', voltages: {}, positions: {}".format(
             self.fname, self.voltages, self.positions))
