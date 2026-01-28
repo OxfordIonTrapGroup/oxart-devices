@@ -3,6 +3,7 @@ import logging
 import struct as st
 import asyncio
 
+# https://git.m-labs.hk/M-Labs/asyncserial
 import asyncserial
 
 logger = logging.getLogger(__name__)
