@@ -67,6 +67,12 @@ dev = [
     # Docformatter does not yet support python 3.14
     "docformatter>=1.7.7 ; python_full_version < '3.14'",
 ]
+logger-solstis = [
+    "websockets>=15.0,<16",
+]
+logger-toptica-dlc = [
+    "toptica-lasersdk==3.3.0",
+]
 
 [tool.uv.sources]
 sipyco = { git = "https://github.com/m-labs/sipyco.git" }
