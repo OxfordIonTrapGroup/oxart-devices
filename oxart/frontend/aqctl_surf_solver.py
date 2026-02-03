@@ -11,14 +11,16 @@ def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller for SURF")
     sca.simple_network_args(parser, 4000)
     sca.verbosity_args(parser)
-    parser.add_argument("--trap_model_path",
-                        default="/home/ion/scratch/julia_projects/"
-                        "SURF/trap_model/comet_model.jld",
-                        help="path to the SURF trap model file")
-    parser.add_argument("--cache_path",
-                        default=None,
-                        help="path on which to cache results. `None` (default)"
-                        " disables the cache.")
+    parser.add_argument(
+        "--trap_model_path",
+        default="/home/ion/scratch/julia_projects/" "SURF/trap_model/comet_model.jld",
+        help="path to the SURF trap model file",
+    )
+    parser.add_argument(
+        "--cache_path",
+        default=None,
+        help="path on which to cache results. `None` (default)" " disables the cache.",
+    )
     return parser
 
 

@@ -10,26 +10,32 @@ from sipyco.pc_rpc import Client
 from oxart.devices.scpi_synth.driver import Synth
 from oxart.devices.booster.driver import Booster
 
-parser = argparse.ArgumentParser(description="Booster hardware in the loop "
-                                 "test suite. Connect one channel of Booster "
-                                 "to a synth and RF power meter. Assumes there"
-                                 " is a 30dB attenuator between Booster and "
-                                 "the power meter.")
+parser = argparse.ArgumentParser(
+    description="Booster hardware in the loop "
+    "test suite. Connect one channel of Booster "
+    "to a synth and RF power meter. Assumes there"
+    " is a 30dB attenuator between Booster and "
+    "the power meter."
+)
 parser.add_argument("--booster", help="IP address of the Booster to test")
 parser.add_argument("--synth", help="Address of the synth to use for tests")
 parser.add_argument("--meter", help="IP address of the power meter RPC server")
-parser.add_argument("--p_min",
-                    help="Minimum synth power to use, set to give ~25dBm "
-                    "output power",
-                    type=float)
-parser.add_argument("--p_max",
-                    help="Maximum synth power to use, set to give ~35dBm "
-                    "output power",
-                    type=float)
-parser.add_argument("--chan",
-                    help="Booster channel connected to synth + power meter",
-                    type=int,
-                    default=0)
+parser.add_argument(
+    "--p_min",
+    help="Minimum synth power to use, set to give ~25dBm " "output power",
+    type=float,
+)
+parser.add_argument(
+    "--p_max",
+    help="Maximum synth power to use, set to give ~35dBm " "output power",
+    type=float,
+)
+parser.add_argument(
+    "--chan",
+    help="Booster channel connected to synth + power meter",
+    type=int,
+    default=0,
+)
 args = None
 
 # python -m oxart.devices.booster.tests --booster "10.255.6.79" --synth
@@ -85,23 +91,47 @@ class TestBooster(unittest.TestCase):
             I6V = cls.I6V[channel, :]
 
             print("Channel {}...".format(channel))
-            print("29V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
-                  "std {:.3f} mA".format(np.mean(I29V * 1e3), np.min(I29V * 1e3),
-                                         np.max(I29V * 1e3), np.std(I29V * 1e3)))
-            print("6V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
-                  "std {:.3f} mA".format(np.mean(I6V * 1e3), np.min(I6V * 1e3),
-                                         np.max(I6V * 1e3), np.std(I6V * 1e3)))
+            print(
+                "29V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
+                "std {:.3f} mA".format(
+                    np.mean(I29V * 1e3),
+                    np.min(I29V * 1e3),
+                    np.max(I29V * 1e3),
+                    np.std(I29V * 1e3),
+                )
+            )
+            print(
+                "6V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
+                "std {:.3f} mA".format(
+                    np.mean(I6V * 1e3),
+                    np.min(I6V * 1e3),
+                    np.max(I6V * 1e3),
+                    np.std(I6V * 1e3),
+                )
+            )
 
         cls.I29V = np.mean(cls.I29V, axis=1)
         cls.I6V = np.mean(cls.I6V, axis=1)
 
         print("Global statistics:")
-        print("29V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
-              "std {:.3f} mA".format(np.mean(cls.I29V * 1e3), np.min(cls.I29V * 1e3),
-                                     np.max(cls.I29V * 1e3), np.std(cls.I29V * 1e3)))
-        print("6V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
-              "std {:.3f} mA".format(np.mean(cls.I6V * 1e3), np.min(cls.I6V * 1e3),
-                                     np.max(cls.I6V * 1e3), np.std(cls.I6V * 1e3)))
+        print(
+            "29V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
+            "std {:.3f} mA".format(
+                np.mean(cls.I29V * 1e3),
+                np.min(cls.I29V * 1e3),
+                np.max(cls.I29V * 1e3),
+                np.std(cls.I29V * 1e3),
+            )
+        )
+        print(
+            "6V current: mean {:.3f} mA, min {:.3f}, max {:.3f} mA, "
+            "std {:.3f} mA".format(
+                np.mean(cls.I6V * 1e3),
+                np.min(cls.I6V * 1e3),
+                np.max(cls.I6V * 1e3),
+                np.std(cls.I6V * 1e3),
+            )
+        )
 
         # get baseline measurement of amplifier gain and detector accuracy
         cls.dev.set_interlock(args.chan, 37)
@@ -130,12 +160,21 @@ class TestBooster(unittest.TestCase):
         cls.synth.set_rf_on(False)
         time.sleep(cls.t_settle)
 
-        print("Amp gain: {} dB (min {} dB, max {} dB)".format(
-            cls.gain, gain_min, gain_max))
-        print("Input detector error: {} dB ({} db - {} dB)".format(
-            cls.in_detector_err, in_detector_err_min, in_detector_err_max))
-        print("Output detector error: {} dB ({} db - {} dB)".format(
-            cls.detector_err, detector_err_min, detector_err_max))
+        print(
+            "Amp gain: {} dB (min {} dB, max {} dB)".format(
+                cls.gain, gain_min, gain_max
+            )
+        )
+        print(
+            "Input detector error: {} dB ({} db - {} dB)".format(
+                cls.in_detector_err, in_detector_err_min, in_detector_err_max
+            )
+        )
+        print(
+            "Output detector error: {} dB ({} db - {} dB)".format(
+                cls.detector_err, detector_err_min, detector_err_max
+            )
+        )
 
     def assertRange(self, val, min, max):
         self.assertTrue(val >= min and val <= max)
@@ -146,7 +185,7 @@ class TestBooster(unittest.TestCase):
         self.assertTrue(abs(a - b) < eps)
 
     def _cmd(self, cmd):
-        self.dev.dev.write((cmd + '\n').encode())
+        self.dev.dev.write((cmd + "\n").encode())
         resp = self.dev.dev.readline().decode().strip().lower()
         if "?" in cmd:
             return resp
@@ -240,8 +279,9 @@ class TestBooster(unittest.TestCase):
             self.assertApproxEq(status.fan_speed, dev.get_fan_speed(), 2)
             self.assertApproxEq(status.output_power, dev.get_output_power(chan), 0.25)
             self.assertApproxEq(status.input_power, dev.get_input_power(chan), 0.25)
-            self.assertApproxEq(status.reflected_power, dev.get_reflected_power(chan),
-                                0.25)
+            self.assertApproxEq(
+                status.reflected_power, dev.get_reflected_power(chan), 0.25
+            )
 
             if status.enabled:
                 self.assertRange(status.V5VMP, 4.9, 5.1)
@@ -309,16 +349,23 @@ class TestBooster(unittest.TestCase):
     def test_fuzz(self):
         skip = ["test_fuzz"]
         tests = [
-            method_name for method_name in dir(self)
-            if (callable(getattr(self, method_name)) and method_name.startswith("test_")
-                and method_name not in skip)
+            method_name
+            for method_name in dir(self)
+            if (
+                callable(getattr(self, method_name))
+                and method_name.startswith("test_")
+                and method_name not in skip
+            )
         ]
         num_iterations = 10000
         for test_num in range(num_iterations):
             test_idx = random.randint(0, len(tests) - 1)
             test = tests[test_idx]
-            print("fuzz {} of {}: {}".format(test_num, num_iterations,
-                                             tests[test_idx][5:]))
+            print(
+                "fuzz {} of {}: {}".format(
+                    test_num, num_iterations, tests[test_idx][5:]
+                )
+            )
             getattr(self, test)()
 
 

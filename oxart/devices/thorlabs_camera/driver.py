@@ -32,11 +32,9 @@ class Camera(Thorlabs.ThorlabsTLCamera):
     def get_sensor_info_str(self):
         return repr(super().get_sensor_info())
 
-    def wait_for_frame(self,
-                       since="now",
-                       nframes=1,
-                       timeout=20.0,
-                       error_on_stopped=False):
+    def wait_for_frame(
+        self, since="now", nframes=1, timeout=20.0, error_on_stopped=False
+    ):
         super().wait_for_frame(
             since=since,
             nframes=nframes,
@@ -84,12 +82,9 @@ class Camera(Thorlabs.ThorlabsTLCamera):
         interest should be larger than the min value and smaller than the max (the size
         of the detector). Check with self.get_roi() to see the effective frame size.
         """
-        super().set_roi(hstart=hstart,
-                        hend=hend,
-                        vstart=vstart,
-                        vend=vend,
-                        hbin=hbin,
-                        vbin=vbin)
+        super().set_roi(
+            hstart=hstart, hend=hend, vstart=vstart, vend=vend, hbin=hbin, vbin=vbin
+        )
 
     def get_roi_limits_dict(self, hbin=1, vbin=1):
         """Override parent class to output a dictionary.

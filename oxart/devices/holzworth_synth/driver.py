@@ -6,7 +6,7 @@ import asyncio
 import os
 
 
-class HolzworthSynth():
+class HolzworthSynth:
     """Driver for Holzworth synth to get and set the frequency, and get and set the
     ramp rate to track the 674 nm quadrupole laser cavity drift."""
 
@@ -32,7 +32,8 @@ class HolzworthSynth():
 
         loop = asyncio.get_event_loop()
         loop.run_until_complete(
-            self.continuously_update_freq(loop))  # Starts continuously_update_freq
+            self.continuously_update_freq(loop)
+        )  # Starts continuously_update_freq
 
     async def continuously_update_freq(self, loop):
         """Updates the frequency every 10 seconds and adds itself back to the lop."""
@@ -53,10 +54,9 @@ class HolzworthSynth():
 
         # Checking we reach the final frequency, allowing for rounding differences in
         # the 3rd decimal place for values as large as 2.048 GHZ (max frequency output)
-        assert (math.isclose(await self.get_freq(),
-                             freq_end,
-                             rel_tol=0.5e-12,
-                             abs_tol=0.0011))
+        assert math.isclose(
+            await self.get_freq(), freq_end, rel_tol=0.5e-12, abs_tol=0.0011
+        )
 
     async def set_freq(self, freq):
         """Sets the Holzworth frequency and saves the value and time to file."""
@@ -97,7 +97,8 @@ class HolzworthSynth():
 
         current_freq = await self.get_freq()
         await self.set_freq(
-            current_freq)  # needed to ensure update_freq's calculations start from now
+            current_freq
+        )  # needed to ensure update_freq's calculations start from now
 
         self.data["ramp"] = ramp  # Hz per second
 

@@ -13,7 +13,7 @@ class GPIB:
     """
 
     def __init__(self, device, gpib_addr=0, timeout=None):
-        """" :param device: pySerial-compatible address of the GPIB controller.
+        """ " :param device: pySerial-compatible address of the GPIB controller.
 
         Ethernet <-> GPIB adapters use port 1234
         :param gpib_addr: initial GPIB addr to read/write from/to
@@ -93,18 +93,18 @@ class GPIB:
         self.gpib_addr = None
 
     def ping(self):
-        """" Return True if controller responds with correct version string.
+        """ " Return True if controller responds with correct version string.
 
         A timeout results in False being returned.
         """
-        idn = self.identify().split(' ')
+        idn = self.identify().split(" ")
         return idn[0] == "Prologix" and idn[1].startswith("GPIB-")
 
     class Stream:
         """PySerial-compatible interface to a single GPIB device."""
 
         def __init__(self, bus, addr):
-            """ :param bus: a GPIB controller """
+            """:param bus: a GPIB controller"""
             self.bus = bus
             self.addr = addr
 

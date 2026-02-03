@@ -73,8 +73,11 @@ class Thermostat:
         for pwm_channel in pwm_report:
             for limit in ["max_i_neg", "max_i_pos", "max_v"]:
                 if pwm_channel[limit]["value"] == 0.0:
-                    logging.warning("`{}` limit is set to zero on channel {}".format(
-                        limit, pwm_channel["channel"]))
+                    logging.warning(
+                        "`{}` limit is set to zero on channel {}".format(
+                            limit, pwm_channel["channel"]
+                        )
+                    )
 
     def _read_line(self):
         # read more lines
@@ -82,7 +85,7 @@ class Thermostat:
             chunk = self._socket.recv(4096)
             if not chunk:
                 return None
-            buf = self._lines[-1] + chunk.decode('utf-8', errors='ignore')
+            buf = self._lines[-1] + chunk.decode("utf-8", errors="ignore")
             self._lines = buf.split("\n")
 
         line = self._lines[0]
@@ -90,7 +93,7 @@ class Thermostat:
         return line
 
     def _command(self, *command):
-        self._socket.sendall((" ".join(command).strip() + "\n").encode('utf-8'))
+        self._socket.sendall((" ".join(command).strip() + "\n").encode("utf-8"))
 
         line = self._read_line()
         response = json.loads(line)

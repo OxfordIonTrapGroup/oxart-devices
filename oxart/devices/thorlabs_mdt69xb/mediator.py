@@ -34,8 +34,10 @@ class PiezoWrapper:
             step = self.slow_scan[logical_ch]
             current = device.get_channel(channel)
             if current < 0:
-                err_msg = ("'{}' has no setpoint. ".format(logical_ch) +
-                           "Calibrate with laser unlocked before reuse.")
+                err_msg = (
+                    "'{}' has no setpoint. ".format(logical_ch)
+                    + "Calibrate with laser unlocked before reuse."
+                )
                 raise NoSetpointError(err_msg)
             else:
                 sgn = np.sign(value - current)
@@ -87,14 +89,17 @@ class PiezoWrapper:
 
 class UnknownLogicalChannel(Exception):
     """Logical channel given not found in mappings dictionary."""
+
     pass
 
 
 class UnknownDeviceName(Exception):
     """Device name for given logical channel not found in devices list."""
+
     pass
 
 
 class NoSetpointError(Exception):
     """No setpoint available for a slow scan piezo, needs calibration."""
+
     pass

@@ -11,8 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 def get_argparser():
-    parser = argparse.ArgumentParser(description="ARTIQ controller for "
-                                     "Keysight V3500A RF power meter")
+    parser = argparse.ArgumentParser(
+        description="ARTIQ controller for " "Keysight V3500A RF power meter"
+    )
     parser.add_argument("-d", "--device", help="device's address")
     sca.simple_network_args(parser, 4300)
     sca.verbosity_args(parser)

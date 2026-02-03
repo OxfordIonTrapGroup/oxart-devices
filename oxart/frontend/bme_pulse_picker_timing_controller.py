@@ -10,13 +10,16 @@ import sipyco.common_args as sca
 
 def get_argparser():
     parser = argparse.ArgumentParser(
-        description="ARTIQ controller for BME delay generator PCI card")
+        description="ARTIQ controller for BME delay generator PCI card"
+    )
     sca.simple_network_args(parser, 4007)
-    parser.add_argument("-s",
-                        "--simulation",
-                        default=False,
-                        action="store_true",
-                        help="Put the driver in simulation mode")
+    parser.add_argument(
+        "-s",
+        "--simulation",
+        default=False,
+        action="store_true",
+        help="Put the driver in simulation mode",
+    )
     parser.add_argument("--allow-long-pulses", default=False, action="store_true")
     sca.verbosity_args(parser)
     return parser

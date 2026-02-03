@@ -61,8 +61,9 @@ class ScpiDmm:
     def set_auto_range(self, enabled):
         """Enable or disable auto range for the current measurement mode."""
         mode = self.get_measurement_mode().upper()
-        self.stream.write("{}:RANGE:AUTO {}\n".format(
-            mode, "ON" if enabled else "OFF").encode())
+        self.stream.write(
+            "{}:RANGE:AUTO {}\n".format(mode, "ON" if enabled else "OFF").encode()
+        )
 
     def set_resolution(self, resolution):
         """Sets the measurement resolution without initiating a measurement.
@@ -84,7 +85,7 @@ class ScpiDmm:
             t_int = float(t_int)
         if isinstance(t_int, str):
             t_int = t_int[0:3].lower()
-        if t_int not in [0.02, 0.2, 1., 10., 100., "min", "max"]:
+        if t_int not in [0.02, 0.2, 1.0, 10.0, 100.0, "min", "max"]:
             raise ValueError("invalid t_int")
 
         mode = self.get_measurement_mode()
@@ -97,7 +98,7 @@ class ScpiDmm:
             bandwidth = float(bandwidth)
         if isinstance(bandwidth, str):
             bandwidth = bandwidth[0:3].lower()
-        if bandwidth not in [3., 20., 200., "min", "max"]:
+        if bandwidth not in [3.0, 20.0, 200.0, "min", "max"]:
             raise ValueError("invalid measurement bandwidth")
         self.stream.write("SENSE:DET:BAND {}\n".format(bandwidth).encode())
 

@@ -10,7 +10,8 @@ import sipyco.common_args as sca
 def get_argparser():
     parser = argparse.ArgumentParser(
         description="ARTIQ controller for the Holzworth synth "
-        "on the Quadrupole laser system")
+        "on the Quadrupole laser system"
+    )
     sca.simple_network_args(parser, 4000)
     sca.verbosity_args(parser)
     return parser

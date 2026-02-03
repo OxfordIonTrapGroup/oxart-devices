@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 StateType = Enum(
     "StateType",
-    ["NotReferenced", "Homing", "Moving", "Ready", "Disable", "Configuartion", "Other"])
+    ["NotReferenced", "Homing", "Moving", "Ready", "Disable", "Configuartion", "Other"],
+)
 
 #: For now, we only use channel 1 of the controller (motor controllers are
 #: single-channel anyway).
@@ -28,10 +29,9 @@ class Conex:
     """Driver for Newport CONEX motor controller."""
 
     def __init__(self, serial_addr, position_limit=None, auto_home=True):
-        self.port = serial.serial_for_url(serial_addr,
-                                          baudrate=921600,
-                                          timeout=10.0,
-                                          write_timeout=10.0)
+        self.port = serial.serial_for_url(
+            serial_addr, baudrate=921600, timeout=10.0, write_timeout=10.0
+        )
 
         if auto_home:
             self.reset()
@@ -60,14 +60,16 @@ class Conex:
         s = self.get_status()
         if s == StateType.Configuartion:
             logger.warning(
-                "Controller was left behind in configuration mode; leaving it.")
+                "Controller was left behind in configuration mode; leaving it."
+            )
             self._execute_checked_command("PW0", delay_before_status_read=10.0)
 
         s = self.get_status()
         if s == StateType.NotReferenced:
             logger.warning(
-                "Skipping application of limits, as stage not referenced (homed); " +
-                "will be applied once home[_to_current]() is called.")
+                "Skipping application of limits, as stage not referenced (homed); "
+                + "will be applied once home[_to_current]() is called."
+            )
         elif s == StateType.Ready:
             self.set_upper_limit(self._cached_upper_limit)
         else:
@@ -290,8 +292,10 @@ class Conex:
         # spurious failures.
         curr_pos = self.get_position_setpoint()
         if limit > curr_pos:
-            raise ValueError(f"Requested lower limit {limit} mm outside range for"
-                             f"current position {curr_pos} mm")
+            raise ValueError(
+                f"Requested lower limit {limit} mm outside range for"
+                f"current position {curr_pos} mm"
+            )
         cmd = f"SL{limit}"
         if persist:
             # run in config mode to write to flash

@@ -49,7 +49,8 @@ class MQTTClient:
         if path[0] == "/":
             path = path[1:]
         assert self._check_path(
-            path), f"Requested path '{path}' is not a valid subtopic of '/settings'."
+            path
+        ), f"Requested path '{path}' is not a valid subtopic of '/settings'."
         return path
 
     def set_setting(self, setting: str, value: Any):
@@ -63,8 +64,9 @@ class MQTTClient:
         setting = self._cleanup_path_name(setting)
 
         async def _set():
-            await asyncio.wait_for(self.interface.set("/" + setting, value),
-                                   self.timeout)
+            await asyncio.wait_for(
+                self.interface.set("/" + setting, value), self.timeout
+            )
 
         asyncio.run(_set())
 
@@ -78,8 +80,9 @@ class MQTTClient:
         setting = self._cleanup_path_name(setting)
 
         async def _get():
-            res = await asyncio.wait_for(self.interface.get("/" + setting),
-                                         self.timeout)
+            res = await asyncio.wait_for(
+                self.interface.get("/" + setting), self.timeout
+            )
             return res
 
         return asyncio.run(_get())
@@ -105,13 +108,14 @@ class MQTTClient:
 def get_argparser():
 
     parser = argparse.ArgumentParser(
-        description="Test connection to MQTT server by printing a list of all topics " +
-        "under :prefix:/settings.")
+        description="Test connection to MQTT server by printing a list of all topics "
+        + "under :prefix:/settings."
+    )
     parser.add_argument(
         "--prefix",
         required=True,
-        help="Prefix of MQTT /settings topic tree, of the form " +
-        "'dt/sinara/:device:/:mac_address:'",
+        help="Prefix of MQTT /settings topic tree, of the form "
+        + "'dt/sinara/:device:/:mac_address:'",
     )
     parser.add_argument(
         "--address",
@@ -131,10 +135,9 @@ def main():
 
     args = get_argparser().parse_args()
 
-    client = MQTTClient(dmgr=None,
-                        prefix=args.prefix,
-                        address=args.address,
-                        timeout=args.timeout)
+    client = MQTTClient(
+        dmgr=None, prefix=args.prefix, address=args.address, timeout=args.timeout
+    )
     settings = {}
     for path in client.paths:
         value = client.get_setting(path)

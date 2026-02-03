@@ -11,13 +11,17 @@ logger = logging.getLogger(__name__)
 
 
 def get_argparser():
-    parser = argparse.ArgumentParser(description="ARTIQ controller for Lake "
-                                     "Shore Cryogenics model 335 temperature"
-                                     "controllers")
-    parser.add_argument("-d",
-                        "--device",
-                        default="gpib://socket://10.255.6.189:1234-5",
-                        help="device's hardware address")
+    parser = argparse.ArgumentParser(
+        description="ARTIQ controller for Lake "
+        "Shore Cryogenics model 335 temperature"
+        "controllers"
+    )
+    parser.add_argument(
+        "-d",
+        "--device",
+        default="gpib://socket://10.255.6.189:1234-5",
+        help="device's hardware address",
+    )
 
     sca.simple_network_args(parser, 4300)
     sca.verbosity_args(parser)
@@ -31,8 +35,9 @@ def main():
     dev = LakeShore335(args.device)
 
     try:
-        simple_server_loop({"LakeShore335": dev}, sca.bind_address_from_args(args),
-                           args.port)
+        simple_server_loop(
+            {"LakeShore335": dev}, sca.bind_address_from_args(args), args.port
+        )
     finally:
         dev.close()
 

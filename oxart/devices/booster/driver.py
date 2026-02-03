@@ -4,13 +4,30 @@ import math
 import serial
 
 Version = collections.namedtuple(
-    "Version", ["fw_rev", "fw_hash", "fw_build_date", "device_id", "hw_rev"])
+    "Version", ["fw_rev", "fw_hash", "fw_build_date", "device_id", "hw_rev"]
+)
 
-Status = collections.namedtuple("Status", [
-    "detected", "enabled", "interlock", "output_power_mu", "reflected_power_mu", "I29V",
-    "I6V", "V5VMP", "temp", "output_power", "reflected_power", "input_power",
-    "fan_speed", "error_occurred", "hw_id", "i2c_error_count"
-])
+Status = collections.namedtuple(
+    "Status",
+    [
+        "detected",
+        "enabled",
+        "interlock",
+        "output_power_mu",
+        "reflected_power_mu",
+        "I29V",
+        "I6V",
+        "V5VMP",
+        "temp",
+        "output_power",
+        "reflected_power",
+        "input_power",
+        "fan_speed",
+        "error_occurred",
+        "hw_id",
+        "i2c_error_count",
+    ],
+)
 
 
 class Booster:
@@ -28,7 +45,7 @@ class Booster:
             raise ValueError("invalid channel number {}".format(channel))
 
         if channel is None and arg is None:
-            cmd = (cmd + '\n')
+            cmd = cmd + "\n"
         elif arg is None:
             cmd = "{} {}\n".format(cmd, channel)
         else:
@@ -36,16 +53,17 @@ class Booster:
         self.dev.write(cmd.encode())
 
         response = self.dev.readline().decode()
-        if response == '':
-            self.dev.write(b'\n')
+        if response == "":
+            self.dev.write(b"\n")
             response = self.dev.readline().decode()
             self.dev.readline()  # blank response from extra write
-            if response == '':
+            if response == "":
                 raise serial.SerialTimeoutException(
-                    "Timeout while waiting for response to '{}'".format(cmd.strip()))
+                    "Timeout while waiting for response to '{}'".format(cmd.strip())
+                )
         response = response.lower().strip()
 
-        if '?' in cmd and "error" not in response:
+        if "?" in cmd and "error" not in response:
             return response
         elif response == "ok":
             return
@@ -71,19 +89,25 @@ class Booster:
     def get_version(self):
         """Returns the device version information as a named tuple."""
         self.dev.write(b"*IDN?\n")
-        idn = self.dev.readline().decode().strip().lower().split(',')
+        idn = self.dev.readline().decode().strip().lower().split(",")
 
         idn[0] = idn[0].split(" ")
 
-        if (idn[0][0] != "rfpa" or not idn[1].startswith(" built ")
-                or not idn[2].startswith(" id ") or not idn[3].startswith(" hw rev ")):
+        if (
+            idn[0][0] != "rfpa"
+            or not idn[1].startswith(" built ")
+            or not idn[2].startswith(" id ")
+            or not idn[3].startswith(" hw rev ")
+        ):
             raise Exception("Unrecognised device identity string: {}".format(idn))
 
-        return Version(fw_rev=idn[0][1],
-                       fw_hash=idn[0][2],
-                       fw_build_date=dateutil.parser.parse(idn[1][7:]),
-                       device_id=idn[2][4:],
-                       hw_rev=idn[3][1:])
+        return Version(
+            fw_rev=idn[0][1],
+            fw_hash=idn[0][2],
+            fw_build_date=dateutil.parser.parse(idn[1][7:]),
+            device_id=idn[2][4:],
+            hw_rev=idn[3][1:],
+        )
 
     def get_version_dict(self):
         """Return device version information, as a dictionary.
@@ -146,7 +170,7 @@ class Booster:
         i2c_error_count: number of I2C bus errors that have been detected for
           this channel.
         """
-        resp = self._cmd("CHAN:DIAG?", channel).split(',')
+        resp = self._cmd("CHAN:DIAG?", channel).split(",")
 
         if len(resp) != 22:
             raise Exception("Unrecognised response to 'CHAN:DIAG?': {}".format(resp))
@@ -158,23 +182,26 @@ class Booster:
                 return False
             raise Exception("Unrecognised response to 'CHAN:DIAG?': {}".format(resp))
 
-        return Status(detected=_bool(resp[0]),
-                      enabled=_bool(resp[1]),
-                      interlock=_bool(resp[2]),
-                      output_power_mu=int(resp[4]),
-                      reflected_power_mu=int(resp[5]),
-                      I29V=float(resp[6]),
-                      I6V=float(resp[7]),
-                      V5VMP=float(resp[8]),
-                      temp=float(resp[9]),
-                      output_power=float(resp[10]),
-                      reflected_power=float(resp[11]),
-                      input_power=float(resp[12]),
-                      fan_speed=float(resp[13]),
-                      error_occurred=_bool(resp[14]),
-                      hw_id="{:x}:{:x}:{:x}:{:x}:{:x}:{:x}".format(
-                          *[int(part) for part in resp[15:21]]),
-                      i2c_error_count=int(resp[21]))
+        return Status(
+            detected=_bool(resp[0]),
+            enabled=_bool(resp[1]),
+            interlock=_bool(resp[2]),
+            output_power_mu=int(resp[4]),
+            reflected_power_mu=int(resp[5]),
+            I29V=float(resp[6]),
+            I6V=float(resp[7]),
+            V5VMP=float(resp[8]),
+            temp=float(resp[9]),
+            output_power=float(resp[10]),
+            reflected_power=float(resp[11]),
+            input_power=float(resp[12]),
+            fan_speed=float(resp[13]),
+            error_occurred=_bool(resp[14]),
+            hw_id="{:x}:{:x}:{:x}:{:x}:{:x}:{:x}".format(
+                *[int(part) for part in resp[15:21]]
+            ),
+            i2c_error_count=int(resp[21]),
+        )
 
     def get_status_dict(self, channel):
         """Return status of a given channel, as a dictionary.
@@ -202,7 +229,8 @@ class Booster:
         val = self._query_float("MEAS:IN?", channel)
         if math.isnan(val):
             raise Exception(
-                "Input power detector not calibrated for channel {}".format(channel))
+                "Input power detector not calibrated for channel {}".format(channel)
+            )
         return val
 
     def get_reflected_power(self, channel):
@@ -222,8 +250,10 @@ class Booster:
         :param threshold: must lie between 0dBm and 38dBm
         """
         if (threshold < 0) or (threshold > 38):
-            raise ValueError("Output forward power interlock threshold must "
-                             "lie between 0dBm and +38dBm")
+            raise ValueError(
+                "Output forward power interlock threshold must "
+                "lie between 0dBm and +38dBm"
+            )
         self._cmd("INT:POW", channel, "{:.2f}".format(threshold))
 
     def get_interlock(self, channel):

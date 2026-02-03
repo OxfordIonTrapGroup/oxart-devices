@@ -77,8 +77,9 @@ def setup_interface(args, influx_pusher, loop):
             if influx_pusher:
                 influx_pusher.push(channel_name, aggregate_stats_default(values))
 
-        influx_channels[idx][meas_type] = ChunkedChannel(channel_name, cb,
-                                                         args.chunk_size, 30, loop)
+        influx_channels[idx][meas_type] = ChunkedChannel(
+            channel_name, cb, args.chunk_size, 30, loop
+        )
 
     for i in range(len(influx_channels)):
         for meas in Measurement:
@@ -111,35 +112,40 @@ def setup_args(parser):
         "--chunk-size",
         type=int,
         default=256,
-        help="Size of chunks logged to Grafana (max. 30 sec worth of samples)")
-    parser.add_argument("--poll-time",
-                        default=0.15,
-                        type=float,
-                        help="Seconds between measurements in chunk (default: 0.15s)")
+        help="Size of chunks logged to Grafana (max. 30 sec worth of samples)",
+    )
+    parser.add_argument(
+        "--poll-time",
+        default=0.15,
+        type=float,
+        help="Seconds between measurements in chunk (default: 0.15s)",
+    )
 
     subparsers = parser.add_subparsers(title="Subcommands", dest="subcommand")
     autotune_parser = subparsers.add_parser(
-        "autotune", help="Auto-tune PID parameters before starting server")
+        "autotune", help="Auto-tune PID parameters before starting server"
+    )
     autotune_parser.add_argument("-c", "--channel", type=int, help="Channel index")
-    autotune_parser.add_argument("-t",
-                                 "--target",
-                                 type=float,
-                                 help="Target temperature in degrees celsius")
+    autotune_parser.add_argument(
+        "-t", "--target", type=float, help="Target temperature in degrees celsius"
+    )
     autotune_parser.add_argument(
         "--step",
         type=float,
         default=0.1,
-        help="Current by which output will be changed from zero (default: 0.1A)")
+        help="Current by which output will be changed from zero (default: 0.1A)",
+    )
     autotune_parser.add_argument(
         "--lookback",
         type=float,
         default=60,
-        help="Reference period for local minima/maxima (default: 60s)")
+        help="Reference period for local minima/maxima (default: 60s)",
+    )
     autotune_parser.add_argument(
         "--noiseband",
         type=float,
         default=0.01,
-        help="How much the input value must over/undershoot the target (default: 0.01K)"
+        help="How much the input value must over/undershoot the target (default: 0.01K)",
     )
 
 

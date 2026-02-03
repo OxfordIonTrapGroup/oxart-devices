@@ -3,6 +3,7 @@
 Mostly wrapping gmqtt clients for convenience.
 Requires `gmqtt`
 """
+
 # TODO: Unify with the existing driver in the previous file.
 
 import logging
@@ -53,8 +54,9 @@ class MqttInterface:
     Stabilizer only supports QoS 0 for now).
     """
 
-    def __init__(self, topic_base: str, broker_address: NetworkAddress, *args,
-                 **kwargs):
+    def __init__(
+        self, topic_base: str, broker_address: NetworkAddress, *args, **kwargs
+    ):
         r"""Factory method to create a new MQTT connection :param broker_address:
         Address of the MQTT broker :type broker_address: NetworkAddress :param
         topic_base: Base topic of the device to connect to. :type topic_base: str
@@ -120,10 +122,9 @@ class MqttInterface:
         This is e.g. appropriate for publishing UI changes.
         """
         payload = json.dumps(value).encode("utf-8")
-        self._client.publish(f"{self._topic_base}/{topic}",
-                             payload,
-                             qos=0,
-                             retain=retain)
+        self._client.publish(
+            f"{self._topic_base}/{topic}", payload, qos=0, retain=retain
+        )
 
     async def request(self, topic: str, argument: Any, retain: bool = False):
         """Send a request to Stabilizer and wait for the response."""
@@ -151,7 +152,8 @@ class MqttInterface:
         async def fail_after_timeout():
             await asyncio.sleep(self._timeout)
             result.set_exception(
-                TimeoutError(f"No response to {topic} request after {self._timeout} s"))
+                TimeoutError(f"No response to {topic} request after {self._timeout} s")
+            )
             self._pending.pop(correlation_data)
 
         _, pending = await asyncio.wait(
@@ -175,8 +177,10 @@ class MqttInterface:
         cd = properties.get("correlation_data", [])
         if len(cd) != 1:
             logger.warning(
-                ("Received response without (valid) correlation data"
-                 "(topic '%s', payload %s) "),
+                (
+                    "Received response without (valid) correlation data"
+                    "(topic '%s', payload %s) "
+                ),
                 topic,
                 payload,
             )
@@ -185,8 +189,9 @@ class MqttInterface:
 
         if seq_id not in self._pending:
             # This is fine if Stabilizer restarts, though.
-            logger.warning("Received unexpected/late response for '%s' (id %s)", topic,
-                           seq_id)
+            logger.warning(
+                "Received unexpected/late response for '%s' (id %s)", topic, seq_id
+            )
             return 0
 
         result = self._pending.pop(seq_id)
@@ -211,7 +216,7 @@ class MqttInterface:
             return f"{self._topic_base}/{topic}"
 
         decoded_values = [None for _ in topics]
-        for (i, topic) in enumerate(topics):
+        for i, topic in enumerate(topics):
             event = asyncio.Event()
             decoded_value = None
 

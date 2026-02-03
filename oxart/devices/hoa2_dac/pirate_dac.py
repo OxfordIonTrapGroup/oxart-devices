@@ -16,11 +16,11 @@ class PirateDac:
         self.spi = SPI(portname=port)
         self.spi.pins = PIN_POWER | PIN_AUX
         self.spi.config = CFG_PUSH_PULL
-        self.spi.speed = '1MHz'
+        self.spi.speed = "1MHz"
         self.spi.cs = False
 
         # Config +-10V range, power up
-        self._write(0x1f, reg=2, ch=0)
+        self._write(0x1F, reg=2, ch=0)
         self._write(0x4, reg=1, ch=4)
 
     def pulse_ldac(self):
@@ -35,7 +35,7 @@ class PirateDac:
         ch : 0-3 for ch 0-3, 4 -> all
         """
         ctrl = (rw << 7) + ((reg & 0x7) << 3) + (ch & 0x7)
-        self.spi.write_then_read(3, 0, [ctrl, (data >> 8) & 0xff, data & 0xff])
+        self.spi.write_then_read(3, 0, [ctrl, (data >> 8) & 0xFF, data & 0xFF])
 
     def _read(self):
         self.spi.cs = True
@@ -45,7 +45,7 @@ class PirateDac:
     def read_channel(self, ch=0):
         self._write(0, reg=0, ch=ch, rw=1)
         raw = self._read()
-        val_lsb = int.from_bytes(raw[1:], byteorder='big')
+        val_lsb = int.from_bytes(raw[1:], byteorder="big")
         val = val_lsb * (10 / 32767)
         return val
 
@@ -70,7 +70,7 @@ class PirateDac:
 
 if __name__ == "__main__":
     print("Opening ...")
-    dac = PirateDac('com14')
+    dac = PirateDac("com14")
 
     print("Sweeping DACs")
 

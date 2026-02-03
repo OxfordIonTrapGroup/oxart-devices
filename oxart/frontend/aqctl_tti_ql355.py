@@ -6,22 +6,27 @@ import logging
 from oxart.devices.tti_ql355.driver import QL355
 
 from sipyco.pc_rpc import simple_server_loop
-from sipyco.common_args import (bind_address_from_args, init_logger_from_args,
-                                simple_network_args, verbosity_args)
+from sipyco.common_args import (
+    bind_address_from_args,
+    init_logger_from_args,
+    simple_network_args,
+    verbosity_args,
+)
 
 logger = logging.getLogger(__name__)
 
 
 def get_argparser():
-    parser = argparse.ArgumentParser(description="ARTIQ controller for "
-                                     "TTI QL355P (TP) single (triple) channel"
-                                     " power supplies")
+    parser = argparse.ArgumentParser(
+        description="ARTIQ controller for "
+        "TTI QL355P (TP) single (triple) channel"
+        " power supplies"
+    )
     simple_network_args(parser, 4006)
     verbosity_args(parser)
-    parser.add_argument("-d",
-                        "--device",
-                        help="device's hardware address",
-                        required=True)
+    parser.add_argument(
+        "-d", "--device", help="device's hardware address", required=True
+    )
     return parser
 
 

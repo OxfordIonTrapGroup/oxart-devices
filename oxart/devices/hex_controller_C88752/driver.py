@@ -5,7 +5,7 @@ class Hexapod:
     """Driver for the Hexpod controller C-887.52."""
 
     def __init__(self, address: str):
-        self.dev = GCSDevice('C-887')
+        self.dev = GCSDevice("C-887")
         self.dev.ConnectTCPIP(address)
 
         # Referencing
@@ -13,12 +13,12 @@ class Hexapod:
         pitools.waitonreferencing(self.dev)
 
         # References the stage using the reference position
-        pitools.startup(self.dev, stages=None, refmodes='FRF')
+        pitools.startup(self.dev, stages=None, refmodes="FRF")
         pitools.waitonreferencing(self.dev)
 
         # Activating zero coordinate system
         self.activate_coordinate_system()
-        print('Hexapod ready: {}'.format(self.dev.qIDN().strip()))
+        print("Hexapod ready: {}".format(self.dev.qIDN().strip()))
 
     def move(self, axes: list[str], values: list[float]):
         """MOV: Move to absolute position
@@ -32,7 +32,7 @@ class Hexapod:
         """VLS: Set velocity mm/s"""
         self.dev.VLS(velocity)
 
-    def activate_coordinate_system(self, name='Zero'):
+    def activate_coordinate_system(self, name="Zero"):
         """KEN: Activate coordinates with given name"""
         self.dev.KEN(name)
 
@@ -40,9 +40,9 @@ class Hexapod:
         """KSF: Set coordinate system centered at current positon of hexapod"""
         self.dev.KSF(name)
 
-    def set_pivot_point(self,
-                        axes: list[str] = ['R', 'S', 'T'],
-                        values: list[float] = [0., 0., 0.]):
+    def set_pivot_point(
+        self, axes: list[str] = ["R", "S", "T"], values: list[float] = [0.0, 0.0, 0.0]
+    ):
         """SPI: Fixing the pivot point, origin is 9mm below topplate surface"""
         self.dev.SPI(axes=axes, values=values)
 

@@ -1,7 +1,10 @@
 import argparse
 from sipyco.pc_rpc import simple_server_loop
-from sipyco.common_args import (simple_network_args, init_logger_from_args,
-                                bind_address_from_args)
+from sipyco.common_args import (
+    simple_network_args,
+    init_logger_from_args,
+    bind_address_from_args,
+)
 from oxart.tools import add_common_args
 from oxart.devices.rs_fswp import RS_FSWP
 
@@ -16,9 +19,10 @@ def main():
 
     dev = RS_FSWP()
     try:
-        print('Running phase noise analyser server')
-        simple_server_loop({'phase_noise_analyser': dev}, bind_address_from_args(args),
-                           args.port)
+        print("Running phase noise analyser server")
+        simple_server_loop(
+            {"phase_noise_analyser": dev}, bind_address_from_args(args), args.port
+        )
     finally:
         dev.close()
 

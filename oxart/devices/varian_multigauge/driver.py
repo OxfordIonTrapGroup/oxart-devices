@@ -22,8 +22,9 @@ class VarianIonGauge:
 
         response = self._read_response()
         if response[0] != ord(b">"):
-            raise VarianError("Received error response from gauge: " +
-                              response.decode())
+            raise VarianError(
+                "Received error response from gauge: " + response.decode()
+            )
 
         return response[1:]
 

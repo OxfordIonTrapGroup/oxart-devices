@@ -10,18 +10,20 @@ import sipyco.common_args as sca
 def get_argparser():
     parser = argparse.ArgumentParser(
         description="ARTIQ controller for the "
-        "Thorlabs BPC303 3 channel closed-loop piezo controller")
+        "Thorlabs BPC303 3 channel closed-loop piezo controller"
+    )
     sca.simple_network_args(parser, 5004)
-    parser.add_argument("-d",
-                        "--device",
-                        default=None,
-                        required=True,
-                        help="serial device. See documentation for how to "
-                        "specify a USB Serial Number.")
-    parser.add_argument("-c",
-                        "--closedloop",
-                        action="store_true",
-                        help="Use in closed-loop mode?")
+    parser.add_argument(
+        "-d",
+        "--device",
+        default=None,
+        required=True,
+        help="serial device. See documentation for how to "
+        "specify a USB Serial Number.",
+    )
+    parser.add_argument(
+        "-c", "--closedloop", action="store_true", help="Use in closed-loop mode?"
+    )
     sca.verbosity_args(parser)
     return parser
 

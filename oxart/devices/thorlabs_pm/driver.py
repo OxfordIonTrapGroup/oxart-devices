@@ -1,5 +1,17 @@
-from ctypes import (c_bool, c_char_p, c_double, c_int, c_int16, c_long, c_uint32,
-                    c_voidp, byref, cdll, create_string_buffer, sizeof)
+from ctypes import (
+    c_bool,
+    c_char_p,
+    c_double,
+    c_int,
+    c_int16,
+    c_long,
+    c_uint32,
+    c_voidp,
+    byref,
+    cdll,
+    create_string_buffer,
+    sizeof,
+)
 import logging
 
 # The following constants are taken from the TLPM.h header file in the
@@ -42,10 +54,12 @@ class _TLPM:
     def __init__(self):
         if sizeof(c_voidp) == 4:
             self.dll = cdll.LoadLibrary(
-                "C:/Program Files/IVI Foundation/VISA/Win64/Bin/TLPM_32.dll")
+                "C:/Program Files/IVI Foundation/VISA/Win64/Bin/TLPM_32.dll"
+            )
         else:
             self.dll = cdll.LoadLibrary(
-                "C:/Program Files/IVI Foundation/VISA/Win64/Bin/TLPM_64.dll")
+                "C:/Program Files/IVI Foundation/VISA/Win64/Bin/TLPM_64.dll"
+            )
 
         self.dev_session = c_long()
         self.dev_session.value = 0
@@ -96,9 +110,12 @@ class _TLPM:
         if hasattr(device_name, "encode"):
             device_name = device_name.encode()
 
-        pInvokeResult = self.dll.TLPM_init(create_string_buffer(device_name),
-                                           c_bool(query_id), c_bool(reset_device),
-                                           byref(self.dev_session))
+        pInvokeResult = self.dll.TLPM_init(
+            create_string_buffer(device_name),
+            c_bool(query_id),
+            c_bool(reset_device),
+            byref(self.dev_session),
+        )
         self._testForError(pInvokeResult)
 
     def close(self):
@@ -181,16 +198,21 @@ class _TLPM:
         manufacturer = create_string_buffer(TLPM_BUFFER_SIZE)
         available = c_int16()
 
-        pInvokeResult = self.dll.TLPM_getRsrcInfo(self.dev_session, c_int(index),
-                                                  model_name, serial_number,
-                                                  manufacturer, byref(available))
+        pInvokeResult = self.dll.TLPM_getRsrcInfo(
+            self.dev_session,
+            c_int(index),
+            model_name,
+            serial_number,
+            manufacturer,
+            byref(available),
+        )
         self._testForError(pInvokeResult)
 
         info_dict = {
             "model_name": c_char_p(model_name.raw).value.decode(),
             "serial_number": c_char_p(serial_number.raw).value.decode(),
             "manufacturer": c_char_p(manufacturer.raw).value.decode(),
-            "available": available.value
+            "available": available.value,
         }
 
         return info_dict
@@ -217,8 +239,9 @@ class _TLPM:
         Returns:
             int: The return value, 0 is for success
         """
-        pInvokeResult = self.dll.TLPM_selfTest(self.dev_session, selfTestResult,
-                                               description)
+        pInvokeResult = self.dll.TLPM_selfTest(
+            self.dev_session, selfTestResult, description
+        )
         self._testForError(pInvokeResult)
         return pInvokeResult
 
@@ -241,9 +264,9 @@ class _TLPM:
         Returns:
             int: The return value, 0 is for success
         """
-        pInvokeResult = self.dll.TLPM_revisionQuery(self.dev_session,
-                                                    instrumentDriverRevision,
-                                                    firmwareRevision)
+        pInvokeResult = self.dll.TLPM_revisionQuery(
+            self.dev_session, instrumentDriverRevision, firmwareRevision
+        )
         self._testForError(pInvokeResult)
         return pInvokeResult
 
@@ -274,10 +297,13 @@ class _TLPM:
         Returns:
             int: The return value, 0 is for success
         """
-        pInvokeResult = self.dll.TLPM_identificationQuery(self.dev_session,
-                                                          manufacturerName, deviceName,
-                                                          serialNumber,
-                                                          firmwareRevision)
+        pInvokeResult = self.dll.TLPM_identificationQuery(
+            self.dev_session,
+            manufacturerName,
+            deviceName,
+            serialNumber,
+            firmwareRevision,
+        )
         self._testForError(pInvokeResult)
         return pInvokeResult
 
@@ -291,16 +317,17 @@ class ThorlabsPM100A(_TLPM):
 
     def set_wavelength(self, wavelength):
         """Set wavelength in nanometers to use for measurements."""
-        pInvokeResult = self.dll.TLPM_setWavelength(self.dev_session,
-                                                    c_double(wavelength))
+        pInvokeResult = self.dll.TLPM_setWavelength(
+            self.dev_session, c_double(wavelength)
+        )
         self._testForError(pInvokeResult)
 
     def get_wavelength(self):
         """Return the wavelength in nanometers currently set for measurements."""
         wavelength = c_double()
-        pInvokeResult = self.dll.TLPM_getWavelength(self.dev_session,
-                                                    c_int16(TLPM_ATTR_SET_VAL),
-                                                    byref(wavelength))
+        pInvokeResult = self.dll.TLPM_getWavelength(
+            self.dev_session, c_int16(TLPM_ATTR_SET_VAL), byref(wavelength)
+        )
         self._testForError(pInvokeResult)
         return wavelength.value
 
@@ -316,9 +343,9 @@ class ThorlabsPM100A(_TLPM):
     def get_power_range(self):
         """Return the power range currently set for measurements."""
         pow_range = c_double()
-        pInvokeResult = self.dll.TLPM_getPowerRange(self.dev_session,
-                                                    c_int16(TLPM_ATTR_SET_VAL),
-                                                    byref(pow_range))
+        pInvokeResult = self.dll.TLPM_getPowerRange(
+            self.dev_session, c_int16(TLPM_ATTR_SET_VAL), byref(pow_range)
+        )
         self._testForError(pInvokeResult)
         return pow_range.value
 

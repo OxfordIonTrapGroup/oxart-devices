@@ -10,13 +10,12 @@ import sipyco.common_args as sca
 def get_argparser():
     parser = argparse.ArgumentParser(
         description="ARTIQ controller for the "
-        "Thorlabs MDT693A 3-channel open-loop piezo controller")
+        "Thorlabs MDT693A 3-channel open-loop piezo controller"
+    )
     sca.simple_network_args(parser, 9001)
-    parser.add_argument("-d",
-                        "--device",
-                        default=None,
-                        required=True,
-                        help="Device ip address")
+    parser.add_argument(
+        "-d", "--device", default=None, required=True, help="Device ip address"
+    )
     sca.verbosity_args(parser)
     return parser
 

@@ -32,6 +32,7 @@ from .bme_delay_gen import Driver, OutputGateMode, PulseParameters
 class InvalidTimingError(Exception):
     """Raised when the user specifies a set of parameters that violate the hardware
     timing constraints."""
+
     pass
 
 
@@ -102,7 +103,8 @@ class TimingParams:
 
         if abs(self.offset_off_us) > 2e-3:
             raise InvalidTimingError(
-                "Channel/channel OFF switch delay longer than 2 ns")
+                "Channel/channel OFF switch delay longer than 2 ns"
+            )
 
 
 class PulsePickerTiming:
@@ -121,7 +123,8 @@ class PulsePickerTiming:
 
         if self._delay_gen:
             self._delay_gen.set_output_gates(
-                [OutputGateMode.gate_or, OutputGateMode.gate_or, OutputGateMode.direct])
+                [OutputGateMode.gate_or, OutputGateMode.gate_or, OutputGateMode.direct]
+            )
             self._delay_gen.set_trigger(False, 0.0)
 
         self.disable()
@@ -245,15 +248,25 @@ class PulsePickerTiming:
 
         open_at_us = self._times.pre_open_us + self._times.align_us
 
-        self._delay_gen.set_pulse_parameters([
-            PulseParameters(True, s_a_off, 0.0),
-            PulseParameters(
-                True, s_a_off + self._times.pre_open_us + self._times.post_open_us,
-                0.0),
-            PulseParameters(True, s_b_off, 0.0),
-            PulseParameters(
-                True, s_b_off + self._times.pre_open_us + self._times.post_open_us,
-                0.0),
-            PulseParameters(True, s_a_on + open_at_us - self._times.open_us / 2, 0.0),
-            PulseParameters(True, s_b_on + open_at_us + self._times.open_us / 2, 0.0),
-        ])
+        self._delay_gen.set_pulse_parameters(
+            [
+                PulseParameters(True, s_a_off, 0.0),
+                PulseParameters(
+                    True,
+                    s_a_off + self._times.pre_open_us + self._times.post_open_us,
+                    0.0,
+                ),
+                PulseParameters(True, s_b_off, 0.0),
+                PulseParameters(
+                    True,
+                    s_b_off + self._times.pre_open_us + self._times.post_open_us,
+                    0.0,
+                ),
+                PulseParameters(
+                    True, s_a_on + open_at_us - self._times.open_us / 2, 0.0
+                ),
+                PulseParameters(
+                    True, s_b_on + open_at_us + self._times.open_us / 2, 0.0
+                ),
+            ]
+        )

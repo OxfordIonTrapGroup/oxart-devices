@@ -11,10 +11,12 @@ import sipyco.common_args as sca
 def get_argparser():
     parser = argparse.ArgumentParser(description="ARTIQ controller for SCPI AWGs")
     parser.add_argument("-i", "--ipaddr", default=None, help="IP address of device")
-    parser.add_argument("-s",
-                        "--serialnumber",
-                        default=None,
-                        help="Serial number of device to check identity")
+    parser.add_argument(
+        "-s",
+        "--serialnumber",
+        default=None,
+        help="Serial number of device to check identity",
+    )
     sca.simple_network_args(parser, 4004)
     sca.verbosity_args(parser)
     return parser

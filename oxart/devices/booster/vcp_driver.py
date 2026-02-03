@@ -17,11 +17,11 @@ class BoosterVCP:
 
     def _cmd(self, cmd, lines=1, termination=None):
         """Sends a command and returns the response string."""
-        self.dev.write((cmd + '\n').encode())
+        self.dev.write((cmd + "\n").encode())
 
         # echo
         resp = self.dev.readline().decode()
-        if resp.startswith('> '):
+        if resp.startswith("> "):
             resp = resp[1:]
         if resp.strip() != cmd:
             print(resp)
@@ -30,8 +30,8 @@ class BoosterVCP:
         if termination is not None:
             resp = []
             line = self.dev.readline().decode().strip()
-            print('line: ', line)
-            while line != '>':
+            print("line: ", line)
+            while line != ">":
                 print("line: ", line)
                 resp.append(line)
                 line = self.dev.readline().decode().strip()
@@ -47,15 +47,15 @@ class BoosterVCP:
 
     def get_version(self):
         """Returns the device version string."""
-        return self._cmd('version')
+        return self._cmd("version")
 
     def get_eth_diag(self):
         """Returns ethernet diagnostic information."""
-        return self._cmd('ethdbg', 6)
+        return self._cmd("ethdbg", 6)
 
     def get_logstash(self):
         """Returns ethernet diagnostic information."""
-        return self._cmd('logstash', termination='>')
+        return self._cmd("logstash", termination=">")
 
     def ping(self):
         """Returns True if we are connected to a Booster."""

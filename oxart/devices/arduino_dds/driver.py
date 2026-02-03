@@ -29,12 +29,16 @@ class ProfileDescriptor:
             return False
 
         if not isinstance(value, ProfileDescriptor):
-            raise ValueError("Bad value type in ProfileDescriptor equality: "
-                             "{}".format(type(value)))
+            raise ValueError(
+                "Bad value type in ProfileDescriptor equality: "
+                "{}".format(type(value))
+            )
 
-        if self.freq_word == value.freq_word and\
-           self.amp_word == value.amp_word and\
-           self.phase_word == value.phase_word:
+        if (
+            self.freq_word == value.freq_word
+            and self.amp_word == value.amp_word
+            and self.phase_word == value.phase_word
+        ):
             return True
         else:
             return False
@@ -82,8 +86,10 @@ class ArduinoDDS:
 
         # Check if this profile is already present
         if self.current_profiles[profile] == new_profile:
-            logger.debug("Not setting profile {} with {}, already set"
-                         "".format(profile, new_profile))
+            logger.debug(
+                "Not setting profile {} with {}, already set"
+                "".format(profile, new_profile)
+            )
         else:
             # If it is not present, set it and log it
             self._set_profile_lsb(profile, freq_word, phase_word, amp_word)
@@ -94,17 +100,20 @@ class ArduinoDDS:
         """Freq, phase, amp are all in units of lsb."""
         if profile < 0 or profile > 7 or not isinstance(profile, int):
             raise ValueError("DDS profile should be an integer between 0 and 7")
-        if amp > 0x3fff or amp < 0 or not isinstance(amp, int):
-            raise ValueError("DDS amplitude word should be an integer "
-                             "between 0 and 0x3fff")
-        if phase > 0xffff or phase < 0 or not isinstance(phase, int):
-            raise ValueError("DDS phase word should be an integer between "
-                             "0 and 0xffff")
-        if freq < 0 or freq > 0xffffffff or not isinstance(freq, int):
-            raise ValueError("DDS frequency word should be an integer "
-                             "between 0 and 0xffffffff")
+        if amp > 0x3FFF or amp < 0 or not isinstance(amp, int):
+            raise ValueError(
+                "DDS amplitude word should be an integer " "between 0 and 0x3fff"
+            )
+        if phase > 0xFFFF or phase < 0 or not isinstance(phase, int):
+            raise ValueError(
+                "DDS phase word should be an integer between " "0 and 0xffff"
+            )
+        if freq < 0 or freq > 0xFFFFFFFF or not isinstance(freq, int):
+            raise ValueError(
+                "DDS frequency word should be an integer " "between 0 and 0xffffffff"
+            )
 
-        self.send('PLSB {} {} {} {}\n'.format(profile, amp, phase, freq))
+        self.send("PLSB {} {} {} {}\n".format(profile, amp, phase, freq))
         time.sleep(0.01)
 
     def reset(self):

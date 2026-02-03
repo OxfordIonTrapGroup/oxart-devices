@@ -5,6 +5,7 @@ from oitg.imaging.roi_tools import *
 
 class CameraSetup(EnvExperiment):
     """Set camera parameters."""
+
     _camera_name = "camera"
 
     def build(self):
@@ -15,8 +16,9 @@ class CameraSetup(EnvExperiment):
         self.en_em_gain = self.get_argument("EM enabled", BooleanValue(default=False))
         self.em_gain = self.get_argument("EM Gain", NumberValue(default=300))
 
-        self.roi_mode = self.get_argument("Image size",
-                                          EnumerationValue(["Full", "ROI"]))
+        self.roi_mode = self.get_argument(
+            "Image size", EnumerationValue(["Full", "ROI"])
+        )
         self.run_acq = self.get_argument("Start acquisition", BooleanValue())
 
         self.set_default_scheduling(pipeline_name="camera")
@@ -36,13 +38,13 @@ class CameraSetup(EnvExperiment):
         self.camera.set_exposure_time(self.t_exp)
 
         if self.en_em_gain:
-            self.camera.set_horizontal_shift_parameters(17,
-                                                        em_gain=True,
-                                                        adc_bit_depth=16)
+            self.camera.set_horizontal_shift_parameters(
+                17, em_gain=True, adc_bit_depth=16
+            )
         else:
-            self.camera.set_horizontal_shift_parameters(3,
-                                                        em_gain=False,
-                                                        adc_bit_depth=16)
+            self.camera.set_horizontal_shift_parameters(
+                3, em_gain=False, adc_bit_depth=16
+            )
         self.camera.set_vertical_shift_speed(3.3)
         self.camera.set_em_gain(self.em_gain)
 
@@ -53,12 +55,14 @@ class CameraSetup(EnvExperiment):
         ddb = self.get_device_db()
         dev = ddb[self._camera_name]
 
-        self.ccb.issue("create_applet",
-                       "Camera",
-                       "${python} -m oxart.applets.camera_viewer "
-                       "--server " + dev["host"] + " "
-                       "--serial " + dev["target_name"],
-                       group="monitor")
+        self.ccb.issue(
+            "create_applet",
+            "Camera",
+            "${python} -m oxart.applets.camera_viewer "
+            "--server " + dev["host"] + " "
+            "--serial " + dev["target_name"],
+            group="monitor",
+        )
 
 
 class ChooseROI(EnvExperiment):
@@ -68,13 +72,12 @@ class ChooseROI(EnvExperiment):
         self.setattr_device("core")
         self.setattr_device("camera")
 
-        self.roi_length = \
-            self.get_argument("ROI length", NumberValue(50, ndecimals=0))
-        self.roi_width = \
-            self.get_argument("ROI width", NumberValue(50, ndecimals=0))
+        self.roi_length = self.get_argument("ROI length", NumberValue(50, ndecimals=0))
+        self.roi_width = self.get_argument("ROI width", NumberValue(50, ndecimals=0))
 
-        self.ion_signal_width = \
-            self.get_argument("Ion signal width", NumberValue(30, ndecimals=0))
+        self.ion_signal_width = self.get_argument(
+            "Ion signal width", NumberValue(30, ndecimals=0)
+        )
 
         self.set_default_scheduling(pipeline_name="camera")
 
@@ -93,9 +96,9 @@ class ChooseROI(EnvExperiment):
                 break
             time.sleep(10 * ms)
 
-        im, sub_region = trim_image(im_full,
-                                    n_width=int(self.roi_width),
-                                    n_length=int(self.roi_length))
+        im, sub_region = trim_image(
+            im_full, n_width=int(self.roi_width), n_length=int(self.roi_length)
+        )
 
         roi = [*sub_region[0], *sub_region[1]]
 

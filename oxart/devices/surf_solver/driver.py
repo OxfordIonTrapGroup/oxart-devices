@@ -46,8 +46,10 @@ class _GridCache:
     def get(self, zs, elec_fn, field_fn):
         if self.can_use_last(zs, elec_fn, field_fn):
             return self.last_result
-        self.last_result = (self.jl.eval("mk_electrodes_grid")(zs, elec_fn),
-                            self.jl.eval("mk_field_grid")(zs, field_fn))
+        self.last_result = (
+            self.jl.eval("mk_electrodes_grid")(zs, elec_fn),
+            self.jl.eval("mk_field_grid")(zs, field_fn),
+        )
         self.last_zs = zs
         self.last_elec_fn = elec_fn
         self.last_field_fn = field_fn
@@ -57,11 +59,13 @@ class _GridCache:
 class SURF:
     """SURF Uncomplicated Regional Fields (python driver)"""
 
-    def __init__(self,
-                 trap_model_path="/home/ion/scratch/julia_projects/SURF/"
-                 "trap_model/comet_model.jld",
-                 cache_path=None,
-                 **kwargs):
+    def __init__(
+        self,
+        trap_model_path="/home/ion/scratch/julia_projects/SURF/"
+        "trap_model/comet_model.jld",
+        cache_path=None,
+        **kwargs,
+    ):
         """
         :param trap_model_path: path to the SURF trap model file
         :param cache_path: path on which to cache results. None disables cache.
@@ -78,13 +82,15 @@ class SURF:
         self.load_config(trap_model_path, cache_path, **kwargs)
         print("ready")
 
-    def load_config(self,
-                    trap_model_path=None,
-                    cache_path=None,
-                    omega_rf=None,
-                    mass=None,
-                    v_rf=None,
-                    force_reload=False):
+    def load_config(
+        self,
+        trap_model_path=None,
+        cache_path=None,
+        omega_rf=None,
+        mass=None,
+        v_rf=None,
+        force_reload=False,
+    ):
         """Load trap model and default solver settings from the specified file and
         set solution solution cache path.
 
@@ -102,8 +108,9 @@ class SURF:
             self.trap_model_path = trap_model_path
         # create cache directory as needed
         if cache_path is not None:
-            cache_path = os.path.join(cache_path,
-                                      "m{}_w{}_v{}".format(mass, omega_rf, v_rf))
+            cache_path = os.path.join(
+                cache_path, "m{}_w{}_v{}".format(mass, omega_rf, v_rf)
+            )
             if not os.path.isdir(cache_path):
                 os.mkdir(cache_path)
         self.cache_path = cache_path
@@ -113,16 +120,15 @@ class SURF:
             "cache_path": self.cache_path,
             "omega_rf": omega_rf,
             "mass": mass,
-            "v_rf": v_rf
+            "v_rf": v_rf,
         }
         if args == self.current_config_args and not force_reload:
             return self.get_config()
         self.current_config_args = args
 
-        model = self.jl.eval("SURF.Load.load_model")(self.trap_model_path,
-                                                     omega_rf=omega_rf,
-                                                     mass=mass,
-                                                     v_rf=v_rf)
+        model = self.jl.eval("SURF.Load.load_model")(
+            self.trap_model_path, omega_rf=omega_rf, mass=mass, v_rf=v_rf
+        )
         self.raw_elec_grid, self.raw_field_grid = model[0:2]
         self.elec_fn = self.jl.eval("mk_electrodes_fn")(self.raw_elec_grid)
         self.field_fn = self.jl.eval("mk_field_fn")(self.raw_field_grid)
@@ -131,10 +137,16 @@ class SURF:
             dynamic_split_settings = model[6]
         else:
             # Provide defaults based on split solver.
-            settings = (model[5].split_scale_tup, model[5].spectator_scale_tup,
-                        model[5].v_weight, (0.0, 0.0), model[5].v_max)
-            dynamic_split_settings = self._mk_solver_settings(*settings,
-                                                              solver="DynamicSplit")
+            settings = (
+                model[5].split_scale_tup,
+                model[5].spectator_scale_tup,
+                model[5].v_weight,
+                (0.0, 0.0),
+                model[5].v_max,
+            )
+            dynamic_split_settings = self._mk_solver_settings(
+                *settings, solver="DynamicSplit"
+            )
 
         # recommended default values for user
         self.user_defaults = {
@@ -155,11 +167,14 @@ class SURF:
         # assignment in julia repel main name-space
         julia.Main.last_field_fn = self.field_fn
         div_grad_phi = self.jl.eval("last_field_fn.d2\N{Greek Capital Letter Phi}dx2")(
-            z)
+            z
+        )
         div_grad_phi += self.jl.eval("last_field_fn.d2\N{Greek Capital Letter Phi}dy2")(
-            z)
+            z
+        )
         div_grad_phi += self.jl.eval("last_field_fn.d2\N{Greek Capital Letter Phi}dz2")(
-            z)
+            z
+        )
         return div_grad_phi
 
     def get_config(self):
@@ -216,18 +231,29 @@ class SURF:
         if param_dict.get("static_settings", None) is None:
             settings = self.user_defaults["static_settings"]
         else:
-            settings = self._mk_solver_settings(*param_dict["static_settings"],
-                                                solver="Static")
+            settings = self._mk_solver_settings(
+                *param_dict["static_settings"], solver="Static"
+            )
 
         # need to fix argument order!
         arg_key = pyon.encode(
-            (elec_fn.names, zs, param_dict.get("static_settings",
-                                               None), param_dict["wells"]["z"],
-             param_dict["wells"]["width"], param_dict["wells"]["dphidx"],
-             param_dict["wells"]["dphidy"], param_dict["wells"]["dphidz"],
-             param_dict["wells"]["rx_axial"], param_dict["wells"]["ry_axial"],
-             param_dict["wells"]["phi_radial"], param_dict["wells"]["d2phidaxial2"],
-             param_dict["wells"]["d3phidz3"], param_dict["wells"]["d2phidradial_h2"]))
+            (
+                elec_fn.names,
+                zs,
+                param_dict.get("static_settings", None),
+                param_dict["wells"]["z"],
+                param_dict["wells"]["width"],
+                param_dict["wells"]["dphidx"],
+                param_dict["wells"]["dphidy"],
+                param_dict["wells"]["dphidz"],
+                param_dict["wells"]["rx_axial"],
+                param_dict["wells"]["ry_axial"],
+                param_dict["wells"]["phi_radial"],
+                param_dict["wells"]["d2phidaxial2"],
+                param_dict["wells"]["d3phidz3"],
+                param_dict["wells"]["d2phidradial_h2"],
+            )
+        )
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "static")) as db:
                 try:
@@ -270,46 +296,48 @@ class SURF:
             zs = self.user_defaults["zs"]
 
         # need to fix argument order!
-        arg_key = pyon.encode((
-            elec_fn.names,
-            zs,
-            param_dict.get("split_settings", None),
-            param_dict["scan_start"]["z"],
-            param_dict["scan_start"]["width"],
-            param_dict["scan_start"]["dphidx"],
-            param_dict["scan_start"]["dphidy"],
-            param_dict["scan_start"]["dphidz"],
-            param_dict["scan_start"]["rx_axial"],
-            param_dict["scan_start"]["ry_axial"],
-            param_dict["scan_start"]["phi_radial"],
-            param_dict["scan_start"]["d2phidaxial2"],
-            param_dict["scan_start"]["d3phidz3"],
-            param_dict["scan_start"]["d2phidradial_h2"],
-            param_dict["scan_end"]["z"],
-            param_dict["scan_end"]["width"],
-            param_dict["scan_end"]["dphidx"],
-            param_dict["scan_end"]["dphidy"],
-            param_dict["scan_end"]["dphidz"],
-            param_dict["scan_end"]["rx_axial"],
-            param_dict["scan_end"]["ry_axial"],
-            param_dict["scan_end"]["phi_radial"],
-            param_dict["scan_end"]["d2phidaxial2"],
-            param_dict["scan_end"]["d3phidz3"],
-            param_dict["scan_end"]["d2phidradial_h2"],
-            param_dict["spectators"]["z"],
-            param_dict["spectators"]["width"],
-            param_dict["spectators"]["dphidx"],
-            param_dict["spectators"]["dphidy"],
-            param_dict["spectators"]["dphidz"],
-            param_dict["spectators"]["rx_axial"],
-            param_dict["spectators"]["ry_axial"],
-            param_dict["spectators"]["phi_radial"],
-            param_dict["spectators"]["d2phidaxial2"],
-            param_dict["spectators"]["d3phidz3"],
-            param_dict["spectators"]["d2phidradial_h2"],
-            param_dict["n_step"],
-            param_dict["n_scan"],
-        ))
+        arg_key = pyon.encode(
+            (
+                elec_fn.names,
+                zs,
+                param_dict.get("split_settings", None),
+                param_dict["scan_start"]["z"],
+                param_dict["scan_start"]["width"],
+                param_dict["scan_start"]["dphidx"],
+                param_dict["scan_start"]["dphidy"],
+                param_dict["scan_start"]["dphidz"],
+                param_dict["scan_start"]["rx_axial"],
+                param_dict["scan_start"]["ry_axial"],
+                param_dict["scan_start"]["phi_radial"],
+                param_dict["scan_start"]["d2phidaxial2"],
+                param_dict["scan_start"]["d3phidz3"],
+                param_dict["scan_start"]["d2phidradial_h2"],
+                param_dict["scan_end"]["z"],
+                param_dict["scan_end"]["width"],
+                param_dict["scan_end"]["dphidx"],
+                param_dict["scan_end"]["dphidy"],
+                param_dict["scan_end"]["dphidz"],
+                param_dict["scan_end"]["rx_axial"],
+                param_dict["scan_end"]["ry_axial"],
+                param_dict["scan_end"]["phi_radial"],
+                param_dict["scan_end"]["d2phidaxial2"],
+                param_dict["scan_end"]["d3phidz3"],
+                param_dict["scan_end"]["d2phidradial_h2"],
+                param_dict["spectators"]["z"],
+                param_dict["spectators"]["width"],
+                param_dict["spectators"]["dphidx"],
+                param_dict["spectators"]["dphidy"],
+                param_dict["spectators"]["dphidz"],
+                param_dict["spectators"]["rx_axial"],
+                param_dict["spectators"]["ry_axial"],
+                param_dict["spectators"]["phi_radial"],
+                param_dict["spectators"]["d2phidaxial2"],
+                param_dict["spectators"]["d3phidz3"],
+                param_dict["spectators"]["d2phidradial_h2"],
+                param_dict["n_step"],
+                param_dict["n_scan"],
+            )
+        )
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "split.db")) as db:
                 try:
@@ -324,13 +352,21 @@ class SURF:
         if param_dict.get("split_settings", None) is None:
             settings = self.user_defaults["split_settings"]
         else:
-            settings = self._mk_solver_settings(*param_dict["split_settings"],
-                                                solver="Split")
-        voltages, sep_vec = self._solve_split(scan_start, scan_end, spectators,
-                                              param_dict["n_step"],
-                                              param_dict["n_scan"], elec_fn,
-                                              self.field_fn, elec_grid, field_grid,
-                                              settings)
+            settings = self._mk_solver_settings(
+                *param_dict["split_settings"], solver="Split"
+            )
+        voltages, sep_vec = self._solve_split(
+            scan_start,
+            scan_end,
+            spectators,
+            param_dict["n_step"],
+            param_dict["n_scan"],
+            elec_fn,
+            self.field_fn,
+            elec_grid,
+            field_grid,
+            settings,
+        )
 
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "split.db")) as db:
@@ -364,36 +400,38 @@ class SURF:
             zs = self.user_defaults["zs"]
 
         # need to fix argument order!
-        arg_key = pyon.encode((
-            elec_fn.names,
-            zs,
-            param_dict.get("split_settings", None),
-            param_dict["split_well"]["z"],
-            param_dict["split_well"]["width"],
-            param_dict["split_well"]["dphidx"],
-            param_dict["split_well"]["dphidy"],
-            param_dict["split_well"]["dphidz"],
-            param_dict["split_well"]["rx_axial"],
-            param_dict["split_well"]["ry_axial"],
-            param_dict["split_well"]["phi_radial"],
-            param_dict["split_well"]["d2phidaxial2"],
-            param_dict["split_well"]["d3phidz3"],
-            param_dict["split_well"]["d2phidradial_h2"],
-            param_dict["spectators"]["z"],
-            param_dict["spectators"]["width"],
-            param_dict["spectators"]["dphidx"],
-            param_dict["spectators"]["dphidy"],
-            param_dict["spectators"]["dphidz"],
-            param_dict["spectators"]["rx_axial"],
-            param_dict["spectators"]["ry_axial"],
-            param_dict["spectators"]["phi_radial"],
-            param_dict["spectators"]["d2phidaxial2"],
-            param_dict["spectators"]["d3phidz3"],
-            param_dict["spectators"]["d2phidradial_h2"],
-            param_dict["start_separation"],
-            param_dict["end_separation"],
-            param_dict["n_step"],
-        ))
+        arg_key = pyon.encode(
+            (
+                elec_fn.names,
+                zs,
+                param_dict.get("split_settings", None),
+                param_dict["split_well"]["z"],
+                param_dict["split_well"]["width"],
+                param_dict["split_well"]["dphidx"],
+                param_dict["split_well"]["dphidy"],
+                param_dict["split_well"]["dphidz"],
+                param_dict["split_well"]["rx_axial"],
+                param_dict["split_well"]["ry_axial"],
+                param_dict["split_well"]["phi_radial"],
+                param_dict["split_well"]["d2phidaxial2"],
+                param_dict["split_well"]["d3phidz3"],
+                param_dict["split_well"]["d2phidradial_h2"],
+                param_dict["spectators"]["z"],
+                param_dict["spectators"]["width"],
+                param_dict["spectators"]["dphidx"],
+                param_dict["spectators"]["dphidy"],
+                param_dict["spectators"]["dphidz"],
+                param_dict["spectators"]["rx_axial"],
+                param_dict["spectators"]["ry_axial"],
+                param_dict["spectators"]["phi_radial"],
+                param_dict["spectators"]["d2phidaxial2"],
+                param_dict["spectators"]["d3phidz3"],
+                param_dict["spectators"]["d2phidradial_h2"],
+                param_dict["start_separation"],
+                param_dict["end_separation"],
+                param_dict["n_step"],
+            )
+        )
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "dynamic_split.db")) as db:
                 try:
@@ -408,8 +446,9 @@ class SURF:
         if param_dict.get("split_settings", None) is None:
             settings = self.user_defaults["dynamic_split_settings"]
         else:
-            settings = self._mk_solver_settings(*param_dict["split_settings"],
-                                                solver="DynamicSplit")
+            settings = self._mk_solver_settings(
+                *param_dict["split_settings"], solver="DynamicSplit"
+            )
         voltages, sep_vec = self._solve_dynamic_split(
             split_well,
             param_dict["start_separation"],
@@ -458,36 +497,38 @@ class SURF:
         v1 = [param_dict["volt_end"][name] for name in elec_fn.names]
 
         # need to fix argument order!
-        arg_key = pyon.encode((
-            elec_fn.names,
-            zs,
-            param_dict.get("dynamic_settings", None),
-            v0,
-            v1,
-            param_dict["wells0"]["z"],
-            param_dict["wells0"]["width"],
-            param_dict["wells0"]["dphidx"],
-            param_dict["wells0"]["dphidy"],
-            param_dict["wells0"]["dphidz"],
-            param_dict["wells0"]["rx_axial"],
-            param_dict["wells0"]["ry_axial"],
-            param_dict["wells0"]["phi_radial"],
-            param_dict["wells0"]["d2phidaxial2"],
-            param_dict["wells0"]["d3phidz3"],
-            param_dict["wells0"]["d2phidradial_h2"],
-            param_dict["wells1"]["z"],
-            param_dict["wells1"]["width"],
-            param_dict["wells1"]["dphidx"],
-            param_dict["wells1"]["dphidy"],
-            param_dict["wells1"]["dphidz"],
-            param_dict["wells1"]["rx_axial"],
-            param_dict["wells1"]["ry_axial"],
-            param_dict["wells1"]["phi_radial"],
-            param_dict["wells1"]["d2phidaxial2"],
-            param_dict["wells1"]["d3phidz3"],
-            param_dict["wells1"]["d2phidradial_h2"],
-            param_dict["n_step"],
-        ))
+        arg_key = pyon.encode(
+            (
+                elec_fn.names,
+                zs,
+                param_dict.get("dynamic_settings", None),
+                v0,
+                v1,
+                param_dict["wells0"]["z"],
+                param_dict["wells0"]["width"],
+                param_dict["wells0"]["dphidx"],
+                param_dict["wells0"]["dphidy"],
+                param_dict["wells0"]["dphidz"],
+                param_dict["wells0"]["rx_axial"],
+                param_dict["wells0"]["ry_axial"],
+                param_dict["wells0"]["phi_radial"],
+                param_dict["wells0"]["d2phidaxial2"],
+                param_dict["wells0"]["d3phidz3"],
+                param_dict["wells0"]["d2phidradial_h2"],
+                param_dict["wells1"]["z"],
+                param_dict["wells1"]["width"],
+                param_dict["wells1"]["dphidx"],
+                param_dict["wells1"]["dphidy"],
+                param_dict["wells1"]["dphidz"],
+                param_dict["wells1"]["rx_axial"],
+                param_dict["wells1"]["ry_axial"],
+                param_dict["wells1"]["phi_radial"],
+                param_dict["wells1"]["d2phidaxial2"],
+                param_dict["wells1"]["d3phidz3"],
+                param_dict["wells1"]["d2phidradial_h2"],
+                param_dict["n_step"],
+            )
+        )
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "dynamic.db")) as db:
                 try:
@@ -502,10 +543,12 @@ class SURF:
         if param_dict.get("dynamic_settings", None) is None:
             settings = self.user_defaults["dynamic_settings"]
         else:
-            settings = self._mk_solver_settings(*param_dict["dynamic_settings"],
-                                                solver="Dynamic")
-        voltages = self._solve_dynamic(trajectory, v0, v1, elec_grid, field_grid,
-                                       settings)
+            settings = self._mk_solver_settings(
+                *param_dict["dynamic_settings"], solver="Dynamic"
+            )
+        voltages = self._solve_dynamic(
+            trajectory, v0, v1, elec_grid, field_grid, settings
+        )
 
         if self.cache_path is not None:
             with shelve.open(os.path.join(self.cache_path, "dynamic.db")) as db:
@@ -519,8 +562,21 @@ class SURF:
         """Return a list of all electrode names defined in the trap model."""
         return self.elec_fn.names
 
-    def _mk_wells(self, z, width, dphidx, dphidy, dphidz, rx_axial, ry_axial,
-                  phi_radial, d2phidaxial2, d3phidz3, d2phidradial_h2, **kwargs):
+    def _mk_wells(
+        self,
+        z,
+        width,
+        dphidx,
+        dphidy,
+        dphidz,
+        rx_axial,
+        ry_axial,
+        phi_radial,
+        d2phidaxial2,
+        d3phidz3,
+        d2phidradial_h2,
+        **kwargs,
+    ):
         """Struct, characterising target potential wells at a specific time.
 
         For n coexisting wells:
@@ -542,9 +598,19 @@ class SURF:
         :param d2phidradial_h2: horizontal radial mode frequency
         :param **kwargs: additional kwargs are ignored
         """
-        return self.jl.eval("PotentialWells")(z, width, dphidx, dphidy, dphidz,
-                                              rx_axial, ry_axial, phi_radial,
-                                              d2phidaxial2, d3phidz3, d2phidradial_h2)
+        return self.jl.eval("PotentialWells")(
+            z,
+            width,
+            dphidx,
+            dphidy,
+            dphidz,
+            rx_axial,
+            ry_axial,
+            phi_radial,
+            d2phidaxial2,
+            d3phidz3,
+            d2phidradial_h2,
+        )
 
     def _mk_trajectory(self, wells_start, wells_end, n_step):
         """Trajectory smoothly evolving wells_start to wells_end.
@@ -556,7 +622,8 @@ class SURF:
             trajectory (Tuple of n_step wells structs)
         """
         return self.jl.eval("SURF.ModelTrajectories.create_shuttle_trajectory")(
-            wells_start, wells_end, n_step)
+            wells_start, wells_end, n_step
+        )
 
     def _mk_grids(self, zs, elec_fn, field_fn):
         """Sample electrodes and external fields at positions zs.
@@ -589,14 +656,22 @@ class SURF:
         cost_fn = self.jl.eval("SURF.Static.cost_function")
         constraint_fn = self.jl.eval("SURF.Static.constraint")
 
-        volt_set = self.jl.eval("SURF.Static.solver")(wells, elec_grid, field_grid,
-                                                      weights_fn, cull_fn,
-                                                      calc_target_fn, cost_fn,
-                                                      constraint_fn, settings)
+        volt_set = self.jl.eval("SURF.Static.solver")(
+            wells,
+            elec_grid,
+            field_grid,
+            weights_fn,
+            cull_fn,
+            calc_target_fn,
+            cost_fn,
+            constraint_fn,
+            settings,
+        )
         return np.ascontiguousarray(np.array(volt_set))
 
-    def _solve_dynamic(self, trajectory, v_set_start, v_set_end, elec_grid, field_grid,
-                       settings):
+    def _solve_dynamic(
+        self, trajectory, v_set_start, v_set_end, elec_grid, field_grid, settings
+    ):
         """Find voltages to best produce target trajectory (fixed start & end).
 
         :param trajectory: as returned by mk_trajectory
@@ -615,15 +690,34 @@ class SURF:
         cost_fn = self.jl.eval("SURF.Dynamic.cost_function")
         constraint_fn = self.jl.eval("SURF.Dynamic.constraint")
 
-        volt_set = self.jl.eval("SURF.Dynamic.solver")(trajectory, elec_grid,
-                                                       field_grid, v_set_start,
-                                                       v_set_end, weights_fn, cull_fn,
-                                                       calc_target_fn, cost_fn,
-                                                       constraint_fn, settings)
+        volt_set = self.jl.eval("SURF.Dynamic.solver")(
+            trajectory,
+            elec_grid,
+            field_grid,
+            v_set_start,
+            v_set_end,
+            weights_fn,
+            cull_fn,
+            calc_target_fn,
+            cost_fn,
+            constraint_fn,
+            settings,
+        )
         return np.ascontiguousarray(np.array(volt_set))
 
-    def _solve_split(self, scan_start, scan_end, spectator, n_step, n_scan, elec_fn,
-                     field_fn, elec_grid, field_grid, settings):
+    def _solve_split(
+        self,
+        scan_start,
+        scan_end,
+        spectator,
+        n_step,
+        n_scan,
+        elec_fn,
+        field_fn,
+        elec_grid,
+        field_grid,
+        settings,
+    ):
         """Find voltages for splitting/merging a well with spectator wells.
 
         The solver operates on a single well. This well evolves from well_start to
@@ -644,13 +738,34 @@ class SURF:
         weights_fn = self.jl.eval("mk_gaussian_weights")
         cull_fn = self.jl.eval("get_cull_indices")
         volt_set, sep_vec = self.jl.eval("SURF.Split.solver")(
-            scan_start, scan_end, spectator, n_step, n_scan, elec_fn, field_fn,
-            elec_grid, field_grid, weights_fn, cull_fn, settings)
+            scan_start,
+            scan_end,
+            spectator,
+            n_step,
+            n_scan,
+            elec_fn,
+            field_fn,
+            elec_grid,
+            field_grid,
+            weights_fn,
+            cull_fn,
+            settings,
+        )
         return (np.ascontiguousarray(np.array(volt_set)), np.array(sep_vec))
 
-    def _solve_dynamic_split(self, split_well, start_separation, end_separation, n_step,
-                             spectator, elec_fn, field_fn, elec_grid, field_grid,
-                             settings):
+    def _solve_dynamic_split(
+        self,
+        split_well,
+        start_separation,
+        end_separation,
+        n_step,
+        spectator,
+        elec_fn,
+        field_fn,
+        elec_grid,
+        field_grid,
+        settings,
+    ):
         """Find voltages for splitting/merging a well with spectator wells
         dynamically.
 
@@ -670,8 +785,18 @@ class SURF:
         """
         cull_fn = self.jl.eval("get_cull_indices")
         volt_set, sep_vec = self.jl.eval("SURF.DynamicSplit.solver")(
-            split_well, start_separation, end_separation, n_step, spectator, elec_fn,
-            field_fn, elec_grid, field_grid, cull_fn, settings)
+            split_well,
+            start_separation,
+            end_separation,
+            n_step,
+            spectator,
+            elec_fn,
+            field_fn,
+            elec_grid,
+            field_grid,
+            cull_fn,
+            settings,
+        )
         return (np.ascontiguousarray(np.array(volt_set)), np.array(sep_vec))
 
     def ping(self):
@@ -715,7 +840,8 @@ class SURF:
         julia.Main.volt_vec_list = [np.array(vs)[order] for vs in volt_vec_list]
         field = field.replace("phi", "\N{Greek Capital Letter Phi}")
         return self.jl.eval(
-            f"(elec_grid.{field} * hcat(volt_vec_list...) .+ field_grid.{field})'")
+            f"(elec_grid.{field} * hcat(volt_vec_list...) .+ field_grid.{field})'"
+        )
 
 
 if __name__ == "__main__":
@@ -723,8 +849,19 @@ if __name__ == "__main__":
 
     driver = SURF("Comet", "C:\\Users\\Marius\\scratch\\SURF\\src\\UserTraps\\")
     tmp = 6.333873616858256e8
-    wells = driver.mk_wells([0.], [2e-5], [0.], [0.], [0.], [0.], [0.], [0.], [tmp / 6],
-                            [0], [1.05 * tmp])
+    wells = driver.mk_wells(
+        [0.0],
+        [2e-5],
+        [0.0],
+        [0.0],
+        [0.0],
+        [0.0],
+        [0.0],
+        [0.0],
+        [tmp / 6],
+        [0],
+        [1.05 * tmp],
+    )
     grids = driver.mk_grids(driver.user_defaults["zs"], driver.elec_fn, driver.field_fn)
     print("calling solver")
     volt = driver.solve_static(wells, *grids, driver.user_defaults["static_settings"])

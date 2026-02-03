@@ -29,12 +29,16 @@ class PicoMirror:
             self.devs[i].set_velocity(self.chnls[i], vel[i])
 
     def get_velocities(self):
-        return (self.devs[0].get_velocity(self.chnls[0]),
-                self.devs[1].get_velocity(self.chnls[1]))
+        return (
+            self.devs[0].get_velocity(self.chnls[0]),
+            self.devs[1].get_velocity(self.chnls[1]),
+        )
 
     def get_position(self):
-        return (self.devs[0].get_position(self.chnls[0]),
-                self.devs[1].get_position(self.chnls[1]))
+        return (
+            self.devs[0].get_position(self.chnls[0]),
+            self.devs[1].get_position(self.chnls[1]),
+        )
 
     def move_indefinitely(self, axis, direction):
         # axis is either 0 (horizontal) or 1 (vertical)
@@ -50,8 +54,10 @@ class PicoMirror:
             self.devs[i].set_home(self.chnls[i], home[i])
 
     def get_home(self):
-        return (self.devs[0].get_home(self.chnls[0]),
-                self.devs[1].get_home(self.chnls[1]))
+        return (
+            self.devs[0].get_home(self.chnls[0]),
+            self.devs[1].get_home(self.chnls[1]),
+        )
 
     def ping(self):
         return True

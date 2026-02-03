@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 
 def get_argparser():
     parser = argparse.ArgumentParser(
-        description="ARTIQ controller for stabilizer_current_sense controller")
+        description="ARTIQ controller for stabilizer_current_sense controller"
+    )
     parser.add_argument("-d", "--device", help="Device IP address")
 
     sca.simple_network_args(parser, 4300)
@@ -35,10 +36,9 @@ def main():
     fb, ff = loop.run_until_complete(open_connections(args.device))
     dev = Stabilizer(fb, ff)
 
-    simple_server_loop({"stabilizer_current_sense": dev},
-                       args.bind,
-                       args.port,
-                       loop=loop)
+    simple_server_loop(
+        {"stabilizer_current_sense": dev}, args.bind, args.port, loop=loop
+    )
 
 
 if __name__ == "__main__":
