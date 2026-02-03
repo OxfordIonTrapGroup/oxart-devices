@@ -145,9 +145,12 @@ class Message:
         self.data = data
 
     def __str__(self):
-        return ("<Message {} p1=0x{:02x} p2=0x{:02x} "
-                "dest=0x{:02x} src=0x{:02x}>".format(self.id, self.param1, self.param2,
-                                                     self.dest, self.src))
+        return (
+            "<Message {} p1=0x{:02x} p2=0x{:02x} "
+            "dest=0x{:02x} src=0x{:02x}>".format(
+                self.id, self.param1, self.param2, self.dest, self.src
+            )
+        )
 
     @staticmethod
     def unpack(data):
@@ -155,19 +158,26 @@ class Message:
         data = data[6:]
         if dest & 0x80:
             if data and len(data) != param1 | (param2 << 8):
-                raise ValueError("If data are provided, param1 and param2"
-                                 " should contain the data length")
+                raise ValueError(
+                    "If data are provided, param1 and param2"
+                    " should contain the data length"
+                )
         else:
             data = None
         return Message(MGMSG(id), param1, param2, dest, src, data)
 
     def pack(self):
         if self.has_data:
-            return st.pack("<HHBB", self.id.value, len(self.data), self.dest | 0x80,
-                           self.src) + self.data
+            return (
+                st.pack(
+                    "<HHBB", self.id.value, len(self.data), self.dest | 0x80, self.src
+                )
+                + self.data
+            )
         else:
-            return st.pack("<HBBBB", self.id.value, self.param1, self.param2, self.dest,
-                           self.src)
+            return st.pack(
+                "<HBBBB", self.id.value, self.param1, self.param2, self.dest, self.src
+            )
 
     @property
     def has_data(self):
@@ -199,7 +209,7 @@ class _Tcube:
         logger.debug("received header: %s", header)
         data = b""
         if header[4] & 0x80:
-            (length, ) = st.unpack("<H", header[2:4])
+            (length,) = st.unpack("<H", header[2:4])
             data = await self.port.read_exactly(length)
         r = Message.unpack(header + data)
         logger.debug("receiving: %s", r)
@@ -209,12 +219,9 @@ class _Tcube:
         # derived classes must implement this
         raise NotImplementedError
 
-    async def send_request(self,
-                           msgreq_id,
-                           wait_for_msgs,
-                           param1=0,
-                           param2=0,
-                           data=None):
+    async def send_request(
+        self, msgreq_id, wait_for_msgs, param1=0, param2=0, data=None
+    ):
         await self.send(Message(msgreq_id, param1, param2, data=data))
         msg = None
         while msg is None or msg.id not in wait_for_msgs:
@@ -234,19 +241,23 @@ class _Tcube:
             activated = 2
 
         await self.send(
-            Message(MGMSG.MOD_SET_CHANENABLESTATE, param1=1, param2=activated))
+            Message(MGMSG.MOD_SET_CHANENABLESTATE, param1=1, param2=activated)
+        )
 
     async def get_channel_enable_state(self):
-        get_msg = await self.send_request(MGMSG.MOD_REQ_CHANENABLESTATE,
-                                          [MGMSG.MOD_GET_CHANENABLESTATE], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOD_REQ_CHANENABLESTATE, [MGMSG.MOD_GET_CHANENABLESTATE], 1
+        )
         self.chan_enabled = get_msg.param2
         if self.chan_enabled == 1:
             self.chan_enabled = True
         elif self.chan_enabled == 2:
             self.chan_enabled = False
         else:
-            raise MsgError("Channel state response is invalid: neither "
-                           "1 nor 2: {}".format(self.chan_enabled))
+            raise MsgError(
+                "Channel state response is invalid: neither "
+                "1 nor 2: {}".format(self.chan_enabled)
+            )
         return self.chan_enabled
 
     async def module_identify(self):
@@ -302,12 +313,14 @@ class Tpz(_Tcube):
         if msg_id == MGMSG.HW_DISCONNECT:
             raise MsgError("Error: Please disconnect the TPZ001")
         elif msg_id == MGMSG.HW_RESPONSE:
-            raise MsgError("Hardware error, please disconnect "
-                           "and reconnect the TPZ001")
+            raise MsgError(
+                "Hardware error, please disconnect " "and reconnect the TPZ001"
+            )
         elif msg_id == MGMSG.HW_RICHRESPONSE:
-            (code, ) = st.unpack("<H", data[2:4])
-            raise MsgError("Hardware error {}: {}".format(
-                code, data[4:].decode(encoding="ascii")))
+            (code,) = st.unpack("<H", data[2:4])
+            raise MsgError(
+                "Hardware error {}: {}".format(code, data[4:].decode(encoding="ascii"))
+            )
 
     async def set_position_control_mode(self, control_mode):
         """Set the control loop mode.
@@ -319,7 +332,8 @@ class Tpz(_Tcube):
             (feedback employed). 0x03 for Open Loop Smooth. 0x04 for Closed Loop Smooth.
         """
         await self.send(
-            Message(MGMSG.PZ_SET_POSCONTROLMODE, param1=1, param2=control_mode))
+            Message(MGMSG.PZ_SET_POSCONTROLMODE, param1=1, param2=control_mode)
+        )
 
     async def get_position_control_mode(self):
         """Get the control loop mode.
@@ -329,8 +343,9 @@ class Tpz(_Tcube):
             Loop Smooth.
         :rtype: int
         """
-        get_msg = await self.send_request(MGMSG.PZ_REQ_POSCONTROLMODE,
-                                          [MGMSG.PZ_GET_POSCONTROLMODE], 1)
+        get_msg = await self.send_request(
+            MGMSG.PZ_REQ_POSCONTROLMODE, [MGMSG.PZ_GET_POSCONTROLMODE], 1
+        )
         return get_msg.param2
 
     async def set_output_volts(self, voltage):
@@ -345,8 +360,9 @@ class Tpz(_Tcube):
             method between the three values 75 V, 100 V and 150 V.
         """
         if voltage < 0 or voltage > self.voltage_limit:
-            raise ValueError("Voltage must be in range [0;{}]".format(
-                self.voltage_limit))
+            raise ValueError(
+                "Voltage must be in range [0;{}]".format(self.voltage_limit)
+            )
         volt = int(voltage * 32767 / self.voltage_limit)
         payload = st.pack("<HH", 1, volt)
         await self.send(Message(MGMSG.PZ_SET_OUTPUTVOLTS, data=payload))
@@ -357,8 +373,9 @@ class Tpz(_Tcube):
         :return: The output voltage.
         :rtype: float
         """
-        get_msg = await self.send_request(MGMSG.PZ_REQ_OUTPUTVOLTS,
-                                          [MGMSG.PZ_GET_OUTPUTVOLTS], 1)
+        get_msg = await self.send_request(
+            MGMSG.PZ_REQ_OUTPUTVOLTS, [MGMSG.PZ_GET_OUTPUTVOLTS], 1
+        )
         return st.unpack("<H", get_msg.data[2:])[0] * self.voltage_limit / 32767
 
     async def set_output_position(self, position_sw):
@@ -380,8 +397,9 @@ class Tpz(_Tcube):
         :return: The output position of the piezo relative to the zero position.
         :rtype: int
         """
-        get_msg = await self.send_request(MGMSG.PZ_REQ_OUTPUTPOS,
-                                          [MGMSG.PZ_GET_OUTPUTPOS], 1)
+        get_msg = await self.send_request(
+            MGMSG.PZ_REQ_OUTPUTPOS, [MGMSG.PZ_GET_OUTPUTPOS], 1
+        )
         return st.unpack("<H", get_msg.data[2:])[0]
 
     async def set_input_volts_source(self, volt_src):
@@ -415,8 +433,9 @@ class Tpz(_Tcube):
             method docstring for meaning of bits.
         :rtype: int
         """
-        get_msg = await self.send_request(MGMSG.PZ_REQ_INPUTVOLTSSRC,
-                                          [MGMSG.PZ_GET_INPUTVOLTSSRC], 1)
+        get_msg = await self.send_request(
+            MGMSG.PZ_REQ_INPUTVOLTSSRC, [MGMSG.PZ_GET_INPUTVOLTSSRC], 1
+        )
         return st.unpack("<H", get_msg.data[2:])[0]
 
     async def set_pi_constants(self, prop_const, int_const):
@@ -440,8 +459,9 @@ class Tpz(_Tcube):
             second element is the integral term.
         :rtype: a 2 int elements tuple : (int, int)
         """
-        get_msg = await self.send_request(MGMSG.PZ_REQ_PICONSTS,
-                                          [MGMSG.PZ_GET_PICONSTS], 1)
+        get_msg = await self.send_request(
+            MGMSG.PZ_REQ_PICONSTS, [MGMSG.PZ_GET_PICONSTS], 1
+        )
         return st.unpack("<HH", get_msg.data[2:])
 
     async def set_output_lut(self, lut_index, output):
@@ -491,13 +511,15 @@ class Tpz(_Tcube):
             voltage output value.
         :rtype: a 2 elements tuple (int, float)
         """
-        get_msg = await self.send_request(MGMSG.PZ_REQ_OUTPUTLUT,
-                                          [MGMSG.PZ_GET_OUTPUTLUT], 1)
+        get_msg = await self.send_request(
+            MGMSG.PZ_REQ_OUTPUTLUT, [MGMSG.PZ_GET_OUTPUTLUT], 1
+        )
         index, output = st.unpack("<Hh", get_msg.data[2:])
         return index, output * self.voltage_limit / 32767
 
-    async def set_output_lut_parameters(self, mode, cycle_length, num_cycles,
-                                        delay_time, precycle_rest, postcycle_rest):
+    async def set_output_lut_parameters(
+        self, mode, cycle_length, num_cycles, delay_time, precycle_rest, postcycle_rest
+    ):
         """Set Waveform Generator Mode parameters. It is possible to use the
         controller in an arbitrary Waveform Generator Mode (WGM). Rather than the
         unit outputting an adjustable but static voltage or position, the WGM allows
@@ -552,8 +574,19 @@ class Tpz(_Tcube):
             value in the cycle until the postcycle_rest time has expired.
         """
         # triggering is not supported by the TPZ device
-        payload = st.pack("<HHHLLLLHLH", 1, mode, cycle_length, num_cycles, delay_time,
-                          precycle_rest, postcycle_rest, 0, 0, 0)
+        payload = st.pack(
+            "<HHHLLLLHLH",
+            1,
+            mode,
+            cycle_length,
+            num_cycles,
+            delay_time,
+            precycle_rest,
+            postcycle_rest,
+            0,
+            0,
+            0,
+        )
         await self.send(Message(MGMSG.PZ_SET_OUTPUTLUTPARAMS, data=payload))
 
     async def get_output_lut_parameters(self):
@@ -563,8 +596,9 @@ class Tpz(_Tcube):
             num_cycles, delay_time, precycle_rest, postcycle_rest).
         :rtype: 6 int elements tuple
         """
-        get_msg = await self.send_request(MGMSG.PZ_REQ_OUTPUTLUTPARAMS,
-                                          [MGMSG.PZ_GET_OUTPUTLUTPARAMS], 1)
+        get_msg = await self.send_request(
+            MGMSG.PZ_REQ_OUTPUTLUTPARAMS, [MGMSG.PZ_GET_OUTPUTLUTPARAMS], 1
+        )
         return st.unpack("<HHLLLL", get_msg.data[2:22])
 
     async def start_lut_output(self):
@@ -599,8 +633,9 @@ class Tpz(_Tcube):
         :return: The intensity as a value from 0 (Off) to 255 (brightest).
         :rtype: int
         """
-        get_msg = await self.send_request(MGMSG.PZ_REQ_TPZ_DISPSETTINGS,
-                                          [MGMSG.PZ_GET_TPZ_DISPSETTINGS], 1)
+        get_msg = await self.send_request(
+            MGMSG.PZ_REQ_TPZ_DISPSETTINGS, [MGMSG.PZ_GET_TPZ_DISPSETTINGS], 1
+        )
         return st.unpack("<H", get_msg.data)[0]
 
     async def set_tpz_io_settings(self, voltage_limit, hub_analog_input):
@@ -649,8 +684,9 @@ class Tpz(_Tcube):
             for the meaning of those parameters.
         :rtype: a 2 elements tuple (int, int)
         """
-        get_msg = await self.send_request(MGMSG.PZ_REQ_TPZ_IOSETTINGS,
-                                          [MGMSG.PZ_GET_TPZ_IOSETTINGS], 1)
+        get_msg = await self.send_request(
+            MGMSG.PZ_REQ_TPZ_IOSETTINGS, [MGMSG.PZ_GET_TPZ_IOSETTINGS], 1
+        )
         voltage_limit, hub_analog_input = st.unpack("<HH", get_msg.data[2:6])
         if voltage_limit == 1:
             voltage_limit = 75
@@ -677,14 +713,19 @@ class Tdc(_Tcube):
         if msg_id == MGMSG.HW_DISCONNECT:
             raise MsgError("Error: Please disconnect the TDC001")
         elif msg_id == MGMSG.HW_RESPONSE:
-            raise MsgError("Hardware error, please disconnect "
-                           "and reconnect the TDC001")
+            raise MsgError(
+                "Hardware error, please disconnect " "and reconnect the TDC001"
+            )
         elif msg_id == MGMSG.HW_RICHRESPONSE:
-            (code, ) = st.unpack("<H", data[2:4])
-            raise MsgError("Hardware error {}: {}".format(
-                code, data[4:].decode(encoding="ascii")))
-        elif (msg_id == MGMSG.MOT_MOVE_COMPLETED or msg_id == MGMSG.MOT_MOVE_STOPPED
-              or msg_id == MGMSG.MOT_GET_DCSTATUSUPDATE):
+            (code,) = st.unpack("<H", data[2:4])
+            raise MsgError(
+                "Hardware error {}: {}".format(code, data[4:].decode(encoding="ascii"))
+            )
+        elif (
+            msg_id == MGMSG.MOT_MOVE_COMPLETED
+            or msg_id == MGMSG.MOT_MOVE_STOPPED
+            or msg_id == MGMSG.MOT_GET_DCSTATUSUPDATE
+        ):
             if self.status_report_counter == 25:
                 self.status_report_counter = 0
                 await self.send(Message(MGMSG.MOT_ACK_DCSTATUSUPDATE))
@@ -697,8 +738,9 @@ class Tdc(_Tcube):
         status_bits = await self.get_status_bits()
         return (status_bits & 0x2F0) != 0
 
-    async def set_pot_parameters(self, zero_wnd, vel1, wnd1, vel2, wnd2, vel3, wnd3,
-                                 vel4):
+    async def set_pot_parameters(
+        self, zero_wnd, vel1, wnd1, vel2, wnd2, vel3, wnd3, vel4
+    ):
         """Set pot parameters.
 
         :param zero_wnd: The deflection from the mid position (in ADC counts 0 to 127)
@@ -714,8 +756,9 @@ class Tdc(_Tcube):
             apply vel3.
         :param vel4: The velocity to move when beyond wnd3.
         """
-        payload = st.pack("<HHLHLHLHL", 1, zero_wnd, vel1, wnd1, vel2, wnd2, vel3, wnd3,
-                          vel4)
+        payload = st.pack(
+            "<HHLHLHLHL", 1, zero_wnd, vel1, wnd1, vel2, wnd2, vel3, wnd3, vel4
+        )
         await self.send(Message(MGMSG.MOT_SET_POTPARAMS, data=payload))
 
     async def get_pot_parameters(self):
@@ -727,13 +770,15 @@ class Tdc(_Tcube):
             description of each tuple element meaning.
         :rtype: An 8 int tuple
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_POTPARAMS,
-                                          [MGMSG.MOT_GET_POTPARAMS], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_POTPARAMS, [MGMSG.MOT_GET_POTPARAMS], 1
+        )
         return st.unpack("<HLHLHLHL", get_msg.data[2:])
 
     async def hub_get_bay_used(self):
-        get_msg = await self.send_request(MGMSG.HUB_REQ_BAYUSED,
-                                          [MGMSG.HUB_GET_BAYUSED])
+        get_msg = await self.send_request(
+            MGMSG.HUB_REQ_BAYUSED, [MGMSG.HUB_GET_BAYUSED]
+        )
         return get_msg.param1
 
     async def set_position_counter(self, position):
@@ -753,8 +798,9 @@ class Tdc(_Tcube):
         :return: The value of the position counter.
         :rtype: int
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_POSCOUNTER,
-                                          [MGMSG.MOT_GET_POSCOUNTER], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_POSCOUNTER, [MGMSG.MOT_GET_POSCOUNTER], 1
+        )
         return st.unpack("<l", get_msg.data[2:])[0]
 
     async def set_encoder_counter(self, encoder_count):
@@ -774,8 +820,9 @@ class Tdc(_Tcube):
         :return: The value of the encoder counter.
         :rtype: int
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_ENCCOUNTER,
-                                          [MGMSG.MOT_GET_ENCCOUNTER], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_ENCCOUNTER, [MGMSG.MOT_GET_ENCCOUNTER], 1
+        )
         return st.unpack("<l", get_msg.data[2:])[0]
 
     async def set_velocity_parameters(self, acceleration, max_velocity):
@@ -793,12 +840,14 @@ class Tdc(_Tcube):
         :return: A 2 int tuple: (acceleration, max_velocity).
         :rtype: A 2 int tuple (int, int)
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_VELPARAMS,
-                                          [MGMSG.MOT_GET_VELPARAMS], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_VELPARAMS, [MGMSG.MOT_GET_VELPARAMS], 1
+        )
         return st.unpack("<LL", get_msg.data[6:])
 
-    async def set_jog_parameters(self, mode, step_size, acceleration, max_velocity,
-                                 stop_mode):
+    async def set_jog_parameters(
+        self, mode, step_size, acceleration, max_velocity, stop_mode
+    ):
         """Set the velocity jog parameters.
 
         :param mode: 1 for continuous jogging, 2 for single step jogging.
@@ -808,8 +857,9 @@ class Tdc(_Tcube):
         :param stop_mode: 1 for immediate (abrupt) stop, 2 for profiled stop (with
             controlled deceleration).
         """
-        payload = st.pack("<HHLLLLH", 1, mode, step_size, 0, acceleration, max_velocity,
-                          stop_mode)
+        payload = st.pack(
+            "<HHLLLLH", 1, mode, step_size, 0, acceleration, max_velocity, stop_mode
+        )
         await self.send(Message(MGMSG.MOT_SET_JOGPARAMS, data=payload))
 
     async def get_jog_parameters(self):
@@ -819,10 +869,12 @@ class Tdc(_Tcube):
             acceleration, max_velocity, stop_mode
         :rtype: A 5 int tuple.
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_JOGPARAMS,
-                                          [MGMSG.MOT_GET_JOGPARAMS], 1)
-        (jog_mode, step_size, _, acceleration, max_velocity,
-         stop_mode) = st.unpack("<HLLLLH", get_msg.data[2:])
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_JOGPARAMS, [MGMSG.MOT_GET_JOGPARAMS], 1
+        )
+        (jog_mode, step_size, _, acceleration, max_velocity, stop_mode) = st.unpack(
+            "<HLLLLH", get_msg.data[2:]
+        )
         return jog_mode, step_size, acceleration, max_velocity, stop_mode
 
     async def set_gen_move_parameters(self, backlash_distance):
@@ -840,8 +892,9 @@ class Tdc(_Tcube):
         :return: The value of the backlash distance.
         :rtype: int
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_GENMOVEPARAMS,
-                                          [MGMSG.MOT_GET_GENMOVEPARAMS], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_GENMOVEPARAMS, [MGMSG.MOT_GET_GENMOVEPARAMS], 1
+        )
         return st.unpack("<l", get_msg.data[2:])[0]
 
     async def set_move_relative_parameters(self, relative_distance):
@@ -859,8 +912,9 @@ class Tdc(_Tcube):
         :return: The relative distance move parameter.
         :rtype: int
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_MOVERELPARAMS,
-                                          [MGMSG.MOT_GET_MOVERELPARAMS], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_MOVERELPARAMS, [MGMSG.MOT_GET_MOVERELPARAMS], 1
+        )
         return st.unpack("<l", get_msg.data[2:])[0]
 
     async def set_move_absolute_parameters(self, absolute_position):
@@ -878,8 +932,9 @@ class Tdc(_Tcube):
         :return: The absolute position to move.
         :rtype: int
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_MOVEABSPARAMS,
-                                          [MGMSG.MOT_GET_MOVEABSPARAMS], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_MOVEABSPARAMS, [MGMSG.MOT_GET_MOVEABSPARAMS], 1
+        )
         return st.unpack("<l", get_msg.data[2:])[0]
 
     async def set_home_parameters(self, home_velocity):
@@ -896,8 +951,9 @@ class Tdc(_Tcube):
         :return: The homing velocity.
         :rtype: int
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_HOMEPARAMS,
-                                          [MGMSG.MOT_GET_HOMEPARAMS], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_HOMEPARAMS, [MGMSG.MOT_GET_HOMEPARAMS], 1
+        )
         return st.unpack("<L", get_msg.data[6:10])[0]
 
     async def move_home(self):
@@ -905,8 +961,9 @@ class Tdc(_Tcube):
 
         This call is blocking until device is homed or move is stopped.
         """
-        await self.send_request(MGMSG.MOT_MOVE_HOME,
-                                [MGMSG.MOT_MOVE_HOMED, MGMSG.MOT_MOVE_STOPPED], 1)
+        await self.send_request(
+            MGMSG.MOT_MOVE_HOME, [MGMSG.MOT_MOVE_HOMED, MGMSG.MOT_MOVE_STOPPED], 1
+        )
 
     async def set_limit_switch_parameters(self, cw_hw_limit, ccw_hw_limit):
         """Set the limit switch parameters. :param cw_hw_limit: The operation of
@@ -937,8 +994,9 @@ class Tdc(_Tcube):
             <Tdc.set_limit_switch_parameters>` method.
         :rtype: A 2 int tuple.
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_LIMSWITCHPARAMS,
-                                          [MGMSG.MOT_GET_LIMSWITCHPARAMS], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_LIMSWITCHPARAMS, [MGMSG.MOT_GET_LIMSWITCHPARAMS], 1
+        )
         return st.unpack("<HH", get_msg.data[2:6])
 
     async def move_relative_memory(self):
@@ -946,16 +1004,21 @@ class Tdc(_Tcube):
         distance parameter used for the move will be the parameter sent previously by
         a :py:meth:`set_move_relative_parameters()
         <Tdc.set_move_relative_parameters>` command."""
-        await self.send_request(MGMSG.MOT_MOVE_RELATIVE,
-                                [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED], 1)
+        await self.send_request(
+            MGMSG.MOT_MOVE_RELATIVE,
+            [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
+            1,
+        )
 
     async def move_relative(self, relative_distance):
         """Start a relative move :param relative_distance: The distance to move in
         position encoder counts."""
         payload = st.pack("<Hl", 1, relative_distance)
-        await self.send_request(MGMSG.MOT_MOVE_RELATIVE,
-                                [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
-                                data=payload)
+        await self.send_request(
+            MGMSG.MOT_MOVE_RELATIVE,
+            [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
+            data=payload,
+        )
 
     async def move_absolute_memory(self):
         """Start an absolute move of distance in the controller's memory.
@@ -964,9 +1027,11 @@ class Tdc(_Tcube):
         sent previously by a :py:meth:`set_move_absolute_parameters()
         <Tdc.set_move_absolute_parameters>` command.
         """
-        await self.send_request(MGMSG.MOT_MOVE_ABSOLUTE,
-                                [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
-                                param1=1)
+        await self.send_request(
+            MGMSG.MOT_MOVE_ABSOLUTE,
+            [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
+            param1=1,
+        )
 
     async def move_absolute(self, absolute_distance):
         """Start an absolute move.
@@ -975,19 +1040,23 @@ class Tdc(_Tcube):
             specifies the absolute distance in position encoder counts.
         """
         payload = st.pack("<Hl", 1, absolute_distance)
-        await self.send_request(MGMSG.MOT_MOVE_ABSOLUTE,
-                                [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
-                                data=payload)
+        await self.send_request(
+            MGMSG.MOT_MOVE_ABSOLUTE,
+            [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
+            data=payload,
+        )
 
     async def move_jog(self, direction):
         """Start a jog move.
 
         :param direction: The direction to jog. 1 is forward, 2 is backward.
         """
-        await self.send_request(MGMSG.MOT_MOVE_JOG,
-                                [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
-                                param1=1,
-                                param2=direction)
+        await self.send_request(
+            MGMSG.MOT_MOVE_JOG,
+            [MGMSG.MOT_MOVE_COMPLETED, MGMSG.MOT_MOVE_STOPPED],
+            param1=1,
+            param2=direction,
+        )
 
     async def move_velocity(self, direction):
         """Start a move.
@@ -1011,16 +1080,16 @@ class Tdc(_Tcube):
             to stop in a controlled (profiled) manner.
         """
         if await self.is_moving():
-            await self.send_request(MGMSG.MOT_MOVE_STOP,
-                                    [MGMSG.MOT_MOVE_STOPPED, MGMSG.MOT_MOVE_COMPLETED],
-                                    1, stop_mode)
+            await self.send_request(
+                MGMSG.MOT_MOVE_STOP,
+                [MGMSG.MOT_MOVE_STOPPED, MGMSG.MOT_MOVE_COMPLETED],
+                1,
+                stop_mode,
+            )
 
-    async def set_dc_pid_parameters(self,
-                                    proportional,
-                                    integral,
-                                    differential,
-                                    integral_limit,
-                                    filter_control=0x0F):
+    async def set_dc_pid_parameters(
+        self, proportional, integral, differential, integral_limit, filter_control=0x0F
+    ):
         """Set the position control loop parameters.
 
         :param proportional: The proportional gain, values in range [0; 32767].
@@ -1034,8 +1103,15 @@ class Tdc(_Tcube):
             corresponding bit to 1. By default, all parameters are applied, and this
             parameter is set to 0x0F (1111).
         """
-        payload = st.pack("<HLLLLH", 1, proportional, integral, differential,
-                          integral_limit, filter_control)
+        payload = st.pack(
+            "<HLLLLH",
+            1,
+            proportional,
+            integral,
+            differential,
+            integral_limit,
+            filter_control,
+        )
         await self.send(Message(MGMSG.MOT_SET_DCPIDPARAMS, data=payload))
 
     async def get_dc_pid_parameters(self):
@@ -1047,8 +1123,9 @@ class Tdc(_Tcube):
             description.
         :rtype: A 5 int tuple.
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_DCPIDPARAMS,
-                                          [MGMSG.MOT_GET_DCPIDPARAMS], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_DCPIDPARAMS, [MGMSG.MOT_GET_DCPIDPARAMS], 1
+        )
         return st.unpack("<LLLLH", get_msg.data[2:])
 
     async def set_av_modes(self, mode_bits):
@@ -1101,8 +1178,9 @@ class Tdc(_Tcube):
             <Tdc.set_button_parameters>` for description.
         :rtype: A 3 int tuple
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_BUTTONPARAMS,
-                                          [MGMSG.MOT_GET_BUTTONPARAMS], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_BUTTONPARAMS, [MGMSG.MOT_GET_BUTTONPARAMS], 1
+        )
         return st.unpack("<Hll", get_msg.data[2:12])
 
     async def set_eeprom_parameters(self, msg_id):
@@ -1122,8 +1200,9 @@ class Tdc(_Tcube):
             bits.
         :rtype: A 3 int tuple
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_DCSTATUSUPDATE,
-                                          [MGMSG.MOT_GET_DCSTATUSUPDATE], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_DCSTATUSUPDATE, [MGMSG.MOT_GET_DCSTATUSUPDATE], 1
+        )
         pos, vel, _, stat = st.unpack("<LHHL", get_msg.data[2:])
         return pos, vel, stat
 
@@ -1133,8 +1212,9 @@ class Tdc(_Tcube):
         :return: The motor status.
         :rtype:
         """
-        get_msg = await self.send_request(MGMSG.MOT_REQ_STATUSBITS,
-                                          [MGMSG.MOT_GET_STATUSBITS], 1)
+        get_msg = await self.send_request(
+            MGMSG.MOT_REQ_STATUSBITS, [MGMSG.MOT_GET_STATUSBITS], 1
+        )
         return st.unpack("<L", get_msg.data[2:])[0]
 
     async def suspend_end_of_move_messages(self):
@@ -1158,6 +1238,55 @@ class Tdc(_Tcube):
         """
         await self.send(Message(MGMSG.MOT_RESUME_ENDOFMOVEMSGS))
 
+    async def set_output_volts(self, voltage):
+        """Set the output voltage.
+        :param voltage: The output voltage in Volts. The value must be in the
+            range -voltage_limit to +voltage_limit, where voltage_limit is
+            specified by the :py:meth:`set_tpz_io_settings()
+            <Tpz.set_tpz_io_settings>`
+            method.
+        """
+        volt = int(voltage * 32767 / 150.0)
+        payload = st.pack("<HH", 1, volt)
+        await self.send(Message(MGMSG.PZ_SET_OUTPUTVOLTS, data=payload))
+
+    async def set_tpc_io_settings(self, voltage_limit, hub_analog_input):
+        """Set various I/O settings."
+        :param voltage_limit: The piezo actuator connected to the T-Cube has a
+            specific maximum operating voltage. This parameter sets the maximum
+            output to the value among the following ones:
+            75 V limit.
+            100 V limit.
+            150 V limit.
+        :param hub_analog_input: When the T-Cube piezo driver unit is used in
+            conjunction with the T-Cube Strain Gauge Reader (TSG001) on the
+            T-Cube Controller Hub (TCH001), a feedback signal can be passed
+            from the Strain Gauge Reader to the Piezo unit.
+            High precision closed loop operation is then possible using the
+            complete range of feedback-equipped piezo actuators.
+            This parameter is routed to the Piezo unit as follows:
+            0x01: the feedback signals run through all T-Cube bays.
+            0x02: the feedback signals run between adjacent pairs of T-Cube
+            bays (i.e. 1&2, 3&4, 5&6). This setting is useful when several
+            pairs of Strain Gauge/Piezo Driver cubes are being used on the same
+            hub.
+            0x03: the feedback signals run through the read panel SMA
+            connectors.
+        """
+        self.voltage_limit = voltage_limit
+
+        if self.voltage_limit == 75:
+            voltage_limit = 1
+        elif self.voltage_limit == 100:
+            voltage_limit = 2
+        elif self.voltage_limit == 150:
+            voltage_limit = 3
+        else:
+            raise ValueError("voltage_limit must be 75 V, 100 V or 150 V")
+
+        payload = st.pack("<HHHHH", 1, self.voltage_limit, hub_analog_input, 0, 150)
+        await self.send(Message(MGMSG.KPC_SET_IOSETTINGS, data=payload))
+
 
 class Kpc(Tpz):
     """KPC101 K-Cube Piezo Controller driver.
@@ -1177,8 +1306,9 @@ class Kpc(Tpz):
 
         :return: tuple (voltage_limit, hud_analog_input)
         """
-        get_msg = await self.send_request(MGMSG.KPC_REQ_IOSETTINGS,
-                                          [MGMSG.KPC_GET_IOSETTINGS], 1)
+        get_msg = await self.send_request(
+            MGMSG.KPC_REQ_IOSETTINGS, [MGMSG.KPC_GET_IOSETTINGS], 1
+        )
         voltage_limit = st.unpack("<H", get_msg.data[2:4])[0]
         hub_analog_input = st.unpack("<H", get_msg.data[4:6])[0]
         hw_voltage_range = st.unpack("<H", get_msg.data[8:10])[0]  # change for KPC101
@@ -1189,11 +1319,13 @@ class Kpc(Tpz):
 
     async def set_tpz_display_settings(self, intensity):
         raise NotImplementedError(
-            "set_tpz_display_settings not supported on KPC devices")
+            "set_tpz_display_settings not supported on KPC devices"
+        )
 
     async def get_tpz_display_settings(self):
         raise NotImplementedError(
-            "get_tpz_display_settings not supported on KPC devices")
+            "get_tpz_display_settings not supported on KPC devices"
+        )
 
     async def set_output_volts(self, voltage):
         """Set output voltage applied to the piezo actuator.
@@ -1207,10 +1339,12 @@ class Kpc(Tpz):
             method between the three values 75 V, 100 V and 150 V.
         """
         if voltage < 0 or voltage > self.voltage_limit:
-            raise ValueError("Voltage must be in range [0;{}]".format(
-                self.voltage_limit))
-        volt = (int(voltage * 32767 / self.hw_voltage_range) // 2
-                )  # Seems to be inconsistency in the API documentation
+            raise ValueError(
+                "Voltage must be in range [0;{}]".format(self.voltage_limit)
+            )
+        volt = (
+            int(voltage * 32767 / self.hw_voltage_range) // 2
+        )  # Seems to be inconsistency in the API documentation
         payload = st.pack("<HH", 1, volt)
         await self.send(Message(MGMSG.PZ_SET_OUTPUTVOLTS, data=payload))
 
@@ -1220,10 +1354,12 @@ class Kpc(Tpz):
         :return: The output voltage.
         :rtype: float
         """
-        get_msg = await self.send_request(MGMSG.PZ_REQ_OUTPUTVOLTS,
-                                          [MGMSG.PZ_GET_OUTPUTVOLTS], 1)
-        return (st.unpack("<H", get_msg.data[2:])[0] * self.voltage_limit / 32767 * 2
-                )  # seems to be inconsistency in the API documentation
+        get_msg = await self.send_request(
+            MGMSG.PZ_REQ_OUTPUTVOLTS, [MGMSG.PZ_GET_OUTPUTVOLTS], 1
+        )
+        return (
+            st.unpack("<H", get_msg.data[2:])[0] * self.voltage_limit / 32767 * 2
+        )  # seems to be inconsistency in the API documentation
 
 
 class TpzSim:
@@ -1272,14 +1408,16 @@ class TpzSim:
     def set_output_lut(self, lut_index, output):
         if lut_index < 0 or lut_index > 512:
             raise ValueError(
-                "LUT index should be in range [0;512] and not {}".format(lut_index))
+                "LUT index should be in range [0;512] and not {}".format(lut_index)
+            )
         self.lut[lut_index] = output
 
     def get_output_lut(self):
         return 0, 0  # FIXME: the API description here doesn't make any sense
 
-    def set_output_lut_parameters(self, mode, cycle_length, num_cycles, delay_time,
-                                  precycle_rest, postcycle_rest):
+    def set_output_lut_parameters(
+        self, mode, cycle_length, num_cycles, delay_time, precycle_rest, postcycle_rest
+    ):
         self.mode = mode
         self.cycle_length = cycle_length
         self.num_cycles = num_cycles
@@ -1288,8 +1426,14 @@ class TpzSim:
         self.postcycle_rest = postcycle_rest
 
     def get_output_lut_parameters(self):
-        return (self.mode, self.cycle_length, self.num_cycles, self.delay_time,
-                self.precycle_rest, self.postcycle_rest)
+        return (
+            self.mode,
+            self.cycle_length,
+            self.num_cycles,
+            self.delay_time,
+            self.precycle_rest,
+            self.postcycle_rest,
+        )
 
     def start_lut_output(self):
         pass
@@ -1335,8 +1479,16 @@ class TdcSim:
         self.vel4 = vel4
 
     def get_pot_parameters(self):
-        return (self.zero_wnd, self.vel1, self.wnd1, self.vel2, self.wnd2, self.vel3,
-                self.wnd3, self.vel4)
+        return (
+            self.zero_wnd,
+            self.vel1,
+            self.wnd1,
+            self.vel2,
+            self.wnd2,
+            self.vel3,
+            self.wnd3,
+            self.vel4,
+        )
 
     def hub_get_bay_used(self):
         return False
@@ -1360,8 +1512,9 @@ class TdcSim:
     def get_velocity_parameters(self):
         return self.acceleration, self.max_velocity
 
-    def set_jog_parameters(self, mode, step_size, acceleration, max_velocity,
-                           stop_mode):
+    def set_jog_parameters(
+        self, mode, step_size, acceleration, max_velocity, stop_mode
+    ):
         self.jog_mode = mode
         self.step_size = step_size
         self.acceleration = acceleration
@@ -1369,8 +1522,13 @@ class TdcSim:
         self.stop_mode = stop_mode
 
     def get_jog_parameters(self):
-        return (self.jog_mode, self.step_size, self.acceleration, self.max_velocity,
-                self.stop_mode)
+        return (
+            self.jog_mode,
+            self.step_size,
+            self.acceleration,
+            self.max_velocity,
+            self.stop_mode,
+        )
 
     def set_gen_move_parameters(self, backlash_distance):
         self.backlash_distance = backlash_distance
@@ -1427,12 +1585,9 @@ class TdcSim:
     def move_stop(self, stop_mode):
         pass
 
-    def set_dc_pid_parameters(self,
-                              proportional,
-                              integral,
-                              differential,
-                              integral_limit,
-                              filter_control=0x0F):
+    def set_dc_pid_parameters(
+        self, proportional, integral, differential, integral_limit, filter_control=0x0F
+    ):
         self.proportional = proportional
         self.integral = integral
         self.differential = differential
@@ -1440,8 +1595,13 @@ class TdcSim:
         self.filter_control = filter_control
 
     def get_dc_pid_parameters(self):
-        return (self.proportional, self.integral, self.differential,
-                self.integral_limit, self.filter_control)
+        return (
+            self.proportional,
+            self.integral,
+            self.differential,
+            self.integral_limit,
+            self.filter_control,
+        )
 
     def set_av_modes(self, mode_bits):
         self.mode_bits = mode_bits

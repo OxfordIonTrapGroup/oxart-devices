@@ -11,8 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 def get_argparser():
-    parser = argparse.ArgumentParser(description="ARTIQ controller for "
-                                     "PI Hexapod Controller C-887.52")
+    parser = argparse.ArgumentParser(
+        description="ARTIQ controller for " "PI Hexapod Controller C-887.52"
+    )
     parser.add_argument("-d", "--device", help="Hexapod's IP address")
 
     sca.simple_network_args(parser, 4302)

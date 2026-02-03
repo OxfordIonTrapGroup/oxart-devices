@@ -11,8 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 def get_argparser():
-    parser = argparse.ArgumentParser(description="ARTIQ controller for Booster"
-                                     " 8-channel RF power amplifier")
+    parser = argparse.ArgumentParser(
+        description="ARTIQ controller for Booster" " 8-channel RF power amplifier"
+    )
     parser.add_argument("-d", "--device", help="device's IP address")
     sca.simple_network_args(parser, 4300)
     sca.verbosity_args(parser)

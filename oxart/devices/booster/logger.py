@@ -12,12 +12,12 @@ from serial import SerialTimeoutException
 def get_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--device", required=True, help="Booster IP address")
-    parser.add_argument("--name",
-                        required=True,
-                        help="logical Booster name, defines measurement name")
-    parser.add_argument("--influx-server",
-                        default="10.255.6.4",
-                        help="Influx server address")
+    parser.add_argument(
+        "--name", required=True, help="logical Booster name, defines measurement name"
+    )
+    parser.add_argument(
+        "--influx-server", default="10.255.6.4", help="Influx server address"
+    )
     parser.add_argument("--database", default="junk", help="Influx database name")
     return parser
 
@@ -29,10 +29,7 @@ def write(client, booster_name, measurement, data):
         "tags": {
             "name": measurement,
         },
-        "fields": {
-            "ch{}".format(idx): value
-            for idx, value in enumerate(data)
-        }
+        "fields": {"ch{}".format(idx): value for idx, value in enumerate(data)},
     }
     try:
         client.write_points([point])
@@ -62,7 +59,7 @@ def main():
         "i_6V": "I6V",
         "5V0MP": "V5VMP",
         "pwr_tx": "output_power",
-        "pwr_rfl": "input_power"
+        "pwr_rfl": "input_power",
     }
 
     ind = 0

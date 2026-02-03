@@ -23,7 +23,7 @@ class LakeShore336:
         return self._read_line()
 
     def get_temp(self, input="A"):
-        """ Returns the temperature of an input channel as a float in Kelin
+        """Returns the temperature of an input channel as a float in Kelin
         : param input: either "A" or "B"
         """
         self._send_cmd("KRDG? {}".format(input))

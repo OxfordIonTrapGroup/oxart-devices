@@ -63,10 +63,12 @@ class PsuWrapper:
 
 class UnknownLogicalChannelError(Exception):
     """The logical channel given was not found in the mappings dictionary."""
+
     pass
 
 
 class UnknownDeviceNameError(Exception):
     """The device name for the given logical channel was not found in the devices
     list."""
+
     pass

@@ -36,8 +36,9 @@ class MSO_S:
         for that).
         """
         self.dev.write(":WAV:DATA?\n".encode())
-        return np.array(self.dev.readline().decode().strip('\n,\r ').split(','),
-                        dtype=np.float32)
+        return np.array(
+            self.dev.readline().decode().strip("\n,\r ").split(","), dtype=np.float32
+        )
 
     def get_x_axis(self):
         """Returns an x-axis with a given number of points."""

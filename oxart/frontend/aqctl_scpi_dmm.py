@@ -11,8 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 def get_argparser():
-    parser = argparse.ArgumentParser(description="ARTIQ controller for "
-                                     "SCPI Digital Multi Meters")
+    parser = argparse.ArgumentParser(
+        description="ARTIQ controller for " "SCPI Digital Multi Meters"
+    )
     parser.add_argument("-d", "--device", help="device's hardware address")
 
     sca.simple_network_args(parser, 4300)

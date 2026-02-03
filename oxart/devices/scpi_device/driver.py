@@ -18,15 +18,17 @@ class SCPIDevice:
         self.sock.connect((self.addr, port))
 
         # Store identity as a list of the comma separated fields returned
-        self.idn = self.identity().split(',')
+        self.idn = self.identity().split(",")
 
         # Some devices may not implement *IDN? in the same way, but most place
         # serial number in this field, allowing us to check that we have the
         # correct device
         if serial_number is not None:
             if self.idn[2] != serial_number:
-                raise ValueError("Serial number {} did not match expected ({})"
-                                 "".format(self.idn[2], serial_number))
+                raise ValueError(
+                    "Serial number {} did not match expected ({})"
+                    "".format(self.idn[2], serial_number)
+                )
 
     def close(self):
         self.sock.close()

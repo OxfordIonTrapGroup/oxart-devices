@@ -9,7 +9,8 @@ from oxart.devices.arroyo.driver import Arroyo
 
 def get_argparser():
     parser = argparse.ArgumentParser(
-        description="ARTIQ controller for Arroyo laser/TEC controllers")
+        description="ARTIQ controller for Arroyo laser/TEC controllers"
+    )
     parser.add_argument("-d", "--device", help="hardware address of device")
     sca.simple_network_args(parser, 4310)
     sca.verbosity_args(parser)

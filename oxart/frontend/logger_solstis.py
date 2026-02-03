@@ -9,27 +9,26 @@ from oxart.devices.solstis.driver import SolstisNotifier
 
 def get_argparser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s",
-                        "--server",
-                        required=True,
-                        help="Laser controller address / hostname")
-    parser.add_argument("--name",
-                        required=True,
-                        help="Logical laser name, defines measurement name")
-    parser.add_argument("--influx-server",
-                        default="localhost",
-                        help="Influx server address")
+    parser.add_argument(
+        "-s", "--server", required=True, help="Laser controller address / hostname"
+    )
+    parser.add_argument(
+        "--name", required=True, help="Logical laser name, defines measurement name"
+    )
+    parser.add_argument(
+        "--influx-server", default="localhost", help="Influx server address"
+    )
     parser.add_argument("--database", default="solstis", help="Influx database name")
-    parser.add_argument("--poll",
-                        default=30,
-                        type=int,
-                        help="Measurement polling period (seconds)")
+    parser.add_argument(
+        "--poll", default=30, type=int, help="Measurement polling period (seconds)"
+    )
     parser.add_argument(
         "--timeout",
         default=60,
         type=int,
-        help="Time (seconds) between messages from device after which connection is " +
-        "considered faulty and program exits")
+        help="Time (seconds) between messages from device after which connection is "
+        + "considered faulty and program exits",
+    )
     return parser
 
 
@@ -37,9 +36,9 @@ def main():
     args = get_argparser().parse_args()
     loop = asyncio.get_event_loop()
 
-    influx_client = InfluxDBClient(host=args.influx_server,
-                                   database=args.database,
-                                   timeout=30)
+    influx_client = InfluxDBClient(
+        host=args.influx_server, database=args.database, timeout=30
+    )
 
     def write_point(fields, tags={}):
         point = {"measurement": args.name, "fields": fields}
@@ -64,7 +63,7 @@ def main():
             "cavity_lock_status": msg["cavity_lock_status"],
             "doubler_lock_status": msg["doubler_lock_status"],
             "etalon_lock_status": msg["etalon_lock_status"],
-            "brf_wavelength": float(msg["wsd_wavelength"])
+            "brf_wavelength": float(msg["wsd_wavelength"]),
         }
         write_point(fields)
 
@@ -73,22 +72,25 @@ def main():
     def handle_notification(msg):
         if msg["display_notification"] != 1:
             return
-        if msg["notification_message"] in \
-                ["Saved Vapour Cell Items",
-                 "Saved Sprout Items",
-                 "Saved Beam Alignment Setup",
-                 "Saved Scope Setup",
-                 "Saved Stitching Setup",
-                 "Saved Wavelength Meter Setup",
-                 "Saved Common Items"]:
+        if msg["notification_message"] in [
+            "Saved Vapour Cell Items",
+            "Saved Sprout Items",
+            "Saved Beam Alignment Setup",
+            "Saved Scope Setup",
+            "Saved Stitching Setup",
+            "Saved Wavelength Meter Setup",
+            "Saved Common Items",
+        ]:
             return
         fields = {"title": msg["notification_message"], "tags": args.name}
         write_point(fields, tags={"type": "display_notification"})
 
-    notifier = SolstisNotifier(server=args.server,
-                               notification_callback=handle_notification,
-                               status_callback=handle_status_update,
-                               timeout=args.timeout)
+    notifier = SolstisNotifier(
+        server=args.server,
+        notification_callback=handle_notification,
+        status_callback=handle_status_update,
+        timeout=args.timeout,
+    )
     loop.run_until_complete(notifier.run())
 
 

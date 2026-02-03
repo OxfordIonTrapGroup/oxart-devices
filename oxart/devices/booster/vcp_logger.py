@@ -67,12 +67,12 @@ def get_messages(h):
 def get_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--device", required=True, help="Device serial port address")
-    parser.add_argument("--name",
-                        required=True,
-                        help="logical Booster name, defines measurement name")
-    parser.add_argument("--influx-server",
-                        default="10.255.6.4",
-                        help="Influx server address")
+    parser.add_argument(
+        "--name", required=True, help="logical Booster name, defines measurement name"
+    )
+    parser.add_argument(
+        "--influx-server", default="10.255.6.4", help="Influx server address"
+    )
     parser.add_argument("--database", default="junk", help="Influx database name")
     return parser
 
@@ -83,7 +83,7 @@ def write_point(args, client, name, fields, tags={}):
         "tags": {
             "name": name,
         },
-        "fields": fields
+        "fields": fields,
     }
     for tag in tags:
         point["tags"][tag] = tags[tag]
@@ -113,8 +113,9 @@ def main():
             write_point(args, client, name, fields)
 
         try:
-            write_channels("temp", [(x + y) / 2
-                                    for x, y in zip(status["LTEMP"], status["RTEMP"])])
+            write_channels(
+                "temp", [(x + y) / 2 for x, y in zip(status["LTEMP"], status["RTEMP"])]
+            )
             write_channels("i_30V", status["I30V [A]"])
             write_channels("i_6V", status["I5V0 [A]"])
             write_channels("5V0MP", status["5V0MP [V]"])

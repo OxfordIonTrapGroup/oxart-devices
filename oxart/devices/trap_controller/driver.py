@@ -37,7 +37,8 @@ class TrapController:
 
         # Calculate the new physical values, through matrix multiplication
         self._dc_physical_voltages = self._dc_translation_matrix.dot(
-            self._dc_logical_voltages)
+            self._dc_logical_voltages
+        )
 
         print(self._dc_logical_channel_names)
         print(self._dc_logical_voltages)
@@ -48,8 +49,9 @@ class TrapController:
         if update_hw:
             # For each channel, set the voltage
             for i, voltage in enumerate(self._dc_physical_voltages):
-                self._dc_hw_devices_lut[i].set_voltage(self._dc_hw_channels_lut[i],
-                                                       voltage)
+                self._dc_hw_devices_lut[i].set_voltage(
+                    self._dc_hw_channels_lut[i], voltage
+                )
 
     def set_dc_voltage(self, logical_electrode, value, update_hw=True):
         """Set the value of a given logical dc electrode.
@@ -98,7 +100,8 @@ class TrapController:
         # The matrix converting between logical and phyiscal
         # voltages
         self._dc_translation_matrix = np.zeros(
-            (len(self._dc_physical_channel_names), len(self._dc_logical_channel_names)))
+            (len(self._dc_physical_channel_names), len(self._dc_logical_channel_names))
+        )
 
         # Populate the matrix.
         for i, physical_name in enumerate(self._dc_physical_channel_names):
@@ -117,7 +120,8 @@ class TrapController:
             device_name = dc_config["physical_channels"][name]["device"]
             self._dc_hw_devices_lut.append(dmgr.get(device_name))
             self._dc_hw_channels_lut.append(
-                dc_config["physical_channels"][name]["channel_id"])
+                dc_config["physical_channels"][name]["channel_id"]
+            )
 
         # Get the list of trap settings
         self._dc_trap_settings = {}
@@ -125,8 +129,9 @@ class TrapController:
             logical_voltage_array = np.zeros(len(self._dc_logical_voltages))
             for electrode in dc_config["trap_settings"][name].keys():
                 index = self._dc_logical_channel_names.index(electrode)
-                logical_voltage_array[index] = \
-                    dc_config["trap_settings"][name][electrode]
+                logical_voltage_array[index] = dc_config["trap_settings"][name][
+                    electrode
+                ]
             self._dc_trap_settings[name] = logical_voltage_array
 
         # Store the default trap setting

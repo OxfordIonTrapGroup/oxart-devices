@@ -10,6 +10,7 @@ class Boosters:
     Methods are dynamically created from the driver class (see the docstring for more
     info).
     """
+
     _driver_cls = Booster
 
     def __init__(self, dmgr, devices, mappings):

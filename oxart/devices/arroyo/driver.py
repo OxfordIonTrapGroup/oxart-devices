@@ -9,11 +9,9 @@ class Arroyo:
     """
 
     def __init__(self, address, timeout=0.1, **kwargs):
-        self.device = serial.serial_for_url(address,
-                                            baudrate=38400,
-                                            timeout=timeout,
-                                            write_timeout=timeout,
-                                            **kwargs)
+        self.device = serial.serial_for_url(
+            address, baudrate=38400, timeout=timeout, write_timeout=timeout, **kwargs
+        )
         self.id = self.identify()
 
     def close(self):
@@ -41,7 +39,7 @@ class Arroyo:
 
         Returns an empty list if there are no errors.
         """
-        errs = iter(s.strip('"') for s in self._query("errstr?").split(','))
+        errs = iter(s.strip('"') for s in self._query("errstr?").split(","))
         return list(zip(errs, errs))
 
     def set_laser_output(self, enable):

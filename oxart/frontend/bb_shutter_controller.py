@@ -9,7 +9,8 @@ import sipyco.common_args as sca
 
 def get_argparser():
     parser = argparse.ArgumentParser(
-        description="ARTIQ controller for the BeagleBone 4-channel shutter driver")
+        description="ARTIQ controller for the BeagleBone 4-channel shutter driver"
+    )
     sca.simple_network_args(parser, 4000)
     sca.verbosity_args(parser)
     return parser

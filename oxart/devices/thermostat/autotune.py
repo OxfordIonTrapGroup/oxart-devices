@@ -1,6 +1,7 @@
 """Adapted from
 https://git.m-labs.hk/M-Labs/thermostat/src/branch/master/pytec/pytec/autotune.py
 """
+
 import math
 import logging
 import asyncio
@@ -14,15 +15,15 @@ from enum import Enum
 
 
 class PIDAutotuneState(Enum):
-    STATE_OFF = 'off'
-    STATE_RELAY_STEP_UP = 'relay step up'
-    STATE_RELAY_STEP_DOWN = 'relay step down'
-    STATE_SUCCEEDED = 'succeeded'
-    STATE_FAILED = 'failed'
+    STATE_OFF = "off"
+    STATE_RELAY_STEP_UP = "relay step up"
+    STATE_RELAY_STEP_DOWN = "relay step down"
+    STATE_SUCCEEDED = "succeeded"
+    STATE_FAILED = "failed"
 
 
 class PIDAutotune:
-    PIDParams = namedtuple('PIDParams', ['Kp', 'Ki', 'Kd'])
+    PIDParams = namedtuple("PIDParams", ["Kp", "Ki", "Kd"])
 
     PEAK_AMPLITUDE_TOLERANCE = 0.05
 
@@ -32,20 +33,22 @@ class PIDAutotune:
         "ciancone-marlin": [0.303, 0.1364, 0.0481],
         "pessen-integral": [0.7, 1.75, 0.105],
         "some-overshoot": [0.333, 0.667, 0.111],
-        "no-overshoot": [0.2, 0.4, 0.0667]
+        "no-overshoot": [0.2, 0.4, 0.0667],
     }
 
-    def __init__(self,
-                 setpoint,
-                 out_initial=0,
-                 out_min=-3,
-                 out_max=3,
-                 out_step=0.1,
-                 lookback=60,
-                 noiseband=0.1,
-                 sampletime=0.1):
+    def __init__(
+        self,
+        setpoint,
+        out_initial=0,
+        out_min=-3,
+        out_max=3,
+        out_step=0.1,
+        lookback=60,
+        noiseband=0.1,
+        sampletime=0.1,
+    ):
         if setpoint is None:
-            raise ValueError('setpoint must be specified')
+            raise ValueError("setpoint must be specified")
 
         self._inputs = deque(maxlen=round(lookback / sampletime))
         self._setpoint = setpoint
@@ -77,7 +80,7 @@ class PIDAutotune:
         """Get a list of all available tuning rules."""
         return self._tuning_rules.keys()
 
-    def get_pid_parameters(self, tuning_rule='ziegler-nichols'):
+    def get_pid_parameters(self, tuning_rule="ziegler-nichols"):
         """Get PID parameters.
 
         Args:
@@ -102,27 +105,33 @@ class PIDAutotune:
         """
         now = time_input * 1000
 
-        if (self._state == PIDAutotuneState.STATE_OFF
-                or self._state == PIDAutotuneState.STATE_SUCCEEDED
-                or self._state == PIDAutotuneState.STATE_FAILED):
+        if (
+            self._state == PIDAutotuneState.STATE_OFF
+            or self._state == PIDAutotuneState.STATE_SUCCEEDED
+            or self._state == PIDAutotuneState.STATE_FAILED
+        ):
             self._state = PIDAutotuneState.STATE_RELAY_STEP_UP
 
         self._last_run_timestamp = now
 
         # check input and change relay state if necessary
-        if (self._state == PIDAutotuneState.STATE_RELAY_STEP_UP
-                and input_val > self._setpoint + self._noiseband):
+        if (
+            self._state == PIDAutotuneState.STATE_RELAY_STEP_UP
+            and input_val > self._setpoint + self._noiseband
+        ):
             self._state = PIDAutotuneState.STATE_RELAY_STEP_DOWN
-            logging.debug('switched state: {0}'.format(self._state))
-            logging.debug('input: {0}'.format(input_val))
-        elif (self._state == PIDAutotuneState.STATE_RELAY_STEP_DOWN
-              and input_val < self._setpoint - self._noiseband):
+            logging.debug("switched state: {0}".format(self._state))
+            logging.debug("input: {0}".format(input_val))
+        elif (
+            self._state == PIDAutotuneState.STATE_RELAY_STEP_DOWN
+            and input_val < self._setpoint - self._noiseband
+        ):
             self._state = PIDAutotuneState.STATE_RELAY_STEP_UP
-            logging.debug('switched state: {0}'.format(self._state))
-            logging.debug('input: {0}'.format(input_val))
+            logging.debug("switched state: {0}".format(self._state))
+            logging.debug("input: {0}".format(input_val))
 
         # set output
-        if (self._state == PIDAutotuneState.STATE_RELAY_STEP_UP):
+        if self._state == PIDAutotuneState.STATE_RELAY_STEP_UP:
             self._output = self._initial_output - self._outputstep
         elif self._state == PIDAutotuneState.STATE_RELAY_STEP_DOWN:
             self._output = self._initial_output + self._outputstep
@@ -165,8 +174,8 @@ class PIDAutotune:
             self._peak_count += 1
             self._peaks.append(input_val)
             self._peak_timestamps.append(now)
-            logging.debug('found peak: {0}'.format(input_val))
-            logging.debug('peak count: {0}'.format(self._peak_count))
+            logging.debug("found peak: {0}".format(input_val))
+            logging.debug("peak count: {0}".format(self._peak_count))
 
         # check for convergence of induced oscillation
         # convergence of amplitude assessed on last 4 peaks (1.5 cycles)
@@ -183,11 +192,12 @@ class PIDAutotune:
             self._induced_amplitude /= 6.0
 
             # check convergence criterion for amplitude of induced oscillation
-            amplitude_dev = ((0.5 * (abs_max - abs_min) - self._induced_amplitude) /
-                             self._induced_amplitude)
+            amplitude_dev = (
+                0.5 * (abs_max - abs_min) - self._induced_amplitude
+            ) / self._induced_amplitude
 
-            logging.debug('amplitude: {0}'.format(self._induced_amplitude))
-            logging.debug('amplitude deviation: {0}'.format(amplitude_dev))
+            logging.debug("amplitude: {0}".format(self._induced_amplitude))
+            logging.debug("amplitude deviation: {0}".format(amplitude_dev))
 
             if amplitude_dev < PIDAutotune.PEAK_AMPLITUDE_TOLERANCE:
                 self._state = PIDAutotuneState.STATE_SUCCEEDED
@@ -201,28 +211,29 @@ class PIDAutotune:
 
         if self._state == PIDAutotuneState.STATE_SUCCEEDED:
             self._output = 0
-            logging.debug('peak finding successful')
+            logging.debug("peak finding successful")
 
             # calculate ultimate gain
-            self._Ku = 4.0 * self._outputstep / \
-                (self._induced_amplitude * math.pi)
-            print('Ku: {0}'.format(self._Ku))
+            self._Ku = 4.0 * self._outputstep / (self._induced_amplitude * math.pi)
+            print("Ku: {0}".format(self._Ku))
 
             # calculate ultimate period in seconds
             period1 = self._peak_timestamps[3] - self._peak_timestamps[1]
             period2 = self._peak_timestamps[4] - self._peak_timestamps[2]
             self._Pu = 0.5 * (period1 + period2) / 1000.0
-            print('Pu: {0}'.format(self._Pu))
+            print("Pu: {0}".format(self._Pu))
 
             for rule in self._tuning_rules:
                 params = self.get_pid_parameters(rule)
-                print('rule: {0}'.format(rule))
-                print('Kp: {0}'.format(params.Kp))
-                print('Ki: {0}'.format(params.Ki))
-                print('Kd: {0}'.format(params.Kd))
+                print("rule: {0}".format(rule))
+                print("Kp: {0}".format(params.Kp))
+                print("Ki: {0}".format(params.Ki))
+                print("Kd: {0}".format(params.Kd))
 
-            logging.info("Use the controller's 'set_param()' method to update the PID "
-                         "parameters.")
+            logging.info(
+                "Use the controller's 'set_param()' method to update the PID "
+                "parameters."
+            )
             return True
         return False
 
@@ -239,14 +250,22 @@ async def autotune(args, interface):
             data = await anext(reporter)
             interface._log_report_to_influx(data)
             ch = data[args.channel]
-            tuner = PIDAutotune(args.target, ch['i_set'], i_min, i_max, args.step,
-                                args.lookback, args.noiseband, ch['interval'])
+            tuner = PIDAutotune(
+                args.target,
+                ch["i_set"],
+                i_min,
+                i_max,
+                args.step,
+                args.lookback,
+                args.noiseband,
+                ch["interval"],
+            )
 
             async for data in reporter:
                 interface._log_report_to_influx(data)
                 ch = data[args.channel]
-                temperature = ch['temperature']
-                if tuner.run(temperature, ch['time']):
+                temperature = ch["temperature"]
+                if tuner.run(temperature, ch["time"]):
                     break
                 tuner_out = tuner.output()
                 interface.set_param("pwm", args.channel, "i_set", tuner_out)

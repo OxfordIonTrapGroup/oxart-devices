@@ -25,10 +25,9 @@ class PiezoController:
     """
 
     def __init__(self, serial_addr):
-        self.port = serial.serial_for_url(serial_addr,
-                                          baudrate=115200,
-                                          timeout=0.1,
-                                          write_timeout=0.1)
+        self.port = serial.serial_for_url(
+            serial_addr, baudrate=115200, timeout=0.1, write_timeout=0.1
+        )
 
         self.echo = None
         self._purge()
@@ -52,7 +51,7 @@ class PiezoController:
         self.data_dir = _get_data_dir()
         self.filename = "piezo_{}.pyon".format(self.get_serial())
         self.abs_filename = os.path.join(self.data_dir, self.filename)
-        self.channels = {'x': -1, 'y': -1, 'z': -1}
+        self.channels = {"x": -1, "y": -1, "z": -1}
         self._load_setpoints()
 
     def close(self):
@@ -69,7 +68,7 @@ class PiezoController:
     def _send(self, cmd):
         """Wrapper for send that will exit server if error occurs."""
         try:
-            str_ = cmd + '\r'
+            str_ = cmd + "\r"
             logger.debug("Sending " + repr(str_))
             self.port.write(str_.encode())
         except serial.SerialTimeoutException:
@@ -89,10 +88,10 @@ class PiezoController:
 
         Returns '' on timeout
         """
-        line = ''
-        while len(line) == 0 or line[-1] != '\r':
+        line = ""
+        while len(line) == 0 or line[-1] != "\r":
             c = self.port.read().decode()
-            if c == '':
+            if c == "":
                 # Timeout occurred
                 break
             line += c
@@ -101,13 +100,13 @@ class PiezoController:
 
     def _purge(self):
         """Make sure we start from a clean slate with the controller."""
-        self._send('')
+        self._send("")
         self._reset_input_timeout()
 
     def _reset_input_timeout(self):
         """Read everything off the input and discard."""
         _ = self.port.read().decode()
-        while _ != '':
+        while _ != "":
             _ = self.port.read().decode()
 
     def _reset_input(self):
@@ -137,21 +136,21 @@ class PiezoController:
 
     def _get_multiline(self, cmd, **kwargs):
         """Has to wait for timeout."""
-        cmd_str = '{}?'.format(cmd)
+        cmd_str = "{}?".format(cmd)
         self._send_command(cmd_str)
-        para = ''
+        para = ""
         line = self._read_line()
-        while line != '':
+        while line != "":
             para += line
             line = self._read_line()
-        return para.replace('\r', '\n')
+        return para.replace("\r", "\n")
 
     #
     # v1.06
     #
     def _set_1_06(self, cmd, val, check=False):
         """<= v1.06 set command."""
-        cmd_str = '{}={}'.format(cmd, val)
+        cmd_str = "{}={}".format(cmd, val)
         self._send_command(cmd_str)
 
         if check:
@@ -161,7 +160,7 @@ class PiezoController:
 
     def _get_1_06(self, cmd, check=False):
         """<= v1.06 get command."""
-        cmd_str = '{}?'.format(cmd)
+        cmd_str = "{}?".format(cmd)
         self._send_command(cmd_str)
 
         if check:
@@ -173,9 +172,9 @@ class PiezoController:
 
     def _check_1_06(self):
         c = self.port.read().decode()
-        if c == '*':
+        if c == "*":
             return None
-        elif c == '!':
+        elif c == "!":
             raise CommandNotDefined()
         else:
             raise ParseError()
@@ -185,7 +184,7 @@ class PiezoController:
     #
     def _set_1_09(self, cmd, val, check=True):
         """>= v1.09 set command."""
-        cmd_str = '{}={}'.format(cmd, val)
+        cmd_str = "{}={}".format(cmd, val)
         self._send_command(cmd_str)
 
         if check:
@@ -195,7 +194,7 @@ class PiezoController:
 
     def _get_1_09(self, cmd, check=True):
         """>= v1.09 get command."""
-        cmd_str = '{}?'.format(cmd)
+        cmd_str = "{}?".format(cmd)
         self._send_command(cmd_str)
 
         response = self._read_line().strip()
@@ -209,24 +208,24 @@ class PiezoController:
 
     def _check_1_09(self):
         c = self.port.read().decode()
-        if c == '>':
+        if c == ">":
             return None
         else:
             s = c
-            while s[-1] != '>':
+            while s[-1] != ">":
                 c = self.port.read().decode()
-                if c == '':
+                if c == "":
                     # Timeout occurred
                     break
                 s += c
-            if s == 'CMD_NOT_DEFINED>':
+            if s == "CMD_NOT_DEFINED>":
                 raise CommandNotDefined()
             else:
                 raise ParseError()
 
     def _reset_input_1_09(self):
         _ = self.port.read().decode()
-        while _ != '>' and _ != '':
+        while _ != ">" and _ != "":
             _ = self.port.read().decode()
 
     #
@@ -263,7 +262,7 @@ class PiezoController:
         # Due to the crappy Thorlabs protocol (no clear finish marker) we have
         # to wait for a timeout to ensure that we have read everything
         # (only for true for versions <1.09)
-        return self._get_multiline('id')
+        return self._get_multiline("id")
 
     def get_firmware_version(self):
         id_ = self.get_id()
@@ -288,7 +287,7 @@ class PiezoController:
         self._check_valid_channel(channel)
         self._check_voltage_in_limit(voltage)
 
-        cmd = channel + 'voltage'
+        cmd = channel + "voltage"
         self._set(cmd, voltage)
         self.channels[channel] = voltage
         self._save_setpoints()
@@ -300,7 +299,7 @@ class PiezoController:
         and DAC offsets.
         """
         self._check_valid_channel(channel)
-        cmd = channel + 'voltage'
+        cmd = channel + "voltage"
         return self._get_float(cmd)
 
     def get_channel(self, channel):
@@ -313,7 +312,7 @@ class PiezoController:
 
         This is either 75V, 100V or 150V, set by the switch on the device back panel)
         """
-        return self._get_float('vlimit')
+        return self._get_float("vlimit")
 
     #
     # Boring check/parsing functions
@@ -327,8 +326,9 @@ class PiezoController:
         """Raises a ValueError if the voltage is not in limit for the current
         controller settings."""
         if voltage > self.v_limit or voltage < 0:
-            raise ValueError("Voltage must be between 0 and vlimit={}".format(
-                self.v_limit))
+            raise ValueError(
+                "Voltage must be between 0 and vlimit={}".format(self.v_limit)
+            )
 
     def _strip_brackets(self, line):
         """Take string enclosed in square brackets and return string."""
@@ -344,11 +344,15 @@ class PiezoController:
         """Load setpoints from a file."""
         try:
             self.channels = pyon.load_file(self.abs_filename)
-            logger.info("Loaded '{}', channels: {}".format(self.filename,
-                                                           self.channels))
+            logger.info(
+                "Loaded '{}', channels: {}".format(self.filename, self.channels)
+            )
         except FileNotFoundError:
-            logger.warning("Couldn't find '{}' in '{}', no setpoints loaded".format(
-                self.filename, self.data_dir))
+            logger.warning(
+                "Couldn't find '{}' in '{}', no setpoints loaded".format(
+                    self.filename, self.data_dir
+                )
+            )
 
     def _save_setpoints(self):
         """Write the setpoints out to file."""
@@ -371,7 +375,7 @@ class PiezoController:
 class SimulationPiezoController:
 
     def __init__(self, *args, **kwargs):
-        logger.debug('Initialised')
+        logger.debug("Initialised")
 
     def close(self):
         logger.debug("Called close")

@@ -24,7 +24,7 @@ class HOA2Dac:
         self.sr_trap_freq = 1e6
 
     def write_raw_voltages(self, voltages):
-        assert (len(voltages) == N_CHANNELS)
+        assert len(voltages) == N_CHANNELS
         for ch, v in enumerate(voltages):
             self.dac.set_channel(v, ch=ch, update=False)
         self.dac.pulse_ldac()
@@ -36,7 +36,7 @@ class HOA2Dac:
         voltages = [0] * 4
 
         # Axial trapping term
-        freq_scaling = (88 / 170) * (self.sr_trap_freq / 700e3)**2
+        freq_scaling = (88 / 170) * (self.sr_trap_freq / 700e3) ** 2
         voltages[0] += -1 * freq_scaling
         voltages[1] += +1 * freq_scaling
         voltages[2] += -0.445 * freq_scaling

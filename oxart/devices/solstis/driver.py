@@ -28,8 +28,9 @@ class SolstisNotifier:
         """Connect to the Solstis websocket server and receive messages until
         connection drops."""
         logger.info("Connecting to Solstis at {}:{}".format(self.server, self.port))
-        async with connect("ws://{}:{}".format(self.server, self.port),
-                           ping_interval=None) as websocket:
+        async with connect(
+            "ws://{}:{}".format(self.server, self.port), ping_interval=None
+        ) as websocket:
             while True:
                 try:
                     raw_msg = await wait_for(websocket.recv(), timeout=self.timeout)

@@ -3,7 +3,7 @@
 import argparse
 import logging
 
-from oxart.devices.lakeshore_335.driver import LakeShore335
+from oxart.devices.thermostat.driver import Thermostat
 from sipyco.pc_rpc import simple_server_loop
 import sipyco.common_args as sca
 
@@ -12,17 +12,9 @@ logger = logging.getLogger(__name__)
 
 def get_argparser():
     parser = argparse.ArgumentParser(
-        description="ARTIQ controller for Lake "
-        "Shore Cryogenics model 335 temperature"
-        "controllers"
+        description="ARTIQ controller for " "sinara Thermostat"
     )
-    parser.add_argument(
-        "-d",
-        "--device",
-        default="gpib://socket://10.255.6.189:1234-5",
-        help="device's hardware address",
-    )
-
+    parser.add_argument("-d", "--device", help="device's IP address")
     sca.simple_network_args(parser, 4300)
     sca.verbosity_args(parser)
     return parser
@@ -32,13 +24,18 @@ def main():
     args = get_argparser().parse_args()
     sca.init_logger_from_args(args)
 
-    dev = LakeShore335(args.device)
+    dev = Thermostat(args.device)
 
+    # Q: Why not use try/finally for port closure?
+    # A: We don't want to try to close the serial if sys.exit() is called,
+    #    and sys.exit() isn't caught by Exception
     try:
         simple_server_loop(
-            {"LakeShore335": dev}, sca.bind_address_from_args(args), args.port
+            {"Thermostat": dev}, sca.bind_address_from_args(args), args.port
         )
-    finally:
+    except Exception:
+        dev.close()
+    else:
         dev.close()
 
 

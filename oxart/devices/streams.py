@@ -18,11 +18,10 @@ def get_stream(device, baudrate=115200, port=None, timeout=None):
         IO operations to block.
     """
     if not device.startswith("gpib://"):
-        return serial.serial_for_url(device,
-                                     baudrate=baudrate,
-                                     timeout=timeout,
-                                     write_timeout=timeout)
+        return serial.serial_for_url(
+            device, baudrate=baudrate, timeout=timeout, write_timeout=timeout
+        )
 
-    controller_addr, gpib_port = device[7:].split('-')
+    controller_addr, gpib_port = device[7:].split("-")
     controller = GPIB(controller_addr, timeout=timeout)
     return controller.get_stream(int(gpib_port))

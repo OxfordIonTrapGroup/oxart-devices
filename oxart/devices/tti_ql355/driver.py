@@ -23,7 +23,7 @@ class QL355:
         self._purge()
         assert self.ping()
 
-        ident = self.identify().split(',')
+        ident = self.identify().split(",")
         if ident[1].strip() == "QL355P":
             self.type = PsuType.QL355P
         elif ident[1].strip() == "QL355TP":
@@ -38,7 +38,7 @@ class QL355:
         see aqctl_tti_ql355.
         """
         # Send a carriage return to clear the controller's input buffer
-        self.stream.write('\r'.encode())
+        self.stream.write("\r".encode())
         # Read any old gibberish from input until a timeout occurs
         while self.stream.read() != b"":
             pass
@@ -135,9 +135,10 @@ class QL355:
         for attempt in range(5):
             if attempt > 0:
                 logger.warning("Retrying identify()")
-            ident = ident_raw.split(',')
-            if (ident[0] in ["THURLBY-THANDAR", "THURLBY THANDAR"]
-                    and ident[1].strip() in ["QL355P", "QL355TP"]):
+            ident = ident_raw.split(",")
+            if ident[0] in ["THURLBY-THANDAR", "THURLBY THANDAR"] and ident[
+                1
+            ].strip() in ["QL355P", "QL355TP"]:
                 break
             logger.warning("Received unexpected ident string: '%s'", ident_raw)
         else:

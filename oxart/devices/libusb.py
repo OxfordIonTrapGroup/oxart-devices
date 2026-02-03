@@ -17,8 +17,9 @@ def get_libusb_library_path():
     """
     if shutil.which("libusb-config") is None:
         raise FileNotFoundError(
-            "libusb-config not found in $PATH. Is libusb-dev installed (or, for Nix, " +
-            "nixpkgs.libusb-compat-0_1)?")
+            "libusb-config not found in $PATH. Is libusb-dev installed (or, for Nix, "
+            + "nixpkgs.libusb-compat-0_1)?"
+        )
 
     try:
         result = subprocess.run(
@@ -39,6 +40,8 @@ def get_libusb_library_path():
 
     paths = [arg[2:] for arg in output.split() if arg.startswith("-L") and len(arg) > 2]
     if len(paths) != 1:
-        raise RuntimeError("Expected to find exactly one library path (-L…) in " +
-                           f"'libusb-config --libs' output, got: '{output}'")
+        raise RuntimeError(
+            "Expected to find exactly one library path (-L…) in "
+            + f"'libusb-config --libs' output, got: '{output}'"
+        )
     return paths[0]
