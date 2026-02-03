@@ -6,7 +6,8 @@ logger = logging.getLogger(__name__)
 
 
 class TrapController:
-    """A mediation layer to sanitise control of trap RF and DC voltages"""
+    """A mediation layer to sanitise control of trap RF and DC voltages."""
+
     def __init__(self, dmgr, dc_config_file=None, rf_config=None):
         """dc_config: configuration dictionary for dc electrodes
         rf_config: configuration dictionary for rf electrodes
@@ -21,9 +22,7 @@ class TrapController:
             self.set_trap_setting(self._dc_default_trap_setting)
 
     def set_trap_setting(self, trap_setting):
-        """Set the trap voltages to one of the pre-configured
-        sets of voltages.
-        """
+        """Set the trap voltages to one of the pre-configured sets of voltages."""
 
         self._dc_logical_voltages = self._dc_trap_settings[trap_setting]
 
@@ -31,10 +30,9 @@ class TrapController:
         self._update_physical_voltages()
 
     def _update_physical_voltages(self, update_hw=True):
-        """Updates the physical voltages based on the current
-        logical voltage values.
-        If update_hw is true, then the dac channels will be
-        updated in hardware.
+        """Updates the physical voltages based on the current logical voltage values.
+
+        If update_hw is true, then the dac channels will be updated in hardware.
         """
 
         # Calculate the new physical values, through matrix multiplication
@@ -54,8 +52,9 @@ class TrapController:
                                                        voltage)
 
     def set_dc_voltage(self, logical_electrode, value, update_hw=True):
-        """Set the value of a given logical dc electrode. Value is a float
-        with units determined by the "relations" config element
+        """Set the value of a given logical dc electrode.
+
+        Value is a float with units determined by the "relations" config element
         """
 
         # Find the index of the logical electrode, given its name
@@ -68,8 +67,7 @@ class TrapController:
         self._update_physical_voltages(update_hw)
 
     def get_dc_voltage(self, logical_electrode):
-        """Reads the last set voltage on the given  logical electrode.
-        """
+        """Reads the last set voltage on the given  logical electrode."""
 
         # Find the index of the logical electrode, given its name
         logical_index = self._dc_logical_channel_names.index(logical_electrode)
@@ -82,8 +80,8 @@ class TrapController:
 
     def _parse_dc_config(self, dmgr, dc_config):
         """Parse in the dc electrode configuration and check for errors.
-        This function intialises the dc relation matrix and dc electrode
-        vector.
+
+        This function intialises the dc relation matrix and dc electrode vector.
         """
 
         # Produce a list of names of the logical channels

@@ -2,9 +2,8 @@ import serial
 
 
 class Sumitomo:
-    """
-    Driver for the sumitomo cryo compressor
-    """
+    """Driver for the sumitomo cryo compressor."""
+
     def __init__(self, device):
         self.dev = serial.serial_for_url("socket://{}:9001".format(device), timeout=1)
         assert self.ping()
@@ -25,15 +24,11 @@ class Sumitomo:
         return self.dev.readline().decode()
 
     def switch_on(self):
-        """
-        Switches on the cryostat
-        """
+        """Switches on the cryostat."""
         cmd = "ON177CF"
         self._send_cmd(cmd)
 
     def switch_off(self):
-        """
-        Switches off the cryostat
-        """
+        """Switches off the cryostat."""
         cmd = "OFF9188"
         self._send_cmd(cmd)

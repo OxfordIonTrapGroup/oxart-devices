@@ -1,4 +1,4 @@
-""" Driver for current stabilizer """
+"""Driver for current stabilizer."""
 
 from collections import OrderedDict
 import asyncio
@@ -21,7 +21,7 @@ class IIR:
     I_set_range = 21  # mA
 
     def __init__(self):
-        self.ba = np.zeros(5, np.float32)
+        self.ba = np.zeros(5)
         self.y_offset = 0.
         self.y_min = -self.full_scale - 1
         self.y_max = self.full_scale
@@ -57,15 +57,16 @@ class IIR:
         self.ba[4] = 0.
 
     def configure_biquad(self, zeros, poles, gain=1.):
-        """Calulate biquad iir filter coeficents
-        The function constructs the iir coeficents for a transfer function with
-        desired zeros and poles.
-        :param zeros: list of upto two zero locations in Hz, must be real or
-            complex conjugate pairs.
-        :param poles: list of upto two pole locations in Hz, must be real or
-            complex conjugate pairs.
+        """Calulate biquad iir filter coeficents The function constructs the iir
+        coeficents for a transfer function with desired zeros and poles.
+
+        :param zeros: list of upto two zero locations in Hz, must be real or complex
+            conjugate pairs.
+        :param poles: list of upto two pole locations in Hz, must be real or complex
+            conjugate pairs.
         :param gain: gain scaling factor of transfer function.
         """
+
         def get_polynomial_coefs(factors):
             "convert factors to coeficents"
             if len(factors) == 0:
@@ -85,11 +86,10 @@ class IIR:
                 raise ValueError("Invalid number of factors")
 
         def z_transform(s_coefs, t_update):
-            """
-            z-transformation of second order s polynomial in coefficients
+            """Z-transformation of second order s polynomial in coefficients.
 
-            This uses Tustin’s transformation
-            see https://arxiv.org/pdf/1508.06319.pdf
+            This uses Tustin’s transformation see
+            https://arxiv.org/pdf/1508.06319.pdf
 
             We drop a factor of 1/(1 + z^-1)^2 which is common to both
             polynomials
@@ -100,13 +100,13 @@ class IIR:
                 s_coefs[0] + c * s_coefs[1] + c * c * s_coefs[2],
                 2 * s_coefs[0] - 2 * c * c * s_coefs[2],
                 s_coefs[0] - c * s_coefs[1] + c * c * s_coefs[2],
-                ]
+            ]
             return z_coefs
 
-        num_coefs = z_transform(get_polynomial_coefs(
-            [2 * np.pi * x for x in zeros]), self.t_update)
-        denom_coefs = z_transform(get_polynomial_coefs(
-            [2 * np.pi * x for x in poles]), self.t_update)
+        num_coefs = z_transform(get_polynomial_coefs([2 * np.pi * x for x in zeros]),
+                                self.t_update)
+        denom_coefs = z_transform(get_polynomial_coefs([2 * np.pi * x for x in poles]),
+                                  self.t_update)
 
         # normalise to a0 = 1 & apply gain factor
         num_coefs = [np.real(x / denom_coefs[0]) * gain for x in num_coefs]
@@ -130,7 +130,7 @@ class CPU_DAC:
 
     def __init__(self):
         self.en = True
-        self.out = np.zeros(1, np.float32)
+        self.out = 0.0
 
     def set_out(self, out):
         assert out >= 0 and out <= 48, "cpu dac setting out of range"
@@ -158,6 +158,7 @@ class GPIO_HDR_SPI:
 
 
 class Feedforward:
+
     def __init__(self, num_harmonics):
         self.conversion_factor = 1 / 500  # [0, 500uA] maps to [0, 1]
         self.num_harmonics = num_harmonics
@@ -215,6 +216,7 @@ async def set_feedforward(connection, ff):
 
 
 class Stabilizer:
+
     def __init__(self, fb_connection, ff_connection):
         self.fb_connection = fb_connection
         self.ff_connection = ff_connection
@@ -253,12 +255,12 @@ class Stabilizer:
         await set_feedback(self.fb_connection, self.channel, i, d, g)
 
     async def set_feedback_biquad(self,
-                                 frontend_offset=250,
-                                 zeros=[],
-                                 poles=[],
-                                 gain = 1.,
-                                 feedback_offset=0,
-                                 channel_offset=0):
+                                  frontend_offset=250,
+                                  zeros=[],
+                                  poles=[],
+                                  gain=1.,
+                                  feedback_offset=0,
+                                  channel_offset=0):
         d = CPU_DAC()
         d.set_out(feedback_offset)
         d.set_en(True)

@@ -177,6 +177,7 @@ class MsgError(Exception):
 
 
 class Message:
+
     def __init__(self,
                  _id,
                  param1=0,
@@ -231,6 +232,7 @@ class Message:
 
 
 class _APTDevice:
+
     def __init__(self, port):
         self.h = serial.Serial(port, 115200, write_timeout=0.1)
         self._status_update_counter = 0
@@ -262,7 +264,7 @@ class _APTDevice:
                 return msg
 
     def _triage_message(self, msg):
-        """Triage an incoming message in case of errors or action required"""
+        """Triage an incoming message in case of errors or action required."""
         msg_id = msg._id
         data = msg.data
 
@@ -380,7 +382,8 @@ class _APTDevice:
 
 
 class _APTRotation(_APTDevice):
-    """Generic class of rotation mounts"""
+    """Generic class of rotation mounts."""
+
     def __init__(self, port, auto_home=True):
         super().__init__(port)
 
@@ -398,8 +401,7 @@ class _APTRotation(_APTDevice):
         self._last_angle_mu = None
 
     def set_angle(self, angle, check_position=False, auto_retry=0, acceptable_error=0):
-        """
-        Set angle in degrees.
+        """Set angle in degrees.
 
         Optional parameters:
         check_position - verify that position is set correctly
@@ -423,14 +425,14 @@ class _APTRotation(_APTDevice):
                     raise
 
     def get_angle(self):
-        """Get current angle in degrees"""
+        """Get current angle in degrees."""
         angle_mu = self.get_position()
         angle = float(angle_mu) / self.steps_per_degree
         angle = angle % 360
         return angle
 
     def check_angle_mu(self, acceptable_error=0):
-        """Check currently set angle against stored value"""
+        """Check currently set angle against stored value."""
         if self._last_angle_mu is None:
             # nothing to check against
             return
@@ -465,7 +467,7 @@ class K10CR1(_APTRotation):
         self._send_message(Message(MGMSG.MOT_SET_POWER_PARAMS, data=payload))
 
     def set_angle(self, angle):
-        """Set angle in degrees"""
+        """Set angle in degrees."""
         # These drivers are slow, so need to intelligently choose rotation
         # direction if we can to minimize rotation distance.
         angle = angle % 360
@@ -484,13 +486,14 @@ class K10CR1(_APTRotation):
 
 
 class _KBD101(_APTRotation):
-    """This will not work if instantiated directly"""
+    """This will not work if instantiated directly."""
+
     def setup(self):
         super().setup()
         self.req_hw_info()
 
     def req_hw_info(self):
-        """This method must be called to receive move completed messages"""
+        """This method must be called to receive move completed messages."""
         msg = self._send_request(MGMSG.HW_REQ_INFO, wait_for=[MGMSG.HW_GET_INFO])
         data = struct.unpack("=l8sH4B48s12sHHH", msg.data)
 

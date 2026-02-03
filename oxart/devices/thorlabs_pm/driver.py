@@ -22,9 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_device_names():
-    """
-    Return a list of all Thorlabs power meters connected to this PC.
-    """
+    """Return a list of all Thorlabs power meters connected to this PC."""
     driver = _TLPM()
     device_count = driver.find_devices()
     # print("Thorlabs power meter devices found: {}".format(device_count))
@@ -40,6 +38,7 @@ def get_device_names():
 
 
 class _TLPM:
+
     def __init__(self):
         if sizeof(c_voidp) == 4:
             self.dll = cdll.LoadLibrary(
@@ -62,8 +61,7 @@ class _TLPM:
         raise NameError(c_char_p(msg.raw).value)
 
     def open(self, device_name, query_id, reset_device):
-        """
-        Open a connection to a device compatible with this driver.
+        """Open a connection to a device compatible with this driver.
 
         This function initializes the instrument driver session and performs
         the following initialization actions:
@@ -104,17 +102,15 @@ class _TLPM:
         self._testForError(pInvokeResult)
 
     def close(self):
-        """
-        Close the instrument driver session.
+        """Close the instrument driver session.
 
         Note: The instrument must be reinitialized to use it again.
         """
         self.dll.TLPM_close(self.dev_session)
 
     def find_devices(self):
-        """
-        Find all driver-compatible devices attached to the PC and return
-        number of devices found.
+        """Find all driver-compatible devices attached to the PC and return number of
+        devices found.
 
         The function additionally stores information like system name about
         the found resources internally. This information can be retrieved with
@@ -130,9 +126,8 @@ class _TLPM:
         return device_count.value
 
     def fetch_device_name(self, index):
-        """
-        This function gets the resource name string needed to open a device
-        with :meth open:.
+        """This function gets the resource name string needed to open a device with
+        :meth open:.
 
         Note: The data provided by this function was updated at the last call
               of <Find Resources>.
@@ -153,9 +148,8 @@ class _TLPM:
         return c_char_p(buff.raw).value.decode()
 
     def fetch_device_info(self, index):
-        """
-        This function gets information about a device compatible with this
-        driver that is connected to the PC.
+        """This function gets information about a device compatible with this driver
+        that is connected to the PC.
 
         Note: The data provided by this function was updated at the last call
               of <Find Resources>.
@@ -202,15 +196,12 @@ class _TLPM:
         return info_dict
 
     def reset(self):
-        """
-        Reset the device connected to in this session.
-        """
+        """Reset the device connected to in this session."""
         pInvokeResult = self.dll.TLPM_reset(self.dev_session)
         self._testForError(pInvokeResult)
 
     def self_test(self, selfTestResult, description):
-        """
-        This function runs the device self test routine and returns the test
+        """This function runs the device self test routine and returns the test
         result.
 
         Args:
@@ -232,9 +223,8 @@ class _TLPM:
         return pInvokeResult
 
     def query_revision(self, instrumentDriverRevision, firmwareRevision):
-        """
-        This function returns the revision numbers of the instrument driver
-        and the device firmware.
+        """This function returns the revision numbers of the instrument driver and
+        the device firmware.
 
         Args:
             instrumentDriverRevision(create_string_buffer): This parameter
@@ -258,8 +248,7 @@ class _TLPM:
         return pInvokeResult
 
     def query_id(self, manufacturerName, deviceName, serialNumber, firmwareRevision):
-        """
-        This function returns the device identification information.
+        """This function returns the device identification information.
 
         Args:
             manufacturerName(create_string_buffer): This parameter returns the
@@ -294,23 +283,20 @@ class _TLPM:
 
 
 class ThorlabsPM100A(_TLPM):
+
     def __init__(self, device_name, query_device=True, reset_device=False):
         self.device_name = device_name
         super().__init__()
         self.open(device_name, query_device, reset_device)
 
     def set_wavelength(self, wavelength):
-        """
-        Set wavelength in nanometers to use for measurements.
-        """
+        """Set wavelength in nanometers to use for measurements."""
         pInvokeResult = self.dll.TLPM_setWavelength(self.dev_session,
                                                     c_double(wavelength))
         self._testForError(pInvokeResult)
 
     def get_wavelength(self):
-        """
-        Return the wavelength in nanometers currently set for measurements.
-        """
+        """Return the wavelength in nanometers currently set for measurements."""
         wavelength = c_double()
         pInvokeResult = self.dll.TLPM_getWavelength(self.dev_session,
                                                     c_int16(TLPM_ATTR_SET_VAL),
@@ -319,20 +305,16 @@ class ThorlabsPM100A(_TLPM):
         return wavelength.value
 
     def set_power_range(self, power):
-        """
-        Set the power range for measurements.
+        """Set the power range for measurements.
 
-        :param power: maximum power level expected for measurements in
-            Watts. This is converted to a suitable range by the device
-            automatically.
+        :param power: maximum power level expected for measurements in Watts. This is
+            converted to a suitable range by the device automatically.
         """
         pInvokeResult = self.dll.TLPM_setPowerRange(self.dev_session, c_double(power))
         self._testForError(pInvokeResult)
 
     def get_power_range(self):
-        """
-        Return the power range currently set for measurements.
-        """
+        """Return the power range currently set for measurements."""
         pow_range = c_double()
         pInvokeResult = self.dll.TLPM_getPowerRange(self.dev_session,
                                                     c_int16(TLPM_ATTR_SET_VAL),
@@ -341,8 +323,7 @@ class ThorlabsPM100A(_TLPM):
         return pow_range.value
 
     def set_power_unit(self, unit):
-        """
-        Set the unit for power measurements.
+        """Set the unit for power measurements.
 
         :param unit: either "W" or "dBm"
         """
@@ -352,11 +333,10 @@ class ThorlabsPM100A(_TLPM):
         self._testForError(pInvokeResult)
 
     def get_power_reading(self):
-        """
-        Take a power measurement.
+        """Take a power measurement.
 
-        The unit of the returned value depends on the current setting of the
-        power unit, which can be changed via :meth set_power_unit:.
+        The unit of the returned value depends on the current setting of the power unit,
+        which can be changed via :meth set_power_unit:.
         """
         power = c_double()
         pInvokeResult = self.dll.TLPM_measPower(self.dev_session, byref(power))
@@ -364,14 +344,11 @@ class ThorlabsPM100A(_TLPM):
         return power.value
 
     def set_attenuation_factor(self, att):
-        """
-        Set the input attenuation factor in dB.
+        """Set the input attenuation factor in dB.
 
-        The attenuation factor describes the attenuation of optical power
-        before light reaches the power meter. The value returned by a
-        measurement is adjusted to give the power level before attenuation,
-        so
-            dBm_measurement = dBm_raw + att
+        The attenuation factor describes the attenuation of optical power before light
+        reaches the power meter. The value returned by a measurement is adjusted to give
+        the power level before attenuation, so     dBm_measurement = dBm_raw + att
         """
         pInvokeResult = self.dll.TLPM_setAttenuation(self.dev_session, c_double(att))
         self._testForError(pInvokeResult)

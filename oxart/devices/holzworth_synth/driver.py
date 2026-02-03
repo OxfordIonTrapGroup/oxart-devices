@@ -7,8 +7,9 @@ import os
 
 
 class HolzworthSynth():
-    """Driver for Holzworth synth to get and set the frequency, and get and set the ramp
-    rate to track the 674 nm quadrupole laser cavity drift."""
+    """Driver for Holzworth synth to get and set the frequency, and get and set the
+    ramp rate to track the 674 nm quadrupole laser cavity drift."""
+
     def __init__(self):
 
         self.synth_raw = HolzworthSynthRaw()  # The raw driver
@@ -34,13 +35,13 @@ class HolzworthSynth():
             self.continuously_update_freq(loop))  # Starts continuously_update_freq
 
     async def continuously_update_freq(self, loop):
-        """Updates the frequency every 10 seconds and adds itself back to the lop"""
+        """Updates the frequency every 10 seconds and adds itself back to the lop."""
         await self.update_freq()
         await asyncio.sleep(10)
         asyncio.ensure_future(self.continuously_update_freq(loop), loop=loop)
 
     async def _move_freq(self, freq):
-        """ Slowly scans synth in small steps to requested frequency to keep lock"""
+        """Slowly scans synth in small steps to requested frequency to keep lock."""
         freq_start = self.synth_raw.get_freq()
         freq_end = freq
         n_steps = math.ceil(abs(freq_end - freq_start) / self.max_step)
@@ -70,12 +71,12 @@ class HolzworthSynth():
             json.dump(self.data, f)
 
     async def get_freq(self):
-        """Gets the current frequency of the synth"""
+        """Gets the current frequency of the synth."""
         return self.synth_raw.get_freq()
 
     async def update_freq(self):
-        """Updates the frequency by the difference between the current time and the last
-        time set_freq was called multiplied by the drift rate."""
+        """Updates the frequency by the difference between the current time and the
+        last time set_freq was called multiplied by the drift rate."""
 
         ramp = self.data["ramp"]  # Hz per second
         ref_freq = self.data["last_freq_set"]  # Freq when it was last set (not updated)
@@ -87,12 +88,12 @@ class HolzworthSynth():
         self.time_freq_updated = time.time()
 
     def get_ramp(self):
-        """Retrives the ramp rate from the log file"""
+        """Retrives the ramp rate from the log file."""
 
         return self.data["ramp"]
 
     async def set_ramp(self, ramp):
-        """Sets the ramp rate the ramp rate from the log file"""
+        """Sets the ramp rate the ramp rate from the log file."""
 
         current_freq = await self.get_freq()
         await self.set_freq(
@@ -113,12 +114,12 @@ class HolzworthSynth():
         return self.time_freq_updated
 
     async def ping(self):
-        """Master needs to be able to ping the device"""
+        """Master needs to be able to ping the device."""
         return self.synth_raw.ping()
 
     def close(self):
         self.synth_raw.close()
 
     async def terminate(self):
-        """If something goes wrong the master calls this function"""
+        """If something goes wrong the master calls this function."""
         self.close()

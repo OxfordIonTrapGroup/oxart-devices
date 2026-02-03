@@ -14,7 +14,8 @@ Status = collections.namedtuple("Status", [
 
 
 class Booster:
-    """ Booster 8-channel RF PA """
+    """Booster 8-channel RF PA."""
+
     def __init__(self, device):
         self.dev = serial.serial_for_url("socket://{}:5000".format(device))
         self.dev.timeout = 1
@@ -68,7 +69,7 @@ class Booster:
             raise Exception("Unrecognised response to {}: '{}'".format(cmd, resp))
 
     def get_version(self):
-        """ Returns the device version information as a named tuple """
+        """Returns the device version information as a named tuple."""
         self.dev.write(b"*IDN?\n")
         idn = self.dev.readline().decode().strip().lower().split(',')
 
@@ -95,7 +96,7 @@ class Booster:
         return result
 
     def ping(self):
-        """ Returns True if we are connected to a Booster """
+        """Returns True if we are connected to a Booster."""
         try:
             self.get_version()
         except Exception:
@@ -103,24 +104,24 @@ class Booster:
         return True
 
     def set_enabled(self, channel, enabled=True):
-        """ Enables/disables a channel """
+        """Enables/disables a channel."""
         cmd = "CHAN:ENAB" if enabled else "CHAN:DISAB"
         self._cmd(cmd, channel)
 
     def get_enabled(self, channel):
-        """ Returns True is the channel is enabled """
+        """Returns True is the channel is enabled."""
         return self._query_bool("CHAN:ENAB?", channel)
 
     def get_detected(self, channel):
-        """ Returns True is the channel is detected, otherwise False.
+        """Returns True is the channel is detected, otherwise False.
 
         Non-detected channels indicate a serious hardware error!
         """
         return self._query_bool("CHAN:DET?", channel)
 
     def get_status(self, channel):
-        """ Returns a named tuple containing information about the status
-        of a given channel.
+        """Returns a named tuple containing information about the status of a given
+        channel.
 
         NB powers below the detector sensitivity are recorded as nan
 
@@ -185,19 +186,19 @@ class Booster:
         return self.get_status(channel)._asdict()
 
     def get_current(self, channel):
-        """ Returns the FET bias current (A) for a given channel. """
+        """Returns the FET bias current (A) for a given channel."""
         return self._query_float("MEAS:CURR?", channel)
 
     def get_temperature(self, channel):
-        """ Returns the temperature (C) for a given channel. """
+        """Returns the temperature (C) for a given channel."""
         return self._query_float("MEAS:TEMP?", channel)
 
     def get_output_power(self, channel):
-        """ Returns the output (forwards) power for a channel in dBm """
+        """Returns the output (forwards) power for a channel in dBm."""
         return self._query_float("MEAS:OUT?", channel)
 
     def get_input_power(self, channel):
-        """ Returns the input power for a channel in dBm """
+        """Returns the input power for a channel in dBm."""
         val = self._query_float("MEAS:IN?", channel)
         if math.isnan(val):
             raise Exception(
@@ -205,19 +206,18 @@ class Booster:
         return val
 
     def get_reflected_power(self, channel):
-        """ Returns the reflected power for a channel in dBm """
+        """Returns the reflected power for a channel in dBm."""
         return self._query_float("MEAS:REV?", channel)
 
     def get_fan_speed(self):
-        """ Returns the fan speed as a number between 0 and 100"""
+        """Returns the fan speed as a number between 0 and 100."""
         return self._query_float("MEAS:FAN?", None)
 
     def set_interlock(self, channel, threshold):
-        """ Sets the output forward power interlock threshold (dBm) for a
-        given channel channel.
+        """Sets the output forward power interlock threshold (dBm) for a given
+        channel channel.
 
-        This setting is stored in non-volatile memory and retained across power
-        cycles.
+        This setting is stored in non-volatile memory and retained across power cycles.
 
         :param threshold: must lie between 0dBm and 38dBm
         """
@@ -227,34 +227,32 @@ class Booster:
         self._cmd("INT:POW", channel, "{:.2f}".format(threshold))
 
     def get_interlock(self, channel):
-        """ Returns the output forward power interlock threshold (dBm) for a
-        channel.
-        """
+        """Returns the output forward power interlock threshold (dBm) for a
+        channel."""
         return self._query_float("INT:POW?", channel)
 
     def clear_interlock(self, channel):
-        """ Resets the forward and reverse power interlocks for a given
-        channel. """
+        """Resets the forward and reverse power interlocks for a given channel."""
         self._cmd("INT:CLEAR", channel)
 
     def get_interlock_tripped(self, channel):
-        """ Returns True if the output forwards or reverse power interlock
-        has tripped for a given channel. """
+        """Returns True if the output forwards or reverse power interlock has tripped
+        for a given channel."""
         return self._query_bool("INT:STAT?", channel)
 
     def get_forward_power_interlock_tripped(self, channel):
-        """ Returns True if the output forwards power interlock has tripped for
-        a given channel. """
+        """Returns True if the output forwards power interlock has tripped for a
+        given channel."""
         return self._query_bool("INT:FOR?", channel)
 
     def get_reverse_power_interlock_tripped(self, channel):
-        """ Returns True if the output forwards power interlock has tripped for
-        a given channel. """
+        """Returns True if the output forwards power interlock has tripped for a
+        given channel."""
         return self._query_bool("INT:REV?", channel)
 
     def get_error_occurred(self, channel):
-        """ Returns True if a device error (over temperature etc) has occurred
-        on a given channel """
+        """Returns True if a device error (over temperature etc) has occurred on a
+        given channel."""
         return self._query_bool("INT:ERR?", channel)
 
     def close(self):

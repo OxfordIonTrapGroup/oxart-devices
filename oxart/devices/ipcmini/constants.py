@@ -1,6 +1,4 @@
-"""
-Constants for use with IPCMini ion pump controller
-"""
+"""Constants for use with IPCMini ion pump controller."""
 import numpy as np
 
 stx = b'\x02'
@@ -66,7 +64,7 @@ def decode_read_response(bytes_, win=None):
 
 
 def decode_write_response(bytes_):
-    """return None if all OK"""
+    """Return None if all OK."""
     code = decode_response(bytes_)
     check_return_code(code)
 
@@ -237,8 +235,10 @@ lookups = {
     }
 }
 reverse_lookups = {
-    name: {v: k
-           for k, v in lookup.items()}
+    name: {
+        v: k
+        for k, v in lookup.items()
+    }
     for name, lookup in lookups.items()
 }
 

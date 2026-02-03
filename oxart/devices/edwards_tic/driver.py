@@ -2,6 +2,7 @@ from oxart.devices.streams import get_stream
 
 
 class Turbo:
+
     def __init__(self, device):
         self.stream = get_stream(device)
         assert self.ping()
@@ -15,10 +16,10 @@ class Turbo:
         self.stream.write(cmd.encode())
 
     def _read(self):
-        return self.stream.read(20).decode()
+        return self.stream.read_until("\r".encode()).decode()
 
     def get_pressure(self):
-        """ Returns the temperature of an input channel as a float in Kelin
+        """Returns the temperature of an input channel as a float in Kelin
         : param input: either "A" or "B"
         """
         self._send_cmd("?V913")

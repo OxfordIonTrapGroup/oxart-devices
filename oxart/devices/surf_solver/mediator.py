@@ -26,9 +26,10 @@ Waveform.__doc__ = """Represents the electrode voltage evolution
 class SURFMediator:
     """A high level interface to calculate electrode voltages for ion dynamics.
 
-    The bare bones interface of the SURF driver is abstracted to simplify
-    creating and chaining common operations.
+    The bare bones interface of the SURF driver is abstracted to simplify creating and
+    chaining common operations.
     """
+
     def __init__(self,
                  dmgr,
                  device,
@@ -83,11 +84,12 @@ class SURFMediator:
         self.charge, self.mass = charge, mass
 
     def _mk_waveform(self, volt_vec, el_vec, wells):
-        """Create a new waveform object
+        """Create a new waveform object.
 
         The waveform will start at the specified voltages and well parameters
 
-        electrodes and voltages are matched by index"""
+        electrodes and voltages are matched by index
+        """
         el_vec = tuple(el for el in el_vec)  # unpack into tuple
         wave = Waveform(voltage_vec_list=[volt_vec],
                         el_vec=el_vec,
@@ -96,7 +98,7 @@ class SURFMediator:
         return wave
 
     def concatenate(self, *waves):
-        """Concatenate waveforms"""
+        """Concatenate waveforms."""
         concat_wave = deepcopy(waves[0])
         for wave in waves[1:]:
             assert concat_wave.el_vec == wave.el_vec
@@ -111,14 +113,15 @@ class SURFMediator:
                          electrodes=None,
                          z_grid=None,
                          static_settings=None):
-        """Find the voltage-sets to produce specified potential wells
+        """Find the voltage-sets to produce specified potential wells.
 
         :param wells: Wells object
         :param electrodes: Name electrodes that may be used. if `None` the
             default electrodes are used.
         :param z_grid: vector of z-axis grid points to use for optimisation.
             `None` defaults to the default grid supplied with the trap model.
-        :param static_settings: settings for the static solver. User beware!"""
+        :param static_settings: settings for the static solver. User beware!
+        """
         if electrodes is None:
             electrodes = self.default_electrodes
         el_names = self.get_all_electrode_names()
@@ -140,11 +143,11 @@ class SURFMediator:
         return v_vec[:, 0], el_vec
 
     def get_model_fields(self, zs, volt_dict):
-        """get a dict of trap fields at specified positions for given voltages
+        """Get a dict of trap fields at specified positions for given voltages.
 
         :param zs: list of z-positions to evaluate [in m]
-        :param volt_dict: dictionary {<electrode_name>: <electrode voltage>}
-            unspecified voltages are assumed to be zero.
+        :param volt_dict: dictionary {<electrode_name>: <electrode voltage>} unspecified
+            voltages are assumed to be zero.
         """
         return self.driver.get_model_fields(zs, volt_dict)
 
@@ -153,31 +156,42 @@ class SURFMediator:
 
         :param zs: list of z-positions to evaluate [in m]
         :param wave: Waveform object
-        :param field: Quantity of trap model to evaluate: 'phi', 'dphidx',
-            'dphidy', 'dphidz', 'd2phidx2', 'd2phidy2', 'd2phidz2', 'd2phidxdy',
-            'd2phidxdz', 'd2phidydz', 'd3phidz3', or 'd4phidz4'.
+        :param field: Quantity of trap model to evaluate: 'phi', 'dphidx', 'dphidy',
+            'dphidz', 'd2phidx2', 'd2phidy2', 'd2phidz2', 'd2phidxdy', 'd2phidxdz',
+            'd2phidydz', 'd3phidz3', or 'd4phidz4'.
         :returns: Matrix of field values
         """
         return self.driver.get_model_field(zs, wave.voltage_vec_list, wave.el_vec,
                                            field)
 
     def get_all_electrode_names(self):
-        """Return a list of all electrode names defined in the trap model"""
+        """Return a list of all electrode names defined in the trap model."""
         return self.driver.get_all_electrode_names()
 
     def get_default_electrode_names(self):
-        """Return the electrodes used by default"""
+        """Return the electrodes used by default."""
         if self.default_electrodes is None:
             return self.get_all_electrode_names()
         else:
             return self.default_electrodes
 
-    def get_sum_square_freq(self, z):
-        """Return the single ion sum of square mode frequencies of the model
+    def get_z_grid(self, custom_spacing=None):
+        """Z grid points with optional custom spacing with same range as user
+        default.
 
-        The correct model RF amplitude can be selected by scaling the RF
-        amplitude such that the sum of square frequencies matches those
-        measured experimentally
+        :param custom_spacing: Grid spacing. If not specified, the user default is used.
+        """
+        user_default = self.driver.get_config()["zs"]
+        if custom_spacing is None:
+            return user_default
+        else:
+            return np.arange(np.min(user_default), np.max(user_default), custom_spacing)
+
+    def get_sum_square_freq(self, z):
+        """Return the single ion sum of square mode frequencies of the model.
+
+        The correct model RF amplitude can be selected by scaling the RF amplitude such
+        that the sum of square frequencies matches those measured experimentally
 
         :param z: position where the sum of square frequencies is found [in m]
         """
@@ -189,7 +203,26 @@ class SURFMediator:
                           omega_rf=None,
                           mass=None,
                           v_rf=None):
-        """Reload the trap model caching and trap parameters
+        """Reload the trap model caching and trap parameters.
+
+        Equivalent to ``load_trap_model(…, force_reload=True)``; see
+        :meth:`load_trap_model` for details.
+        """
+        return self.load_trap_model(trap_model_path,
+                                    cache_path,
+                                    omega_rf,
+                                    mass,
+                                    v_rf,
+                                    force_reload=True)
+
+    def load_trap_model(self,
+                        trap_model_path=None,
+                        cache_path=None,
+                        omega_rf=None,
+                        mass=None,
+                        v_rf=None,
+                        force_reload=False):
+        """Load the trap model caching and trap parameters.
 
         All parameters have sane defaults.
 
@@ -203,11 +236,19 @@ class SURFMediator:
         :param mass: mass of ion in atomic mass units
             Defaults to the most recently specified mass
         :param v_rf: RF voltage amplitude.
-            Default is given in trap model"""
+            Default is given in trap model
+        :param force_reload: Whether to reload the model from disk even if the
+            parameters are identical to the current settings. This does not
+            automatically purge the solution cache.
+        """
         if mass is not None:
             self.mass = mass
-        return self.driver.load_config(trap_model_path, cache_path, omega_rf, self.mass,
-                                       v_rf)
+        return self.driver.load_config(trap_model_path,
+                                       cache_path,
+                                       omega_rf,
+                                       self.mass,
+                                       v_rf,
+                                       force_reload=force_reload)
 
     def get_new_waveform(self,
                          z,
@@ -225,7 +266,7 @@ class SURFMediator:
                          *,
                          electrodes=None,
                          z_grid=None):
-        """Start a new Waveform with given potential wells
+        """Start a new Waveform with given potential wells.
 
         Each well is identified by its index within parameter lists. An
         optional more user-friendly name may also be specified for later
@@ -262,7 +303,8 @@ class SURFMediator:
         :param electrodes: list naming electrodes to be used in the waveform.
             If `None` the default electrodes are used.
         :param z_grid: z-grid on which to perform optimisation. If `None` SURF
-            will use the default grid."""
+            will use the default grid.
+        """
         well = self._mk_wells(z, f_axial, f_rad_x, width, dphidx, dphidy, dphidz,
                               rx_axial, ry_axial, phi_radial, d3phidz3, name)
         volt, el = self._volt_from_wells(well, electrodes, z_grid)
@@ -273,8 +315,9 @@ class SURFMediator:
         """Returns a new waveform starting with a well in `old_waveform`
 
         :param old_waveform: old waveform to continue from
-        :param well_idx: index of potential well to continue with. Defaults to
-            the last well in the waveform"""
+        :param well_idx: index of potential well to continue with. Defaults to the last
+            well in the waveform
+        """
         return self._mk_waveform(
             old_waveform.voltage_vec_list[old_waveform.wells_idx[well_idx]],
             old_waveform.el_vec, old_waveform.fixed_wells[well_idx])
@@ -288,7 +331,7 @@ class SURFMediator:
                z_grid=None,
                static_settings=None,
                dynamic_settings=None):
-        """Calculate evolution to modified parameters
+        """Calculate evolution to modified parameters.
 
         :param change_dict: dictionary of changes to last Wells in wave
             change_dict should encode changes as:
@@ -302,7 +345,8 @@ class SURFMediator:
         :param static_settings: settings for the static solver. User beware!
         :param dynamic_settings: settings for the dynamic solver. User beware!
 
-        :return: updated waveform"""
+        :return: updated waveform
+        """
         if electrodes is None:
             electrodes = wave.el_vec
         el_names = wave.el_vec
@@ -377,7 +421,7 @@ class SURFMediator:
               z_grid=None,
               static_settings=None,
               split_settings=None):
-        """Calculate evolution to modified parameters
+        """Calculate evolution to modified parameters.
 
         :param name: name of well to be split
         :param wave: waveform to modify. Modified in place!
@@ -403,7 +447,8 @@ class SURFMediator:
         :param static_settings: settings for the static solver. User beware!
         :param split_settings: settings for the split solver. User beware!
 
-        :return: updated waveform"""
+        :return: updated waveform
+        """
         if electrodes is None:
             electrodes = wave.el_vec
         el_names = wave.el_vec
@@ -518,7 +563,7 @@ class SURFMediator:
               static_settings=None,
               dynamic_settings=None,
               split_settings=None):
-        """Calculate evolution to modified parameters
+        """Calculate evolution to modified parameters.
 
         :param name0: name of well0 to be merged
         :param name1: name of well1 to be merged. Must be adjacent to well0
@@ -550,7 +595,8 @@ class SURFMediator:
         :param dynamic_settings: settings for the dynamic solver. User beware!
         :param split_settings: settings for the split solver. User beware!
 
-        :return updated waveform"""
+        :return updated waveform
+        """
         if electrodes is None:
             electrodes = wave.el_vec
         el_names = wave.el_vec
@@ -660,8 +706,310 @@ class SURFMediator:
         wave.wells_idx.append(len(wave.voltage_vec_list) - 1)
         return wave
 
+    def dynamic_split(self,
+                      name,
+                      wave,
+                      n_step,
+                      n_itpl=101,
+                      out_name0=None,
+                      out_name1=None,
+                      *,
+                      curv_start=None,
+                      sep_start=None,
+                      sep_end=None,
+                      well_separation=None,
+                      axial_tilt=None,
+                      electrodes=None,
+                      z_grid=None,
+                      static_settings=None,
+                      split_settings=None):
+        """Calculate evolution to modified parameters.
+
+        :param name: name of well to be split
+        :param wave: waveform to modify. Modified in place!
+        :param n_step: number of steps in the splitting wave-form
+        :param n_itpl: number of interpolation steps to and from the
+            the splitting waveform.
+        :param out_name0: Name of new well0. If None: out_name0 = name.
+        :param out_name1: Name of new well1. If None: out_name1 = name + "_1".
+
+        :param curv_start: d2phidaxial2 when starting the splitting waveform
+            [in V m^-2]. `None` uses the default.
+        :param sep_start: de-facto ion-ion distance in first well of splitting
+            waveform (maximum quartic term, scan_curv_start quadratic term).
+            `None` uses the value inferred from :param:`curv_start`.
+        :param sep_end: ion distance when ending the splitting waveform
+            [in V m^-2]. `None` uses the value inferred from the default `curv_end`.
+        :param well_separation: The separation between individual wells after
+            splitting. `None` uses the default.
+        :param axial_tilt: The axial tilt [in V m^-1] during the split.
+            `None` uses dphidz of the last well in `wave`.
+        :param electrodes: Name electrodes that may be used in the new wells.
+            If `None` the all electrodes in `wave` are used.
+        :param z_grid: vector of z-axis grid points to use for optimisation.
+            `None` defaults to the default grid supplied with the trap model.
+        :param static_settings: settings for the static solver. User beware!
+        :param split_settings: settings for the split solver. User beware!
+
+        :return: updated waveform
+        """
+        if electrodes is None:
+            electrodes = wave.el_vec
+        el_names = wave.el_vec
+
+        assert set(electrodes).issubset(set(el_names)), \
+            "\n{}\n{}".format(set(electrodes), set(el_names))
+
+        if z_grid is None:
+            z_grid = self.default_z_grid
+
+        if curv_start is None:
+            curv_start = self.default_split_start
+        if sep_start is None:
+            sep_start = self.field_to_two_ion_sep(curv_start)
+        if sep_end is None:
+            sep_end = self.field_to_two_ion_sep(self.default_split_end)
+        if well_separation is None:
+            well_separation = self.default_split_well_seperation
+
+        spectators = deepcopy(wave.fixed_wells[-1])
+        split_idx = spectators.name.index(name)
+
+        # list.pop() target well
+        target_well = Wells(*([spectators[i].pop(split_idx)]
+                              for i in range(len(spectators))))
+        # determine a sensible initial split well
+        target_well.rx_axial[0] = 0.
+        target_well.ry_axial[0] = 0.
+        target_well.phi_radial[0] = 0.
+        if axial_tilt is not None:
+            target_well.dphidz[0] = axial_tilt
+        target_well.d2phidaxial2[0] = curv_start
+
+        split_params = {
+            "electrodes": tuple(el for el in wave.el_vec),
+            "zs": z_grid,
+            "split_well": target_well._asdict(),
+            "start_separation": sep_start,
+            "end_separation": sep_end,
+            "n_step": n_step,
+            "spectators": spectators._asdict(),
+            "split_settings": split_settings,
+        }
+
+        # solve splitting dynamics
+        volt_split, split_el, sep_vec = self.driver.dynamic_split(**split_params)
+        volt_split = [volt_split[:, i] for i in range(n_step)]
+
+        names = [
+            name if out_name0 is None else out_name0,
+            (name + "_1") if out_name1 is None else out_name1,
+        ]
+        split_wells = Wells(name=names,
+                            z=[
+                                target_well.z[0] - well_separation / 2,
+                                target_well.z[0] + well_separation / 2
+                            ],
+                            width=[target_well.width[0]] * 2,
+                            dphidx=[target_well.dphidx[0]] * 2,
+                            dphidy=[target_well.dphidy[0]] * 2,
+                            dphidz=[target_well.dphidz[0]] * 2,
+                            rx_axial=[target_well.rx_axial[0]] * 2,
+                            ry_axial=[target_well.ry_axial[0]] * 2,
+                            phi_radial=[target_well.phi_radial[0]] * 2,
+                            d2phidaxial2=[target_well.d2phidaxial2[0]] * 2,
+                            d3phidz3=[target_well.d3phidz3[0]] * 2,
+                            d2phidradial_h2=[target_well.d2phidradial_h2[0]] * 2)
+
+        # new wells & voltage-set
+        final_wells = Wells(*(spectators[i][:split_idx] + split_wells[i] +
+                              spectators[i][split_idx:]
+                              for i in range(len(split_wells))))
+        # ToDo: may want to check if there is sufficient space
+        final_volt, final_el = self._volt_from_wells(final_wells,
+                                                     electrodes=wave.el_vec,
+                                                     z_grid=z_grid,
+                                                     static_settings=static_settings)
+
+        # interpolate start and finish
+        wave.voltage_vec_list.extend(
+            self._interpolate(wave.voltage_vec_list[-1], volt_split[0], n_itpl))
+        wave.voltage_vec_list.extend(volt_split)
+        # use _poly_interpolate to achieve smoother ion acceleration
+        wave.voltage_vec_list.extend(
+            self._poly_interpolate(wave.voltage_vec_list[-1], final_volt, n_itpl))
+
+        wave.fixed_wells.append(final_wells)
+        wave.wells_idx.append(len(wave.voltage_vec_list) - 1)
+        return wave
+
+    def dynamic_merge(self,
+                      name0,
+                      name1,
+                      wave,
+                      n_step,
+                      n_itpl=101,
+                      out_name=None,
+                      prepare_wells=True,
+                      n_prepare=101,
+                      *,
+                      curv_start=None,
+                      sep_start=None,
+                      sep_end=None,
+                      well_separation=None,
+                      axial_tilt=None,
+                      merge_pos=None,
+                      electrodes=None,
+                      z_grid=None,
+                      static_settings=None,
+                      dynamic_settings=None,
+                      split_settings=None):
+        """Calculate evolution to modified parameters.
+
+        :param name0: name of well0 to be merged
+        :param name1: name of well1 to be merged. Must be adjacent to well0
+        :param wave: waveform to modify. Modified in place!
+        :param n_step: number of steps in the splitting wave-form
+        :param n_scan: number of scan points used to infer splitting wave-form
+        :param n_itpl: number of interpolation steps to and from the
+            the splitting waveform.
+        :param out_name: Name of new well. If None: out_name = name0.
+        :param prepare_wells: should the wells be moved to a good merging start
+            position? If you want fine control of this, do it manually!
+        :param n_prepare: number of voltage steps for well preparation.
+
+        :param curv_start: d2phidaxial2 when starting the splitting waveform
+            [in V m^-2]. `None` uses the default.
+        :param sep_start: de-facto ion-ion distance in first well of splitting
+            waveform (maximum quartic term, scan_curv_start quadratic term).
+            `None` uses the value inferred from :param:`curv_start`.
+        :param sep_end: ion distance when ending the splitting waveform.
+            [in V m^-2]. `None` uses the value inferred from the default `curv_end`.
+        :param axial_tilt: The axial tilt [in V m^-1] during the merge.
+            `None` uses the average dphidz of the wells `name0` and `name1`.
+        :param merge_pos: Position where the wells should be merged. [in m]
+            If `None` the nearest `default_split_positions` is used.
+        :param electrodes: Name electrodes that may be used in the new wells.
+            If `None` the all electrodes in `wave` are used.
+        :param z_grid: vector of z-axis grid points to use for optimisation.
+            `None` defaults to the default grid supplied with the trap model.
+        :param static_settings: settings for the static solver. User beware!
+        :param dynamic_settings: settings for the dynamic solver. User beware!
+        :param split_settings: settings for the split solver. User beware!
+
+        :return updated waveform
+        """
+        if electrodes is None:
+            electrodes = wave.el_vec
+        el_names = wave.el_vec
+
+        assert set(electrodes).issubset(set(el_names)), \
+            "\n{}\n{}".format(set(electrodes), set(el_names))
+
+        if z_grid is None:
+            z_grid = self.default_z_grid
+
+        if curv_start is None:
+            curv_start = self.default_split_start
+        if sep_start is None:
+            sep_start = self.field_to_two_ion_sep(curv_start)
+        if sep_end is None:
+            sep_end = self.field_to_two_ion_sep(self.default_split_end)
+        if well_separation is None:
+            well_separation = self.default_split_well_seperation
+
+        spectators = deepcopy(wave.fixed_wells[-1])
+        merge_idx = [spectators.name.index(name0), spectators.name.index(name1)]
+
+        # ToDo: assert no wells between wells to be merged
+        target_well = Wells(*([spectators[i][well_idx] for well_idx in merge_idx]
+                              for i in range(len(spectators))))
+
+        spectators = Wells(
+            *([val for i, val in enumerate(spectators[i]) if i not in merge_idx]
+              for i in range(len(spectators))))
+
+        if merge_pos is None:
+            pos_idx = np.argmin(
+                np.abs(np.mean(target_well.z) - self.default_split_positions))
+            merge_pos = self.default_split_positions[pos_idx]
+        # merging is inverse splitting! -> use splitting solver
+        # determine a sensible initial and final split well
+        split_well = Wells(
+            name=[out_name if out_name is not None else name0],
+            z=[merge_pos],
+            width=[np.mean(target_well.width)],
+            dphidx=[np.mean(target_well.dphidx)],
+            dphidy=[np.mean(target_well.dphidy)],
+            dphidz=[np.mean(target_well.dphidz) if axial_tilt is None else axial_tilt],
+            rx_axial=[0.],
+            ry_axial=[0.],
+            phi_radial=[0.],
+            d2phidaxial2=[curv_start],
+            d3phidz3=[np.mean(target_well.d3phidz3)],
+            d2phidradial_h2=[np.mean(target_well.d2phidradial_h2)],
+        )
+
+        # solve splitting dynamics (merging is inverse splitting)
+        split_params = {
+            "electrodes": tuple(el for el in wave.el_vec),
+            "zs": z_grid,
+            "split_well": split_well._asdict(),
+            "start_separation": sep_start,
+            "end_separation": sep_end,
+            "n_step": n_step,
+            "spectators": spectators._asdict(),
+            "split_settings": split_settings,
+        }
+
+        # solve splitting dynamics
+        volt_merge, merge_el, sep_vec = self.driver.dynamic_split(**split_params)
+        volt_merge = [volt_merge[:, i] for i in range(n_step - 1, -1, -1)]
+
+        if prepare_wells:
+            # move wells to be separated by one electrode
+            # self.modify to merge start position
+            name_order = np.sign(target_well.z[1] - target_well.z[0])
+            move_dict = {
+                name0: {
+                    "z": split_well.z[0] - name_order * well_separation / 2
+                },
+                name1: {
+                    "z": split_well.z[0] + name_order * well_separation / 2
+                },
+            }
+            wave = self.modify(move_dict, wave, n_prepare)
+
+        # volt_from_wells for end well
+        merged_well = deepcopy(split_well)
+        merged_well.d2phidaxial2[0] = np.mean(target_well.d2phidaxial2)
+
+        # new wells & voltage-set
+        final_wells = Wells(*(spectators[i][:min(merge_idx)] + merged_well[i] +
+                              spectators[i][min(merge_idx):]
+                              for i in range(len(merged_well))))
+
+        # ToDo: may want to check if wells cross other wells.
+        final_volt, final_el = self._volt_from_wells(final_wells,
+                                                     electrodes=wave.el_vec,
+                                                     z_grid=z_grid,
+                                                     static_settings=static_settings)
+
+        # interpolate start and finish
+        # use _poly_interpolate to achieve smoother ion acceleration
+        wave.voltage_vec_list.extend(
+            self._poly_interpolate(wave.voltage_vec_list[-1], volt_merge[0], n_itpl))
+        wave.voltage_vec_list.extend(volt_merge)
+
+        wave.voltage_vec_list.extend(
+            self._interpolate(volt_merge[-1], final_volt, n_itpl))
+
+        wave.fixed_wells.append(final_wells)
+        wave.wells_idx.append(len(wave.voltage_vec_list) - 1)
+        return wave
+
     def spawn_wells(self, z, wave, n_step=5, *, z_grid=None, **kwargs):
-        """Spawn new wells in a waveform
+        """Spawn new wells in a waveform.
 
         Each well is identified by its index within parameter lists. An
         optional more user-friendly name may also be specified for later
@@ -696,7 +1044,8 @@ class SURFMediator:
             well index.
 
         :param z_grid: z-grid on which to perform optimisation. If `None` SURF
-            will use the default grid."""
+            will use the default grid.
+        """
         old_wells = wave.fixed_wells[-1]
         old_volt = wave.voltage_vec_list[-1]
 
@@ -716,18 +1065,17 @@ class SURFMediator:
 
         Assumes electrode ordering in both voltage vectors is identical.
 
-        May be used to connect different (similar) waveforms or
-        evolve to/from non SURF voltages"""
+        May be used to connect different (similar) waveforms or evolve to/from non SURF
+        voltages
+        """
         return [volt0 + (volt1 - volt0) * t for t in np.linspace(0, 1, n_step)]
 
     def _poly_interpolate(self, volt0, volt1, n_step):
-        """Smoothly evolve between 2 voltage vectors.
-        May be used to connect different (similar) waveforms or
-        evolve to/from non SURF voltages.
+        """Smoothly evolve between 2 voltage vectors. May be used to connect
+        different (similar) waveforms or evolve to/from non SURF voltages.
 
-        The polynomial has been chosen to have d2voltage/dt2 = 0 at
-        the start and end of the interpolation.
-        (Inspired by H Kaufmann et al 2014 New J. Phys. 16 073012)
+        The polynomial has been chosen to have d2voltage/dt2 = 0 at the start and end of
+        the interpolation. (Inspired by H Kaufmann et al 2014 New J. Phys. 16 073012)
 
         Assumes electrode ordering in both voltage vectors is identical.
         """
@@ -746,6 +1094,12 @@ class SURFMediator:
         "convert field curvature to mode frequency"
         return np.sqrt(field_curvature * self.charge * const("atomic unit of charge") /
                        (self.mass * const("atomic mass constant"))) / (2 * np.pi)
+
+    def field_to_two_ion_sep(self, field_curvature):
+        """Convert field curvature to two-ion separation."""
+        eps_4pi = 4 * np.pi * const("vacuum electric permittivity")
+        q = self.charge * const("atomic unit of charge")
+        return (q / (eps_4pi * field_curvature))**(1 / 3)
 
     def _mk_wells(self,
                   z,
@@ -792,7 +1146,8 @@ class SURFMediator:
             broadcast. Default: 0.
         :param name: List of string names for wells. Elements set to None will
             use the well index as a name. If unspecified, all names are the
-            well index."""
+            well index.
+        """
         if f_axial is None:
             f_axial = self.default_f_axial
         if f_rad_x is None:

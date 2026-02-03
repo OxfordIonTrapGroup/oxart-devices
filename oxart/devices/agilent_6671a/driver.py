@@ -2,7 +2,8 @@ from oxart.devices.streams import get_stream
 
 
 class Agilent6671A:
-    """Driver for Agilent 6671A power supplies"""
+    """Driver for Agilent 6671A power supplies."""
+
     def __init__(self, device, timeout=10):
         # If the Agilent 6671A is connected via a GPIB adapter, the adapter
         # will be pinged as part of the call to get_stream. If no
@@ -37,7 +38,7 @@ class Agilent6671A:
         self.stream.write(":VOLT {:f}\n".format(voltage_limit).encode())
 
     def set_current_limit(self, current_limit):
-        """Set the current limit for channel in amps"""
+        """Set the current limit for channel in amps."""
         self.stream.write(":CURR {:f}\n".format(current_limit).encode())
 
     def set_output_enable(self, enable):
@@ -56,11 +57,11 @@ class Agilent6671A:
         self.stream.write("VOLT:PROT {:f}".format(overvoltage_limit))
 
     def clear_all_interlocks(self):
-        """Reset the OV (over voltage), OC (over current), OT (over
-        temperature) and RI (remote inhibit) protection interlocks.
+        """Reset the OV (over voltage), OC (over current), OT (over temperature) and
+        RI (remote inhibit) protection interlocks.
 
-        After this command, the output is restored to the state it was in
-        before the protection activated.
+        After this command, the output is restored to the state it was in before the
+        protection activated.
         """
         self.stream.write("OUTP:PROT:CLE\n".encode())
 

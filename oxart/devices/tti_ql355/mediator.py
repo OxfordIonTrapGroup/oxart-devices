@@ -1,10 +1,13 @@
 class PsuWrapper:
-    """Wraps multiple power supplies to allow reference to channels by an
-    easily remappable logical name. The arguments are:
-        'devices', the list of power supplies,
-        'mappings', a dictionary mapping logical devices names to
-            (device,channel) tuples
+    """Wraps multiple power supplies to allow reference to channels by an easily
+    remappable logical name.
+
+    The arguments are:
+    'devices', the list of power supplies,
+    'mappings', a dictionary mapping logical devices names to
+        (device,channel) tuples
     """
+
     def __init__(self, dmgr, devices, mappings):
         self.core = dmgr.get("core")
         self.devices = {dev: dmgr.get(dev) for dev in devices}
@@ -40,7 +43,7 @@ class PsuWrapper:
         return device.get_ocp_current(channel=channel)
 
     def _get_dev_channel(self, logicalChannel):
-        """Return a (device handle, channel) tuple given a logical channel"""
+        """Return a (device handle, channel) tuple given a logical channel."""
 
         # Look up the (device name, channel name) tuple in the mappings
         # dictionary
@@ -59,11 +62,11 @@ class PsuWrapper:
 
 
 class UnknownLogicalChannelError(Exception):
-    """The logical channel given was not found in the mappings dictionary"""
+    """The logical channel given was not found in the mappings dictionary."""
     pass
 
 
 class UnknownDeviceNameError(Exception):
-    """The device name for the given logical channel was not found in the
-    devices list"""
+    """The device name for the given logical channel was not found in the devices
+    list."""
     pass

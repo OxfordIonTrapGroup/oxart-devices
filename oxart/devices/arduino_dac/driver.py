@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class ArduinoDAC:
+
     def __init__(self, serial_name, n_channels=16, v_min=-10, v_max=10):
         """serial_name : serial port name
         n_channels : clock frequency in Hz
@@ -39,7 +40,10 @@ class ArduinoDAC:
             raise
 
     def _read_line(self):
-        """Read a CR terminated line. Returns '' on timeout"""
+        """Read a CR terminated line.
+
+        Returns '' on timeout
+        """
         s = ''
         while len(s) == 0 or s[-1] != '\n':
             c = self.port.read().decode()
@@ -50,6 +54,7 @@ class ArduinoDAC:
 
     def _validate_channel_index(self, channel):
         """Check whether a channel index is in range.
+
         Returns true if channel is in range.
         """
 
@@ -60,6 +65,7 @@ class ArduinoDAC:
 
     def _validate_voltage(self, voltage):
         """Check whether a voltage is in range.
+
         Returns true if voltage is in range.
         """
 
@@ -69,9 +75,10 @@ class ArduinoDAC:
             return True
 
     def set_voltage(self, channel, voltage, update=True):
-        """Set the voltage on the given channel. Voltage is a float with
-        units of volts. Update determines whether to the output should be
-        updated on execution of this command, or later with 'update'
+        """Set the voltage on the given channel.
+
+        Voltage is a float with units of volts. Update determines whether to the output
+        should be updated on execution of this command, or later with 'update'
         """
         if update:
             command = 'VU'
@@ -95,8 +102,7 @@ class ArduinoDAC:
         logger.info("Setting voltage channel {} to {}".format(channel, voltage))
 
     def get_voltage(self, channel):
-        """Reads the voltage on the given channel
-        """
+        """Reads the voltage on the given channel."""
 
         if not self._validate_channel_index(channel):
             raise Exception("Bad channel index: {}".format(channel))

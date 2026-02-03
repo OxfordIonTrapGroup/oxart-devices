@@ -1,8 +1,8 @@
 class MultipliedDDSWrapper:
-    """Wraps an Arduino DDS class to allow profiles to be set in
-    logical frequencies (detunings from zero field) rather than the
-    physical frequencies that are the input to the mixup chain
-    """
+    """Wraps an Arduino DDS class to allow profiles to be set in logical frequencies
+    (detunings from zero field) rather than the physical frequencies that are the
+    input to the mixup chain."""
+
     def __init__(self, dmgr, device, multiplier, invert_profile_lines=False):
         self.core = dmgr.get("core")
         self.dds = dmgr.get(device)

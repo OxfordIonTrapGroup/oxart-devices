@@ -6,7 +6,8 @@ class VarianError(Exception):
 
 
 class VarianIonGauge:
-    """Varian ion-gauge driver"""
+    """Varian ion-gauge driver."""
+
     def __init__(self, port, baudrate=19200, timeout=1):
 
         self.s = serial.Serial(port, baudrate, timeout=timeout)

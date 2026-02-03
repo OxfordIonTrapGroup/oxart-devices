@@ -7,6 +7,7 @@ N_CHANNELS = 4
 
 
 class HOA2Dac:
+
     def __init__(self, serial_name):
         """serial_name : serial port name
 
@@ -54,21 +55,27 @@ class HOA2Dac:
 
     def set_z_compensation(self, z_comp, update=True):
         """Sets the z (normal to trap plane) compensation voltage in V/m.
-        If update=True the DAC voltages are updated immediately."""
+
+        If update=True the DAC voltages are updated immediately.
+        """
         self.z_comp = z_comp
         if update:
             self.update_voltages()
 
     def set_y_compensation(self, y_comp, update=True):
         """Sets the y (transverse, in trap plane) compensation voltage in V/m.
-        If update=True the DAC voltages are updated immediately."""
+
+        If update=True the DAC voltages are updated immediately.
+        """
         self.y_comp = y_comp
         if update:
             self.update_voltages()
 
     def set_trap_frequency(self, freq, update=True):
         """Set the axial trap frequency for Strontium, in Hz.
-        If update=True the DAC voltages are updated immediately."""
+
+        If update=True the DAC voltages are updated immediately.
+        """
         self.sr_trap_freq = freq
         if update:
             self.update_voltages()
