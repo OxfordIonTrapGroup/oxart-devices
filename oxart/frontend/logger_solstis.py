@@ -13,6 +13,10 @@ def get_argparser():
                         "--server",
                         required=True,
                         help="Laser controller address / hostname")
+    parser.add_argument("--server-port",
+                        default=8088,
+                        type=int,
+                        help="Laser controller port")
     parser.add_argument("--name",
                         required=True,
                         help="Logical laser name, defines measurement name")
@@ -86,8 +90,9 @@ def main():
         write_point(fields, tags={"type": "display_notification"})
 
     notifier = SolstisNotifier(server=args.server,
-                               notification_callback=handle_notification,
+                               port=args.server_port,
                                status_callback=handle_status_update,
+                               notification_callback=handle_notification,
                                timeout=args.timeout)
     loop.run_until_complete(notifier.run())
 
