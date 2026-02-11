@@ -8,6 +8,7 @@ This relies on a JTAG connection (usually via the micro-USB port on the front pa
 import argparse
 from influxdb import InfluxDBClient
 import subprocess
+import sys
 
 
 def main():
@@ -39,6 +40,7 @@ def main():
                             capture_output=True)
     if result.returncode != 0:
         print("OpenOCD call failed:", result)
+        sys.exit(1)
 
     data = {}
     for line in result.stderr.splitlines():
