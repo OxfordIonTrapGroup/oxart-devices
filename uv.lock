@@ -232,8 +232,8 @@ name = "docformatter"
 version = "1.7.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "charset-normalizer" },
-    { name = "untokenize" },
+    { name = "charset-normalizer", marker = "python_full_version < '3.14'" },
+    { name = "untokenize", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/2a/7b/ee08cb5fe2627ed0b6f0cc4a1c6be6c9c71de5a3e9785de8174273fc3128/docformatter-1.7.7.tar.gz", hash = "sha256:ea0e1e8867e5af468dfc3f9e947b92230a55be9ec17cd1609556387bffac7978", size = 26587, upload-time = "2025-05-11T04:54:04.356Z" }
 wheels = [
@@ -732,6 +732,10 @@ logger-solstis = [
 logger-toptica-dlc = [
     { name = "toptica-lasersdk" },
 ]
+windfreak = [
+    { name = "influxdb" },
+    { name = "pyserial" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -756,6 +760,10 @@ dev = [
 ]
 logger-solstis = [{ name = "websockets", specifier = ">=15.0,<16" }]
 logger-toptica-dlc = [{ name = "toptica-lasersdk", specifier = "==3.3.0" }]
+windfreak = [
+    { name = "influxdb", specifier = ">=5.3.2" },
+    { name = "pyserial", specifier = ">=3.5" },
+]
 
 [[package]]
 name = "packaging"
