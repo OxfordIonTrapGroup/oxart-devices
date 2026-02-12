@@ -30,9 +30,20 @@ def get_argparser():
     parser.add_argument(
         "--poll", default=600, type=int, help="Measurement polling period (seconds)"
     )
+    parser.add_argument(
+        "--config-file",
+        help="Path toJSON config file defining parameters to monitor",
+    )
+
+    network_args = parser.add_argument_group("network server")
+    network_args.add_argument(
+        "--bind", default="localhost", help="Server hostname or IP address to bind to"
+    )
+    network_args.add_argument(
+        "--port", default=4325, type=int, help="TCP port to listen on"
+    )
 
     sca.verbosity_args(parser)
-    sca.simple_network_args(parser, 4325)
 
     return parser
 
@@ -48,12 +59,13 @@ def write_point(fields, name, influx_client):
 def log_parameters(parameters, synth, influx_client, measurement_name):
     msg = {}
     for channel in SynthHDChannel:
-        with synth.control_channel(channel):
-            for key, cmd in parameters[channel].items():
-                msg[f"{channel.name}_{key}"] = synth.query_cmd(cmd)
+        synth.set_controlled_channel(channel.name)
+        for key, cmd in parameters[channel].items():
+            msg[f"{channel.name}_{key}"] = synth.query_cmd(cmd)
 
     for key, cmd in parameters["device"].items():
         msg[key] = synth.query_cmd(cmd)
+    # logger.info("Writing parameters to InfluxDB: {}".format(msg))
     write_point(msg, measurement_name, influx_client)
 
 
@@ -82,15 +94,15 @@ def main():
 
     logger.info(
         "Connecting to Windfreak SynthHD server at {}:{}...".format(
-            args.address, args.port
+            args.bind, args.port
         )
     )
-    synthhd = Client(args.address, args.port, "WindfreakSynthHD")
+    synthhd = Client(args.bind, args.port, "WindfreakSynthHD")
     logger.info("Connection established to Windfreak SynthHD server.")
 
     while True:
-        time.sleep(args.poll)
         log_parameters(parameters, synthhd, influx_client, args.name)
+        time.sleep(args.poll)
 
 
 if __name__ == "__main__":

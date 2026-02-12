@@ -22,6 +22,17 @@ class SynthHDChannel(enum.Enum):
     RF_OUT_B = 1
 
 
+def _channel_from_any(channel: SynthHDChannel | str | int) -> SynthHDChannel:
+    """Convert a channel specified as an enum, name or value to the SynthHDChannel enum."""
+    if isinstance(channel, SynthHDChannel):
+        return channel
+    if isinstance(channel, str):
+        return SynthHDChannel[channel]
+    if isinstance(channel, int):
+        return SynthHDChannel(channel)
+    raise ValueError(f"Invalid channel: {channel}")
+
+
 class SerialDevice:
     commands = {}
 
@@ -113,7 +124,7 @@ class WindfreakSynthHD(SerialDevice):
             return False
 
     @contextmanager
-    def control_channel(self, channel: SynthHDChannel | None):
+    def control_channel(self, channel: SynthHDChannel | str | int | None):
         """Context manager to temporarily set the controlled channel for a block of commands."""
         if channel is None:
             if self._active_control_channel is None:
@@ -121,6 +132,7 @@ class WindfreakSynthHD(SerialDevice):
                     "No channel specified and no active control channel set"
                 )
         else:
+            channel = _channel_from_any(channel)
             active_control_channel = self._active_control_channel
             self.set_controlled_channel(channel)
 
@@ -180,10 +192,11 @@ class WindfreakSynthHD(SerialDevice):
         """Mute or unmute the RF output."""
         return self.send_cmd("mute_rf", mute)
 
-    def set_controlled_channel(self, channel: SynthHDChannel):
+    def set_controlled_channel(self, channel: SynthHDChannel | str | int):
         """Set the active channel to control for all subsequent commands."""
-        logger.info("Changing active control channel to {}".format(channel))
+        channel = _channel_from_any(channel)
 
+        logger.info("Changing active control channel to {}".format(channel.name))
         self.send_cmd("control_channel", channel.value)
         self._active_control_channel = channel
 
