@@ -112,10 +112,9 @@ class WindfreakSynthHD(SerialDevice):
     def open(self):
         super().open()
         serial_num, model_type = self.read_device_info()
-        logger.info(
-            "Connected to Windfreak SynthHD "
-            f"(Serial: {serial_num}, Model: {model_type}) at port {self.serial_port.port}"
-        )
+        logger.info("Connected to Windfreak SynthHD "
+                    f"(Serial: {serial_num}, Model: {model_type}) "
+                    f"at port {self.serial_port.port}")
 
     def ping(self):
         logger.debug("Pinging device...")
@@ -158,7 +157,8 @@ class WindfreakSynthHD(SerialDevice):
         """Sends a (read-only) serial command to the synthhd and returns the
         response.
 
-        If a `channel` is specified, restores the previously active channel (if set) after execution.
+        If a `channel` is specified, restores the previously active channel
+        (if set) after execution.
         """
         if (self.commands[command].needs_channel
                 and self._active_control_channel is None):
@@ -210,8 +210,9 @@ class WindfreakSynthHD(SerialDevice):
         sweep is running, this will set the current frequency to the specified value
         and resume the sweep.
 
-        Note: The sweep may end early or exceed the specified endpoint, and will terminate at
-        after the same number of steps it would have taken if the frequency was not changed.
+        Note: The sweep may end early or exceed the specified endpoint, and will
+        terminate at after the same number of steps it would have taken if the
+        frequency was not changed.
         """
         return self.send_cmd("frequency_now_MHz", frequency_Hz / 1e6)
 
@@ -242,7 +243,8 @@ class WindfreakSynthHD(SerialDevice):
 
         If sweep_continuously is False
             * Resumes the current sweep if it is paused.
-            * Starts a new sweep with the last configured parameters if the previous sweep has finished.
+            * Starts a new sweep with the last configured parameters
+            if the previous sweep has finished.
         If sweep_continuously is True, restarts the current sweep from the beginning
         """
         return self.send_cmd("run_sweep", True)
@@ -275,7 +277,8 @@ class WindfreakSynthHD(SerialDevice):
         :param step_frequency: Step size for frequency [Hz]
         :param step_time: Time between consecutive steps [s]
         :param start_power: Power at start of sweep [dBm]
-        :param end_power: Power at end of sweep [dBm]. If None, power is not swept and remains at start_power.
+        :param end_power: Power at end of sweep [dBm].
+            If None, power is not swept and remains at start_power.
         :param sweep_continuously: Restart sweep automatically after end of sweep?
         """
 
