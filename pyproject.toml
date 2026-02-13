@@ -73,6 +73,10 @@ logger-solstis = [
 logger-toptica-dlc = [
     "toptica-lasersdk==3.3.0",
 ]
+windfreak = [
+    "influxdb>=5.3.2",
+    "pyserial>=3.5",
+]
 
 [tool.uv.sources]
 sipyco = { git = "https://github.com/m-labs/sipyco.git" }
