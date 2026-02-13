@@ -36,13 +36,14 @@ def get_argparser():
     )
 
     network_args = parser.add_argument_group("network server")
-    network_args.add_argument("--bind",
+    network_args.add_argument("-w",
+                              "--wf-server",
                               default="localhost",
-                              help="Server hostname or IP address to bind to")
+                              help="Windfreak server hostname or IP address")
     network_args.add_argument("--port",
                               default=4325,
                               type=int,
-                              help="TCP port to listen on")
+                              help="Server port to connect to")
 
     sca.verbosity_args(parser)
 
