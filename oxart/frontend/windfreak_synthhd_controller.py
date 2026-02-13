@@ -13,11 +13,10 @@ logger = logging.getLogger(__name__)
 
 def get_argparser():
     parser = argparse.ArgumentParser(
-        description="ARTIQ controller for Windfreak SynthHD signal generator",
-    )
-    parser.add_argument(
-        "--serial-port", help="Serial port for Windfreak SynthHD", required=True
-    )
+        description="ARTIQ controller for Windfreak SynthHD signal generator", )
+    parser.add_argument("--serial-port",
+                        help="Serial port for Windfreak SynthHD",
+                        required=True)
 
     sca.simple_network_args(parser, 4310)
     sca.verbosity_args(parser)
@@ -31,9 +30,8 @@ def main():
 
     logger.info("Starting server at port {}...".format(args.port))
     with WindfreakSynthHD(args.serial_port) as synthhd:
-        simple_server_loop(
-            {"WindfreakSynthHD": synthhd}, sca.bind_address_from_args(args), args.port
-        )
+        simple_server_loop({"WindfreakSynthHD": synthhd},
+                           sca.bind_address_from_args(args), args.port)
 
 
 if __name__ == "__main__":

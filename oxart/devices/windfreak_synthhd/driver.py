@@ -23,7 +23,8 @@ class SynthHDChannel(enum.Enum):
 
 
 def _channel_from_any(channel: SynthHDChannel | str | int) -> SynthHDChannel:
-    """Convert a channel specified as an enum, name or value to the SynthHDChannel enum."""
+    """Convert a channel specified as an enum, name or value to the SynthHDChannel
+    enum."""
     if isinstance(channel, SynthHDChannel):
         return channel
     if isinstance(channel, str):
@@ -102,9 +103,10 @@ class WindfreakSynthHD(SerialDevice):
 
     def __init__(self, port, timeout=3, **serial_kwargs):
         write_timeout = serial_kwargs.pop("write_timeout", timeout)
-        super().__init__(
-            port, timeout=timeout, write_timeout=write_timeout, **serial_kwargs
-        )
+        super().__init__(port,
+                         timeout=timeout,
+                         write_timeout=write_timeout,
+                         **serial_kwargs)
         self._active_control_channel = None
 
     def open(self):
@@ -125,12 +127,12 @@ class WindfreakSynthHD(SerialDevice):
 
     @contextmanager
     def control_channel(self, channel: SynthHDChannel | str | int | None):
-        """Context manager to temporarily set the controlled channel for a block of commands."""
+        """Context manager to temporarily set the controlled channel for a block of
+        commands."""
         if channel is None:
             if self._active_control_channel is None:
                 raise RuntimeError(
-                    "No channel specified and no active control channel set"
-                )
+                    "No channel specified and no active control channel set")
         else:
             channel = _channel_from_any(channel)
             active_control_channel = self._active_control_channel
@@ -143,28 +145,23 @@ class WindfreakSynthHD(SerialDevice):
                 self.set_controlled_channel(active_control_channel)
 
     def send_cmd(self, command, value=None):
-        """
-        Sends a (write-only) serial command to the synthhd without expecting a response.
-        """
+        """Sends a (write-only) serial command to the synthhd without expecting a
+        response."""
         logger.debug(
-            f"Setting {command} to {value} on channel {self._active_control_channel}"
-        )
-        if (
-            self.commands[command].needs_channel
-            and self._active_control_channel is None
-        ):
+            f"Setting {command} to {value} on channel {self._active_control_channel}")
+        if (self.commands[command].needs_channel
+                and self._active_control_channel is None):
             raise RuntimeError(f"Command '{command}' needs a channel to be specified.")
         return super().send_cmd(command, value)
 
     def query_cmd(self, command):
-        """
-        Sends a (read-only) serial command to the synthhd and returns the response.
+        """Sends a (read-only) serial command to the synthhd and returns the
+        response.
+
         If a `channel` is specified, restores the previously active channel (if set) after execution.
         """
-        if (
-            self.commands[command].needs_channel
-            and self._active_control_channel is None
-        ):
+        if (self.commands[command].needs_channel
+                and self._active_control_channel is None):
             raise RuntimeError(f"Command '{command}' needs a channel to be specified.")
 
         logger.debug(f"Querying {command} on channel {self._active_control_channel}")
@@ -172,6 +169,7 @@ class WindfreakSynthHD(SerialDevice):
 
     def read_device_info(self):
         """Reads device information.
+
         :return: (device_serial_number, device_model_type)
         """
         info = {}
@@ -208,9 +206,9 @@ class WindfreakSynthHD(SerialDevice):
         return self._active_control_channel
 
     def set_frequency_now(self, frequency_Hz: float):
-        """Set the instantaneous frequency of the specified channel.
-        If a frequency sweep is running, this will set the current frequency
-        to the specified value and resume the sweep.
+        """Set the instantaneous frequency of the specified channel. If a frequency
+        sweep is running, this will set the current frequency to the specified value
+        and resume the sweep.
 
         Note: The sweep may end early or exceed the specified endpoint, and will terminate at
         after the same number of steps it would have taken if the frequency was not changed.
@@ -218,8 +216,8 @@ class WindfreakSynthHD(SerialDevice):
         return self.send_cmd("frequency_now_MHz", frequency_Hz / 1e6)
 
     def get_frequency_now(self) -> float:
-        """
-        Get the frequency in Hz of the specified channel.
+        """Get the frequency in Hz of the specified channel.
+
         Returns the current frequency when a sweep is running.
         """
         return self.query_cmd("frequency_now_MHz") * 1e6
@@ -229,8 +227,8 @@ class WindfreakSynthHD(SerialDevice):
         return self.send_cmd("power_dBm", power_dBm)
 
     def get_power_now(self) -> float:
-        """
-        Get the power in dBm of the specified channel.
+        """Get the power in dBm of the specified channel.
+
         Returns the current power when a sweep is running.
         """
         return self.query_cmd("power_dBm")
@@ -241,6 +239,7 @@ class WindfreakSynthHD(SerialDevice):
 
     def start_sweep(self):
         """Starts a frequency sweep.
+
         If sweep_continuously is False
             * Resumes the current sweep if it is paused.
             * Starts a new sweep with the last configured parameters if the previous sweep has finished.
@@ -266,8 +265,8 @@ class WindfreakSynthHD(SerialDevice):
         end_power: float | None = None,
         sweep_continuously: bool = False,
     ):
-        """
-        Configure a frequency sweep on the SynthHD.
+        """Configure a frequency sweep on the SynthHD.
+
         * Does not start the sweep.
         * Stops any currently running sweep.
 

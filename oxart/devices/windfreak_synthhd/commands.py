@@ -1,5 +1,5 @@
 class CommandSerde:
-    """Manages de/serialization of commands used to communicate with a Windfreak"""
+    """Manages de/serialization of commands used to communicate with a Windfreak."""
 
     encoding = "utf-8"
 
@@ -53,9 +53,8 @@ class CommandSerde:
             raise ValueError(f"Command '{self.cmd_str}' is not queriable")
 
     def serialise(self, value) -> tuple[bytes, str]:
-        """
-        Serialise a value associated with this command.
-        May modify the value (e.g. convert a bool to an int or round a float).
+        """Serialise a value associated with this command. May modify the value (e.g.
+        convert a bool to an int or round a float).
 
         :return: (bytes to send, str[value requested])
         """
@@ -78,7 +77,6 @@ class CommandSerde:
 _frequency_kwargs = {"dtype": float, "precision": 3}
 _abs_frequency_range = (53.0, 13999.9999999)
 _power_kwargs = {"dtype": float, "precision": 3, "vrange": (-20.0, 60.0)}
-
 
 device_level_commands = {
     "control_channel": CommandSerde(
@@ -118,28 +116,33 @@ device_level_commands = {
 }
 
 static_control_commands = {
-    "frequency_now_MHz": CommandSerde(
+    "frequency_now_MHz":
+    CommandSerde(
         "f",
         **_frequency_kwargs,
         vrange=_abs_frequency_range,
         needs_channel=True,
     ),
-    "power_dBm": CommandSerde(
+    "power_dBm":
+    CommandSerde(
         "W",
         **_power_kwargs,
         needs_channel=True,
     ),
-    "enable_rf": CommandSerde(
+    "enable_rf":
+    CommandSerde(
         "E",
         bool,
         needs_channel=True,
     ),
-    "mute_rf": CommandSerde(
+    "mute_rf":
+    CommandSerde(
         "h",
         bool,
         needs_channel=True,
     ),
-    "increment_current_phase": CommandSerde(
+    "increment_current_phase":
+    CommandSerde(
         "~",
         int,
         3,
@@ -149,52 +152,61 @@ static_control_commands = {
 }
 
 sweep_commands = {
-    "sweep_freq_lower_MHz": CommandSerde(
+    "sweep_freq_lower_MHz":
+    CommandSerde(
         "l",
         **_frequency_kwargs,
         vrange=_abs_frequency_range,
         needs_channel=True,
     ),
-    "sweep_freq_upper_MHz": CommandSerde(
+    "sweep_freq_upper_MHz":
+    CommandSerde(
         "u",
         **_frequency_kwargs,
         vrange=_abs_frequency_range,
         needs_channel=True,
     ),
-    "sweep_freq_step_MHz": CommandSerde(
+    "sweep_freq_step_MHz":
+    CommandSerde(
         "s",
         **_frequency_kwargs,
         vrange=(0.0, 13999.9999999),
         needs_channel=True,
     ),
-    "sweep_time_step_ms": CommandSerde(
+    "sweep_time_step_ms":
+    CommandSerde(
         "t",
         float,
         3,
         vrange=(4, 10000),
         needs_channel=True,
     ),
-    "sweep_power_low_dBm": CommandSerde(
+    "sweep_power_low_dBm":
+    CommandSerde(
         "[",
         **_power_kwargs,
         needs_channel=True,
     ),
-    "sweep_power_high_dBm": CommandSerde(
+    "sweep_power_high_dBm":
+    CommandSerde(
         "]",
         **_power_kwargs,
         needs_channel=True,
     ),
-    "sweep_low_to_high": CommandSerde(
+    "sweep_low_to_high":
+    CommandSerde(
         "^",
         bool,
         needs_channel=True,
     ),
-    "run_sweep": CommandSerde(
+    "run_sweep":
+    CommandSerde(
         "g",
         bool,
         needs_channel=True,
     ),
-    "sweep_continuously": CommandSerde(
+    "sweep_continuously":
+    CommandSerde(
         "c",
         bool,
         needs_channel=True,

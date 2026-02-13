@@ -15,33 +15,34 @@ logger = logging.getLogger(__name__)
 
 def get_argparser():
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument(
-        "--influx-server", default="localhost", help="Influx server address"
-    )
-    parser.add_argument(
-        "--database", default="windfreaks", help="Influx database name."
-    )
-    parser.add_argument(
-        "--name", required=True, help="Logical windfreak name, defines measurement name"
-    )
-    parser.add_argument(
-        "--poll", default=600, type=int, help="Measurement polling period (seconds)"
-    )
+    parser.add_argument("--influx-server",
+                        default="localhost",
+                        help="Influx server address")
+    parser.add_argument("--database",
+                        default="windfreaks",
+                        help="Influx database name.")
+    parser.add_argument("--name",
+                        required=True,
+                        help="Logical windfreak name, defines measurement name")
+    parser.add_argument("--poll",
+                        default=600,
+                        type=int,
+                        help="Measurement polling period (seconds)")
     parser.add_argument(
         "--config-file",
         help="Path toJSON config file defining parameters to monitor",
     )
 
     network_args = parser.add_argument_group("network server")
-    network_args.add_argument(
-        "--bind", default="localhost", help="Server hostname or IP address to bind to"
-    )
-    network_args.add_argument(
-        "--port", default=4325, type=int, help="TCP port to listen on"
-    )
+    network_args.add_argument("--bind",
+                              default="localhost",
+                              help="Server hostname or IP address to bind to")
+    network_args.add_argument("--port",
+                              default=4325,
+                              type=int,
+                              help="TCP port to listen on")
 
     sca.verbosity_args(parser)
 
@@ -88,15 +89,12 @@ def main():
     parameters = parse_parameters(args.config_file)
 
     logger.info("Connecting to InfluxDB server at {}...".format(args.influx_server))
-    influx_client = InfluxDBClient(
-        host=args.influx_server, database=args.database, timeout=30
-    )
+    influx_client = InfluxDBClient(host=args.influx_server,
+                                   database=args.database,
+                                   timeout=30)
 
-    logger.info(
-        "Connecting to Windfreak SynthHD server at {}:{}...".format(
-            args.bind, args.port
-        )
-    )
+    logger.info("Connecting to Windfreak SynthHD server at {}:{}...".format(
+        args.bind, args.port))
     synthhd = Client(args.bind, args.port, "WindfreakSynthHD")
     logger.info("Connection established to Windfreak SynthHD server.")
 
