@@ -29,8 +29,8 @@ def main():
     args = get_argparser().parse_args()
     sca.init_logger_from_args(args)
 
+    logger.info("Starting server at port {}...".format(args.port))
     with WindfreakSynthHD(args.serial_port) as synthhd:
-        logger.info("Starting server at port {}...".format(args.port))
         simple_server_loop(
             {"WindfreakSynthHD": synthhd}, sca.bind_address_from_args(args), args.port
         )

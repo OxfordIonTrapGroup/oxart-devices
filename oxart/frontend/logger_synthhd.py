@@ -51,9 +51,10 @@ def get_argparser():
 def write_point(fields, name, influx_client):
     point = {"measurement": name, "fields": fields}
     try:
+        logger.info("Writing point to InfluxDB: {}".format(point))
         influx_client.write_points([point])
     except ConnectionError:
-        print("ConnectionError: Influxdb down?")
+        logger.error("ConnectionError: Influxdb down?")
 
 
 def log_parameters(parameters, synth, influx_client, measurement_name):
@@ -65,7 +66,7 @@ def log_parameters(parameters, synth, influx_client, measurement_name):
 
     for key, cmd in parameters["device"].items():
         msg[key] = synth.query_cmd(cmd)
-    # logger.info("Writing parameters to InfluxDB: {}".format(msg))
+
     write_point(msg, measurement_name, influx_client)
 
 
@@ -90,7 +91,6 @@ def main():
     influx_client = InfluxDBClient(
         host=args.influx_server, database=args.database, timeout=30
     )
-    logger.info("Connection established to InfluxDB server.")
 
     logger.info(
         "Connecting to Windfreak SynthHD server at {}:{}...".format(

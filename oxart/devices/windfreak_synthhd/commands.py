@@ -118,7 +118,7 @@ device_level_commands = {
 }
 
 static_control_commands = {
-    "frequency_MHz": CommandSerde(
+    "frequency_now_MHz": CommandSerde(
         "f",
         **_frequency_kwargs,
         vrange=_abs_frequency_range,
@@ -167,7 +167,7 @@ sweep_commands = {
         vrange=(0.0, 13999.9999999),
         needs_channel=True,
     ),
-    "sweep_step_time_ms": CommandSerde(
+    "sweep_time_step_ms": CommandSerde(
         "t",
         float,
         3,

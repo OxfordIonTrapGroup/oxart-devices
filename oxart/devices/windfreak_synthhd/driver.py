@@ -207,16 +207,22 @@ class WindfreakSynthHD(SerialDevice):
 
         return self._active_control_channel
 
-    def set_frequency(self, frequency_Hz: float):
-        """Set the frequency of the specified channel."""
-        return self.send_cmd("frequency_MHz", frequency_Hz / 1e6)
+    def set_frequency_now(self, frequency_Hz: float):
+        """Set the instantaneous frequency of the specified channel.
+        If a frequency sweep is running, this will set the current frequency
+        to the specified value and resume the sweep.
+
+        Note: The sweep may end early or exceed the specified endpoint, and will terminate at
+        after the same number of steps it would have taken if the frequency was not changed.
+        """
+        return self.send_cmd("frequency_now_MHz", frequency_Hz / 1e6)
 
     def get_frequency_now(self) -> float:
         """
         Get the frequency in Hz of the specified channel.
         Returns the current frequency when a sweep is running.
         """
-        return self.query_cmd("frequency_MHz") * 1e6
+        return self.query_cmd("frequency_now_MHz") * 1e6
 
     def set_power(self, power_dBm: float):
         """Set the power of the specified channel."""
@@ -301,7 +307,7 @@ class WindfreakSynthHD(SerialDevice):
         self.send_cmd("sweep_freq_lower_MHz", lower_freq_MHz)
         self.send_cmd("sweep_freq_upper_MHz", upper_freq_MHz)
         self.send_cmd("sweep_freq_step_MHz", step_frequency_MHz)
-        self.send_cmd("sweep_step_time_ms", step_time_ms)
+        self.send_cmd("sweep_time_step_ms", step_time_ms)
         self.send_cmd("sweep_power_low_dBm", start_power)
         self.send_cmd("sweep_power_high_dBm", end_power)
         self.send_cmd("sweep_low_to_high", sweep_low_to_high)
