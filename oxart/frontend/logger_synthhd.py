@@ -3,12 +3,11 @@ import argparse
 import json
 import logging
 import time
+from collections import OrderedDict
 
 import sipyco.common_args as sca
 from influxdb import InfluxDBClient
 from sipyco.pc_rpc import Client
-
-from oxart.devices.windfreak_synthhd.driver import SynthHDChannel
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +35,12 @@ def get_argparser():
     )
 
     network_args = parser.add_argument_group("network server")
-    network_args.add_argument("-w",
-                              "--wf-server",
-                              default="localhost",
-                              help="Windfreak server hostname or IP address")
+    network_args.add_argument(
+        "-w",
+        "--wf-server",
+        default="localhost",
+        help="Windfreak server hostname or IP address",
+    )
     network_args.add_argument("--port",
                               default=4325,
                               type=int,
@@ -61,13 +62,19 @@ def write_point(fields, name, influx_client):
 
 def log_parameters(parameters, synth, influx_client, measurement_name):
     msg = {}
-    for channel in SynthHDChannel:
-        synth.set_controlled_channel(channel.name)
-        for key, cmd in parameters[channel].items():
-            msg[f"{channel.name}_{key}"] = synth.query_cmd(cmd)
+    control_instructions = parameters.get("control-instructions", {})
+    primary_channel = control_instructions.get("primary_channel", None)
+
+    for channel, config in parameters["channels"].items():
+        synth.set_controlled_channel(channel)
+        for key, cmd in config.items():
+            msg[f"{channel}_{key}"] = synth.query_cmd(cmd)
 
     for key, cmd in parameters["device"].items():
         msg[key] = synth.query_cmd(cmd)
+
+    if primary_channel is not None:
+        synth.set_controlled_channel(primary_channel)
 
     write_point(msg, measurement_name, influx_client)
 
@@ -75,11 +82,8 @@ def log_parameters(parameters, synth, influx_client, measurement_name):
 def parse_parameters(config_file):
     with open(config_file, "r") as json_file:
         logger.info(f"Loading parameters from {config_file}...")
-        parameters = json.load(json_file)
+        parameters = json.load(json_file, object_pairs_hook=OrderedDict)
         logger.debug(f"Loaded parameters to monitor: {parameters}")
-
-    for channel in SynthHDChannel:
-        parameters[channel] = parameters.pop(channel.name, {})
 
     return parameters
 
@@ -95,8 +99,8 @@ def main():
                                    timeout=30)
 
     logger.info("Connecting to Windfreak SynthHD server at {}:{}...".format(
-        args.bind, args.port))
-    synthhd = Client(args.bind, args.port, "WindfreakSynthHD")
+        args.wf_server, args.port))
+    synthhd = Client(args.wf_server, args.port, "WindfreakSynthHD")
     logger.info("Connection established to Windfreak SynthHD server.")
 
     while True:
