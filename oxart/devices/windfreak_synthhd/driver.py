@@ -21,17 +21,17 @@ class SynthHDChannel(enum.Enum):
     RF_OUT_A = 0
     RF_OUT_B = 1
 
-
-def _channel_from_any(channel: SynthHDChannel | str | int) -> SynthHDChannel:
-    """Convert a channel specified as an enum, name or value to the SynthHDChannel
-    enum."""
-    if isinstance(channel, SynthHDChannel):
-        return channel
-    if isinstance(channel, str):
-        return SynthHDChannel[channel]
-    if isinstance(channel, int):
-        return SynthHDChannel(channel)
-    raise ValueError(f"Invalid channel: {channel}")
+    @staticmethod
+    def from_any(channel: "SynthHDChannel | str | int") -> "SynthHDChannel":
+        """Convert a channel specified as an enum, name or value to the
+        SynthHDChannel enum."""
+        if isinstance(channel, SynthHDChannel):
+            return channel
+        if isinstance(channel, str):
+            return SynthHDChannel[channel]
+        if isinstance(channel, int):
+            return SynthHDChannel(channel)
+        raise ValueError(f"Invalid channel: {channel}")
 
 
 class SerialDevice:
@@ -133,7 +133,7 @@ class WindfreakSynthHD(SerialDevice):
                 raise RuntimeError(
                     "No channel specified and no active control channel set")
         else:
-            channel = _channel_from_any(channel)
+            channel = SynthHDChannel.from_any(channel)
             active_control_channel = self._active_control_channel
             self.set_controlled_channel(channel)
 
@@ -192,18 +192,25 @@ class WindfreakSynthHD(SerialDevice):
 
     def set_controlled_channel(self, channel: SynthHDChannel | str | int):
         """Set the active channel to control for all subsequent commands."""
-        channel = _channel_from_any(channel)
+        channel = SynthHDChannel.from_any(channel)
 
         logger.info("Changing active control channel to {}".format(channel.name))
         self.send_cmd("control_channel", channel.value)
         self._active_control_channel = channel
 
-    def get_controlled_channel(self) -> SynthHDChannel:
+    def get_controlled_channel(self, dtype="channel") -> SynthHDChannel | str | int:
         """Get the current controlled channel."""
         channel_value = self.query_cmd("control_channel")
         self._active_control_channel = SynthHDChannel(channel_value)
 
-        return self._active_control_channel
+        if dtype == "channel":
+            return self._active_control_channel
+        elif dtype == "str":
+            return self._active_control_channel.name
+        elif dtype == "int":
+            return self._active_control_channel.value
+        else:
+            raise ValueError(f"Invalid return dtype '{dtype}' for SynthHD channel")
 
     def set_frequency_now(self, frequency_Hz: float):
         """Set the instantaneous frequency of the specified channel. If a frequency
