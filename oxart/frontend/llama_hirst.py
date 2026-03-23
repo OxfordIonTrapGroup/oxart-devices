@@ -7,7 +7,7 @@ Requires the gm08.dll file to be installed locally.
 from llama.influxdb import aggregate_stats_default
 from llama.rpc import add_chunker_methods, run_simple_rpc_server
 from llama.channels import ChunkedChannel
-from driver import GaussMeter
+from oxart.devices.hirst_gaussmeter.driver import GaussMeter
 import datetime
 import logging
 import threading
@@ -62,7 +62,7 @@ def setup_interface(args, influx_pusher, loop):
 
 
 def main():
-    run_simple_rpc_server(4009, setup_args, "llama_scpi_dmm", setup_interface)
+    run_simple_rpc_server(4009, setup_args, "llama_hirst", setup_interface)
 
 
 if __name__ == "__main__":
