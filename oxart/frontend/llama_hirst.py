@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+"""Continuously polls measurements from a USB connected GM08 gaussmeter.
+
+Requires the gm08.dll file to be installed locally.
+"""
+
+from llama.influxdb import aggregate_stats_default
+from llama.rpc import add_chunker_methods, run_simple_rpc_server
+from llama.channels import ChunkedChannel
+from oxart.devices.hirst_gaussmeter.driver import GaussMeter
+import logging
+import threading
+import time
+
+logger = logging.getLogger(__name__)
+
+
+def setup_args(parser):
+    parser.add_argument("--measurement",
+                        help="name of measurement; also used as InfluxDB series name",
+                        required=True)
+    parser.add_argument("-d", "--device", help="gm08 hardware address", default=-1)
+    parser.add_argument("--max-chunk-size",
+                        type=int,
+                        default=256,
+                        help=("number of measurements to average before sending " +
+                              "to InfluxDB (if not timed out first)"))
+    parser.add_argument("--max-chunk-duration",
+                        type=float,
+                        default=30,
+                        help=("maximum wall-clock duration of averaging chunk before " +
+                              "sending to InfluxDB (if size not reached first)"))
+    parser.add_argument("--min-poll-duration",
+                        type=float,
+                        default=0.1,
+                        help=("delay between successive polls"))
+
+
+def setup_interface(args, influx_pusher, loop):
+    device = GaussMeter(args.device)
+
+    def bin_finished(values):
+        if influx_pusher:
+            point = aggregate_stats_default(values)
+            influx_pusher.push(args.measurement, point)
+            logger.info(f"Pushing point: {args.measurement}: {point}")
+
+    channel = ChunkedChannel(args.measurement, bin_finished, args.max_chunk_size,
+                             args.max_chunk_duration, loop)
+
+    def poller_thread():
+        while True:
+            value = device.measure()
+            loop.call_soon_threadsafe(channel.push, value)
+            time.sleep(args.min_poll_duration)
+
+    threading.Thread(target=poller_thread, daemon=True).start()
+
+    class RPCInterface:
+        # Could expose more driver methods in the future (but then need to coordinate
+        # with poller thread).
+        pass
+
+    rpc_interface = RPCInterface()
+    add_chunker_methods(rpc_interface, channel)
+    return rpc_interface
+
+
+def main():
+    run_simple_rpc_server(4009, setup_args, "llama_hirst", setup_interface)
+
+
+if __name__ == "__main__":
+    main()
