@@ -55,6 +55,7 @@ thorlabs_mdt693a_controller = "oxart.frontend.thorlabs_mdt693a_controller:main"
 thorlabs_bpc303_controller = "oxart.frontend.thorlabs_bpc303_controller:main"
 thorlabs_camera_controller = "oxart.frontend.thorlabs_camera_controller:main"
 vaunix_signal_generator_controller = "oxart.frontend.vaunix_signal_generator_controller:main"
+log_hirst_gaussmeter = "oxart.frontend.llama_hirst:main"
 
 [dependency-groups]
 dev = [
@@ -67,6 +68,9 @@ dev = [
     # Docformatter does not yet support python 3.14
     "docformatter>=1.7.7 ; python_full_version < '3.14'",
 ]
+gaussmeter = [
+    "llama",
+]
 logger-solstis = [
     "websockets>=15.0,<16",
 ]
@@ -78,9 +82,13 @@ windfreak = [
     "pyserial>=3.5",
 ]
 
+[tool.uv]
+override-dependencies = ["sipyco"]
+
 [tool.uv.sources]
 sipyco = { git = "https://github.com/m-labs/sipyco.git" }
 oitg = { git = "https://github.com/oxfordiontrapgroup/oitg.git" }
+llama = { git = "https://gitlab.physics.ox.ac.uk/ion-trap/llama.git" }
 
 [build-system]
 requires = ["hatchling", "uv-dynamic-versioning"]
