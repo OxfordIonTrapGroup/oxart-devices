@@ -88,7 +88,7 @@ override-dependencies = ["sipyco"]
 [tool.uv.sources]
 sipyco = { git = "https://github.com/m-labs/sipyco.git" }
 oitg = { git = "https://github.com/oxfordiontrapgroup/oitg.git" }
-llama = { git = "https://gitlab.physics.ox.ac.uk/ion-trap/llama.git" }
+llama = { git = "ssh://git@gitlab.physics.ox.ac.uk/ion-trap/llama.git" }
 
 [build-system]
 requires = ["hatchling", "uv-dynamic-versioning"]

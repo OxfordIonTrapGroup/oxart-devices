@@ -72,5 +72,17 @@ gm0_resetnull = clibrary.gm0_resetnull
 gm0_resetnull.argtypes = [ctypes.c_int]
 gm0_resetnull.restype = ctypes.c_int
 
+gm0_killgm = clibrary.gm0_killgm
+gm0_killgm.argtypes = [ctypes.c_int]
+gm0_killgm.restype = ctypes.c_int
+
+gm0_isnewdata = clibrary.gm0_isnewdata
+gm0_isnewdata.argtypes = [ctypes.c_int]
+gm0_isnewdata.restype = ctypes.c_int
+
+gm0_getprobeoffset = clibrary.gm0_getprobeoffset
+gm0_getprobeoffset.argtypes = [ctypes.c_int]
+gm0_getprobeoffset.restype = ctypes.c_int
+
 gm0_Units = ['T', 'G', 'A/m', 'Oe']
 gm0_Mode = ['DC', 'DC Peak', 'AC', 'AC MAX', 'AC PEAK', 'HOLD']

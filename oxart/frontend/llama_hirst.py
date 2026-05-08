@@ -19,7 +19,11 @@ def setup_args(parser):
     parser.add_argument("--measurement",
                         help="name of measurement; also used as InfluxDB series name",
                         required=True)
-    parser.add_argument("-d", "--device", help="gm08 hardware address", default=-1)
+    parser.add_argument("-d",
+                        "--device",
+                        help="gm08 hardware address",
+                        default=-1,
+                        type=int)
     parser.add_argument("--max-chunk-size",
                         type=int,
                         default=256,
@@ -30,14 +34,11 @@ def setup_args(parser):
                         default=30,
                         help=("maximum wall-clock duration of averaging chunk before " +
                               "sending to InfluxDB (if size not reached first)"))
-    parser.add_argument("--min-poll-duration",
-                        type=float,
-                        default=0.1,
-                        help=("delay between successive polls"))
 
 
 def setup_interface(args, influx_pusher, loop):
     device = GaussMeter(args.device)
+    device.connect()
 
     def bin_finished(values):
         if influx_pusher:
@@ -50,9 +51,12 @@ def setup_interface(args, influx_pusher, loop):
 
     def poller_thread():
         while True:
-            value = device.measure()
-            loop.call_soon_threadsafe(channel.push, value)
-            time.sleep(args.min_poll_duration)
+            if device.has_new_data():
+                value = device.get_latest_measurement()
+                loop.call_soon_threadsafe(channel.push, value)
+            else:
+                # Don't spam the serial
+                time.sleep(10e-3)
 
     threading.Thread(target=poller_thread, daemon=True).start()
 
