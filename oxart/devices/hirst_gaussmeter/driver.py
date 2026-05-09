@@ -4,6 +4,7 @@ Requires the driver DLL file from Hirsch to be installed locally, with location
 specified by the $GM08_DLL_PATH environment variable. Searches in the default installer
 location if none specified.
 """
+
 import time
 import logging
 from oxart.devices.hirst_gaussmeter.gm0 import *
@@ -29,7 +30,6 @@ class Mode(Enum):
 
 
 class GaussMeter:
-
     def __init__(self, device):
         self.handle = gm0_newgm(device, 1)
 
@@ -59,7 +59,10 @@ class GaussMeter:
         unit = gm0_getunits(self.handle)
         return Unit(unit)
 
-    def set_unit(self, unit: Unit):
+    def set_unit(self, unit: Unit | str):
+        if unit is str:
+            unit = Unit[unit]
+
         logger.info("Setting unit: %s (code %s)", unit.name, unit.value)
         return gm0_setunits(self.handle, unit.value)
 
@@ -67,7 +70,10 @@ class GaussMeter:
         mode = gm0_getmode(self.handle)
         return Mode(mode)
 
-    def set_mode(self, mode):
+    def set_mode(self, mode: Mode | str):
+        if mode is str:
+            mode = Mode[mode]
+
         logger.info("Setting mode: %s (code %s)", mode.name, mode.value)
         gm0_setmode(self.handle, mode.value)
 
@@ -98,8 +104,10 @@ class GaussMeter:
             # This conversion has only been tested quickly
             scale = 1e-9
         else:
-            logger.warning("The conversion for this unit is untested, "
-                           "value may be powers of 10 off")
+            logger.warning(
+                "The conversion for this unit is untested, "
+                "value may be powers of 10 off"
+            )
             scale = 1
         return value * scale
 
