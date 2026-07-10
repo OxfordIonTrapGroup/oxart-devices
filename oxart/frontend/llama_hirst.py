@@ -9,31 +9,40 @@ from llama.rpc import add_chunker_methods, run_simple_rpc_server
 from llama.channels import ChunkedChannel
 from oxart.devices.hirst_gaussmeter.driver import GaussMeter
 import logging
-import threading
-import time
+import asyncio
+import atexit
 
 logger = logging.getLogger(__name__)
 
+POLL_INTERVAL_S = 10e-3
 
 def setup_args(parser):
-    parser.add_argument("--measurement",
-                        help="name of measurement; also used as InfluxDB series name",
-                        required=True)
-    parser.add_argument("-d",
-                        "--device",
-                        help="gm08 hardware address",
-                        default=-1,
-                        type=int)
-    parser.add_argument("--max-chunk-size",
-                        type=int,
-                        default=256,
-                        help=("number of measurements to average before sending " +
-                              "to InfluxDB (if not timed out first)"))
-    parser.add_argument("--max-chunk-duration",
-                        type=float,
-                        default=30,
-                        help=("maximum wall-clock duration of averaging chunk before " +
-                              "sending to InfluxDB (if size not reached first)"))
+    parser.add_argument(
+        "--measurement",
+        help="name of measurement; also used as InfluxDB series name",
+        required=True,
+    )
+    parser.add_argument(
+        "-d", "--device", help="gm08 hardware address", default=-1, type=int
+    )
+    parser.add_argument(
+        "--max-chunk-size",
+        type=int,
+        default=256,
+        help=(
+            "number of measurements to average before sending "
+            + "to InfluxDB (if not timed out first)"
+        ),
+    )
+    parser.add_argument(
+        "--max-chunk-duration",
+        type=float,
+        default=30,
+        help=(
+            "maximum wall-clock duration of averaging chunk before "
+            + "sending to InfluxDB (if size not reached first)"
+        ),
+    )
 
 
 def setup_interface(args, influx_pusher, loop):
@@ -46,32 +55,41 @@ def setup_interface(args, influx_pusher, loop):
             influx_pusher.push(args.measurement, point)
             logger.info(f"Pushing point: {args.measurement}: {point}")
 
-    channel = ChunkedChannel(args.measurement, bin_finished, args.max_chunk_size,
-                             args.max_chunk_duration, loop)
+    channel = ChunkedChannel(
+        args.measurement,
+        bin_finished,
+        args.max_chunk_size,
+        args.max_chunk_duration,
+        loop,
+    )
 
-    def poller_thread():
+    async def poller_thread():
         while True:
             if device.has_new_data():
                 value = device.get_latest_measurement()
-                loop.call_soon_threadsafe(channel.push, value)
+                channel.push(value)
             else:
                 # Don't spam the serial
-                time.sleep(10e-3)
+                await asyncio.sleep(POLL_INTERVAL_S)
 
-    threading.Thread(target=poller_thread, daemon=True).start()
+    logging_task = loop.create_task(poller_thread())
 
-    class RPCInterface:
-        # Could expose more driver methods in the future (but then need to coordinate
-        # with poller thread).
-        pass
+    def stop_logging_task():
+        logging_task.cancel()
+        try:
+            loop.run_until_complete(logging_task)
+        except asyncio.CancelledError:
+            pass
 
-    rpc_interface = RPCInterface()
-    add_chunker_methods(rpc_interface, channel)
-    return rpc_interface
+    atexit.register(stop_logging_task)
+    atexit.register(device.close)
+
+    add_chunker_methods(device, channel)
+    return device
 
 
 def main():
-    run_simple_rpc_server(4009, setup_args, "llama_hirst", setup_interface)
+    run_simple_rpc_server(4009, setup_args, "gaussmeter", setup_interface)
 
 
 if __name__ == "__main__":
