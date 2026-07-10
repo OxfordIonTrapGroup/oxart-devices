@@ -1,13 +1,20 @@
 import ctypes
 import os
+import sys
 
 DEFAULT_DLL_PATH_64 = ("C:\\Program Files (x86)\\Hirst Magnetic Instruments Ltd"
                        "\\gm0\\bin64\\gm0.dll")
 DEFAULT_DLL_PATH_32 = ("C:\\Program Files (x86)\\Hirst Magnetic Instruments Ltd"
                        "\\gm0\\bin32\\gm0.dll")
+DEFAULT_DLL_PATH_LINUX = "/usr/local/lib/libgm0.so"
 
-DEFAULT_DLL_PATH = DEFAULT_DLL_PATH_64 if ctypes.sizeof(
-    ctypes.c_voidp) == 8 else DEFAULT_DLL_PATH_32
+match sys.platform:
+    case "win32":
+        DEFAULT_DLL_PATH = DEFAULT_DLL_PATH_64 if ctypes.sizeof(
+            ctypes.c_voidp) == 8 else DEFAULT_DLL_PATH_32
+    case "linux":
+        DEFAULT_DLL_PATH = DEFAULT_DLL_PATH_LINUX
+
 dll_path = os.environ.get("GM08_DLL_PATH", DEFAULT_DLL_PATH)
 
 clibrary = ctypes.CDLL(dll_path)
