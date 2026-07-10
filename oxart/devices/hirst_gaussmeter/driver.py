@@ -46,7 +46,7 @@ class GaussMeter:
         while gm0_getconnect(self.handle) == 0:
             time.sleep(1)
 
-        assert self.check_connection_open()
+        assert self.ping()
         self._connection_open = True
 
         logger.info("Connection established.")
