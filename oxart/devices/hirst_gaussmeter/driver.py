@@ -32,6 +32,7 @@ class Mode(Enum):
 class GaussMeter:
     def __init__(self, device):
         self.handle = gm0_newgm(device, 1)
+        self._connection_open = False
 
     def __del__(self):
         self.close()
@@ -44,16 +45,22 @@ class GaussMeter:
         while gm0_getconnect(self.handle) == 0:
             time.sleep(1)
 
-        assert self.ping()
+        assert self.check_connection_open()
+        self._connection_open = True
+
         logger.info("Connection established.")
 
         self.default()
 
-        logger.info("Probe offset: %s", gm0_getprobeoffset(self.handle))
+        self.probe_offset = self.get_probe_offset()
+        logger.info("Probe offset: %s", self.probe_offset)
 
     def identify(self):
         self.stream.write("*IDN?\n".encode())
         return self.stream.readline().decode()
+
+    def get_probe_offset(self):
+        return gm0_getprobeoffset(self.handle)
 
     def get_unit(self):
         unit = gm0_getunits(self.handle)
@@ -98,16 +105,14 @@ class GaussMeter:
         # The conversions depend on both the range and the unit chosen.
         # although in our testing within a few ranges the error appears to
         # only depend on the unit.
-        if unit == Unit.TESLA:
+        if self.probe_offset == 0:
             scale = 1e-5
-        elif unit == Unit.GAUSS:
-            # This conversion has only been tested quickly
-            scale = 1e-9
+            if unit != Unit.TESLA:
+                logger.warning(
+                    "The conversion for this unit is untested, "
+                    "value may be powers of 10 off"
+                )
         else:
-            logger.warning(
-                "The conversion for this unit is untested, "
-                "value may be powers of 10 off"
-            )
             scale = 1
         return value * scale
 
@@ -126,6 +131,7 @@ class GaussMeter:
         self.autorange()
 
     def close(self):
+        self._connection_open = False
         return gm0_killgm(self.handle)
 
     def autozero(self):
