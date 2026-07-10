@@ -1,13 +1,20 @@
 import ctypes
 import os
+import sys
 
 DEFAULT_DLL_PATH_64 = ("C:\\Program Files (x86)\\Hirst Magnetic Instruments Ltd"
                        "\\gm0\\bin64\\gm0.dll")
 DEFAULT_DLL_PATH_32 = ("C:\\Program Files (x86)\\Hirst Magnetic Instruments Ltd"
                        "\\gm0\\bin32\\gm0.dll")
+DEFAULT_DLL_PATH_LINUX = "/usr/local/lib/libgm0.so"
 
-DEFAULT_DLL_PATH = DEFAULT_DLL_PATH_64 if ctypes.sizeof(
-    ctypes.c_voidp) == 8 else DEFAULT_DLL_PATH_32
+match sys.platform:
+    case "win32":
+        DEFAULT_DLL_PATH = DEFAULT_DLL_PATH_64 if ctypes.sizeof(
+            ctypes.c_voidp) == 8 else DEFAULT_DLL_PATH_32
+    case "linux":
+        DEFAULT_DLL_PATH = DEFAULT_DLL_PATH_LINUX
+
 dll_path = os.environ.get("GM08_DLL_PATH", DEFAULT_DLL_PATH)
 
 clibrary = ctypes.CDLL(dll_path)
@@ -71,6 +78,18 @@ gm0_doaz.restype = ctypes.c_int
 gm0_resetnull = clibrary.gm0_resetnull
 gm0_resetnull.argtypes = [ctypes.c_int]
 gm0_resetnull.restype = ctypes.c_int
+
+gm0_killgm = clibrary.gm0_killgm
+gm0_killgm.argtypes = [ctypes.c_int]
+gm0_killgm.restype = ctypes.c_int
+
+gm0_isnewdata = clibrary.gm0_isnewdata
+gm0_isnewdata.argtypes = [ctypes.c_int]
+gm0_isnewdata.restype = ctypes.c_int
+
+gm0_getprobeoffset = clibrary.gm0_getprobeoffset
+gm0_getprobeoffset.argtypes = [ctypes.c_int]
+gm0_getprobeoffset.restype = ctypes.c_int
 
 gm0_Units = ['T', 'G', 'A/m', 'Oe']
 gm0_Mode = ['DC', 'DC Peak', 'AC', 'AC MAX', 'AC PEAK', 'HOLD']
