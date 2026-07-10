@@ -30,6 +30,7 @@ class Mode(Enum):
 
 
 class GaussMeter:
+
     def __init__(self, device):
         self.handle = gm0_newgm(device, 1)
         self._connection_open = False
@@ -108,10 +109,8 @@ class GaussMeter:
         if self.probe_offset == 0:
             scale = 1e-5
             if unit != Unit.TESLA:
-                logger.warning(
-                    "The conversion for this unit is untested, "
-                    "value may be powers of 10 off"
-                )
+                logger.warning("The conversion for this unit is untested, "
+                               "value may be powers of 10 off")
         else:
             scale = 1
         return value * scale

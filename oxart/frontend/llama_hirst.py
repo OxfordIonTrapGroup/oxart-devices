@@ -16,32 +16,31 @@ logger = logging.getLogger(__name__)
 
 POLL_INTERVAL_S = 10e-3
 
+
 def setup_args(parser):
     parser.add_argument(
         "--measurement",
         help="name of measurement; also used as InfluxDB series name",
         required=True,
     )
-    parser.add_argument(
-        "-d", "--device", help="gm08 hardware address", default=-1, type=int
-    )
+    parser.add_argument("-d",
+                        "--device",
+                        help="gm08 hardware address",
+                        default=-1,
+                        type=int)
     parser.add_argument(
         "--max-chunk-size",
         type=int,
         default=256,
-        help=(
-            "number of measurements to average before sending "
-            + "to InfluxDB (if not timed out first)"
-        ),
+        help=("number of measurements to average before sending " +
+              "to InfluxDB (if not timed out first)"),
     )
     parser.add_argument(
         "--max-chunk-duration",
         type=float,
         default=30,
-        help=(
-            "maximum wall-clock duration of averaging chunk before "
-            + "sending to InfluxDB (if size not reached first)"
-        ),
+        help=("maximum wall-clock duration of averaging chunk before " +
+              "sending to InfluxDB (if size not reached first)"),
     )
 
 
