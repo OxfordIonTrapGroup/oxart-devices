@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from artiq_drivers.devices.arduino_dds.driver import ArduinoDDS, ArduinoDDSSim
+from oxart.devices.arduino_dds.driver import ArduinoDDS, ArduinoDDSSim
 from sipyco.pc_rpc import simple_server_loop
 import sipyco.common_args as sca
 
@@ -43,7 +43,8 @@ def main():
     else:
         dev = ArduinoDDS(addr=args.device, clock_freq=args.clockfreq)
 
-    simple_server_loop({"arduino_dds": dev}, args.bind, args.port)
+    simple_server_loop({"arduino_dds": dev}, sca.bind_address_from_args(args),
+                       args.port)
 
 
 if __name__ == "__main__":
