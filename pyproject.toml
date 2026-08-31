@@ -124,14 +124,14 @@ vcs = "git"
 style = "pep440"
 
 [tool.poe.tasks]
-_fmt = "yapf -i -r oxart"
-fmt-docstrings = "docformatter -i -r oxart"
+_fmt = "yapf -i -r oxart test"
+fmt-docstrings = "docformatter -i -r oxart test"
 fmt.sequence = ["_fmt", "fmt-docstrings"]
 # docformatter returns code 3 if it made any changes.
 fmt.ignore_fail = "return_zero"
 
-fmt-test = "yapf -d -r oxart"
-lint = "flake8 oxart"
+fmt-test = "yapf -d -r oxart test"
+lint = "flake8 oxart test"
 test = "python -m unittest discover -v test"
 
 [tool.docformatter]
