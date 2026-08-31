@@ -1,125 +1,311 @@
-from .driver_raw import HolzworthSynthRaw
-import math
-import time
-import json
 import asyncio
+import json
+import logging
+import math
 import os
+import time
+
+from .driver_raw import HolzworthSynthRaw
+
+logger = logging.getLogger(__name__)
+
+# Default location of the ramp state file: next to the driver source, so that it is
+# picked up by the git backup of the checkout the controller runs from.
+DEFAULT_CONFIG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                   "Holzworth_synth_config.txt")
 
 
-class HolzworthSynth():
-    """Driver for Holzworth synth to get and set the frequency, and get and set the
-    ramp rate to track the 674 nm quadrupole laser cavity drift."""
+class HolzworthSynth:
+    """Driver for the Holzworth synth driving the 674 nm quadrupole laser offset
+    lock, tracking the drift of the reference cavity.
 
-    def __init__(self):
+    On top of plain frequency/power control, the output frequency is continuously
+    ramped at a settable rate (see :meth:`set_ramp`) to follow the cavity drift. The
+    ramp is described by a reference point ``(time_freq_set, last_freq_set)`` plus the
+    rate itself; the target frequency at UNIX time ``t`` is::
+
+        last_freq_set + ramp * (t - time_freq_set)
+
+    All three values are kept in a JSON file so that the ramp survives restarts of the
+    controller, and the synth is stepped onto the resulting target every
+    ``update_interval`` seconds by the task started in :meth:`start`.
+
+    Frequency changes requested by the user do not interrupt the ramp: they shift it
+    as a whole, leaving the rate and the drift accumulated so far untouched (see
+    :meth:`step_freq`).
+    """
+
+    def __init__(self, config_file=None, update_interval=10.):
+        """
+        :param config_file: Path to the JSON file holding the ramp state; defaults to
+            ``Holzworth_synth_config.txt`` next to this module.
+        :param update_interval: Interval between periodic frequency updates, in
+            seconds.
+        """
+        # Largest single frequency change written to the synth, in Hz; larger moves
+        # are split into steps so that the laser lock survives them.
+        self.max_step = 10e3
+        # Tolerance for the frequency readback check, in Hz. The synth resolution is
+        # 1 mHz, and both it and the raw driver round to that.
+        self.freq_tolerance = 1.1e-3
+
+        self.update_interval = update_interval
+        self.config_file = DEFAULT_CONFIG_FILE if config_file is None else config_file
+        # Read the ramp state before opening the device, so that a broken state file
+        # does not leave a connection behind.
+        self.data = self._load_config()
 
         self.synth_raw = HolzworthSynthRaw()  # The raw driver
-        self.max_step = 10e3  # Hz
-        # Saves the log file in the same folder as the driver, so it can be backed up
-        # with git
-        folder = os.path.dirname(os.path.realpath(__file__))
-        file_name = "Holzworth_synth_config.txt"
-        self.logfile_path = os.path.join(folder, file_name)
-        if not os.path.isfile(self.logfile_path):
-            raise Exception("No log file found")
-
-        with open(self.logfile_path, "r") as f:
-            try:
-                self.data = json.load(f)
-            except ValueError:
-                raise Exception("Empty log file")
 
         self.time_freq_updated = None
 
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(
-            self.continuously_update_freq(loop))  # Starts continuously_update_freq
+        # Serialises everything that moves the frequency or touches self.data, so that
+        # a user request and a periodic update cannot interleave halfway through a
+        # multi-step move.
+        self._lock = asyncio.Lock()
+        self._update_task = None
 
-    async def continuously_update_freq(self, loop):
-        """Updates the frequency every 10 seconds and adds itself back to the lop."""
-        await self.update_freq()
-        await asyncio.sleep(10)
-        asyncio.ensure_future(self.continuously_update_freq(loop), loop=loop)
+    #
+    # Ramp state file
+    #
+
+    def _load_config(self):
+        if not os.path.isfile(self.config_file):
+            raise FileNotFoundError("No ramp state file at '{}'".format(
+                self.config_file))
+        with open(self.config_file, "r") as f:
+            try:
+                data = json.load(f)
+            except ValueError as e:
+                raise ValueError("Could not parse ramp state file '{}': {}".format(
+                    self.config_file, e)) from e
+        missing = {"time_freq_set", "last_freq_set", "ramp"} - data.keys()
+        if missing:
+            raise ValueError("Ramp state file '{}' is missing key(s): {}".format(
+                self.config_file, ", ".join(sorted(missing))))
+        return data
+
+    def _save_config(self):
+        """Write the ramp state back to disk, replacing the file atomically.
+
+        Overwriting in place would leave behind a truncated file – which the driver then
+        refuses to start from – if the process died at the wrong moment.
+        """
+        tmp_path = self.config_file + ".tmp"
+        with open(tmp_path, "w") as f:
+            json.dump(self.data, f)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, self.config_file)
+
+    #
+    # Ramp bookkeeping
+    #
+
+    def _ramp_freq(self, t):
+        """Return the frequency the ramp calls for at UNIX time ``t``."""
+        return (self.data["last_freq_set"] + self.data["ramp"] *
+                (t - self.data["time_freq_set"]))
+
+    def _rebase_ramp(self, t, offset=0.):
+        """Move the ramp reference point to time ``t``, shifting the whole ramp up by
+        ``offset`` Hz.
+
+        For ``offset == 0`` the frequency trajectory is unchanged; the reference point
+        is just re-expressed relative to ``t``.
+        """
+        self.data["last_freq_set"] = self._ramp_freq(t) + offset
+        self.data["time_freq_set"] = t
 
     async def _move_freq(self, freq):
-        """Slowly scans synth in small steps to requested frequency to keep lock."""
-        freq_start = self.synth_raw.get_freq()
-        freq_end = freq
-        n_steps = math.ceil(abs(freq_end - freq_start) / self.max_step)
-        for n in range(1, n_steps + 1):
-            f = freq_start + (n / n_steps) * (freq_end - freq_start)
+        """Scan the synth to ``freq`` in steps of at most ``max_step`` to keep the
+        laser lock, and check that it arrived.
 
-            self.synth_raw.set_freq(f)
+        The caller must hold ``self._lock``.
+        """
+        freq_start = self.synth_raw.get_freq()
+        n_steps = math.ceil(abs(freq - freq_start) / self.max_step)
+        for n in range(1, n_steps + 1):
+            self.synth_raw.set_freq(freq_start + (n / n_steps) * (freq - freq_start))
+            # Yield to the event loop so that the controller stays responsive during
+            # long scans. The actual update rate will be set by the overhead here and
+            # the USB/… overheads – not well-controlled, but the aim is only for the
+            # laser not to fall out of lock.
             await asyncio.sleep(0)
 
-        # Checking we reach the final frequency, allowing for rounding differences in
-        # the 3rd decimal place for values as large as 2.048 GHZ (max frequency output)
-        assert (math.isclose(await self.get_freq(),
-                             freq_end,
-                             rel_tol=0.5e-12,
-                             abs_tol=0.0011))
+        freq_actual = self.synth_raw.get_freq()
+        if not math.isclose(freq_actual, freq, abs_tol=self.freq_tolerance):
+            raise RuntimeError(
+                "Synth did not reach the requested frequency: asked for {} Hz, "
+                "read back {} Hz".format(freq, freq_actual))
 
-    async def set_freq(self, freq):
-        """Sets the Holzworth frequency and saves the value and time to file."""
+    async def _update_freq(self):
+        """Move the synth onto the ramp target for the current time.
 
-        await self._move_freq(freq)
-
-        # All times are read and written as UNIX time (seconds since epoch)
-        self.data["time_freq_set"] = time.time()
-        self.data["last_freq_set"] = freq
-
-        with open(self.logfile_path, "w") as f:  # Overwrites files
-            json.dump(self.data, f)
-
-    async def get_freq(self):
-        """Gets the current frequency of the synth."""
-        return self.synth_raw.get_freq()
-
-    async def update_freq(self):
-        """Updates the frequency by the difference between the current time and the
-        last time set_freq was called multiplied by the drift rate."""
-
-        ramp = self.data["ramp"]  # Hz per second
-        ref_freq = self.data["last_freq_set"]  # Freq when it was last set (not updated)
-        duration = time.time() - self.data["time_freq_set"]
-        new_freq = duration * ramp + ref_freq
-
-        await self._move_freq(new_freq)
-
+        The caller must hold ``self._lock``.
+        """
+        await self._move_freq(self._ramp_freq(time.time()))
         self.time_freq_updated = time.time()
 
-    def get_ramp(self):
-        """Retrives the ramp rate from the log file."""
+    async def _step_freq(self, delta):
+        """Shift the ramp by ``delta`` Hz and move the synth accordingly.
 
+        The caller must hold ``self._lock``.
+        """
+        t = time.time()
+        target = self._ramp_freq(t) + delta
+        # Check before touching the stored state; a request the synth cannot execute
+        # would otherwise leave the ramp permanently pointing out of range, and every
+        # subsequent update failing with it.
+        if not self.synth_raw.min_freq <= target <= self.synth_raw.max_freq:
+            raise ValueError(
+                "Requested frequency {} Hz is out of range ({} to {} Hz)".format(
+                    target, self.synth_raw.min_freq, self.synth_raw.max_freq))
+
+        self._rebase_ramp(t, offset=delta)
+        # Save before moving: the file is the authoritative copy of the ramp state, so
+        # if the move fails halfway the next update just carries on from there.
+        self._save_config()
+        await self._update_freq()
+
+    #
+    # RPC interface
+    #
+
+    async def get_freq(self):
+        """Return the current output frequency of the synth, in Hz."""
+        # Deliberately not taking the lock: the raw access does not yield, so a read
+        # can never interleave with a step of a move that is in flight, and status
+        # polling stays responsive while a long scan is running.
+        return self.synth_raw.get_freq()
+
+    async def set_freq(self, freq):
+        """Set the output frequency to ``freq`` (in Hz), leaving the drift ramp
+        running.
+
+        The request is applied as a shift of the ramp by the difference between
+        ``freq`` and the current output frequency, so the drift accumulated so far is
+        preserved rather than being thrown away (see :meth:`step_freq`).
+        """
+        async with self._lock:
+            await self._step_freq(freq - self.synth_raw.get_freq())
+
+    async def step_freq(self, delta):
+        """Shift the output frequency by ``delta`` Hz, leaving the drift ramp
+        running.
+
+        The ramp is shifted as a whole: the rate is untouched, and the offset persists
+        across the periodic updates rather than being undone by the next one.
+        """
+        async with self._lock:
+            await self._step_freq(delta)
+
+    async def update_freq(self):
+        """Move the synth onto the frequency the drift ramp calls for right now."""
+        async with self._lock:
+            await self._update_freq()
+
+    def get_ramp(self):
+        """Return the drift compensation rate, in Hz/s."""
         return self.data["ramp"]
 
     async def set_ramp(self, ramp):
-        """Sets the ramp rate the ramp rate from the log file."""
+        """Set the drift compensation rate to ``ramp`` (in Hz/s), keeping the current
+        output frequency."""
+        async with self._lock:
+            # Re-anchor the ramp first; the reference point can be arbitrarily old, so
+            # changing the rate without doing so would jump the output frequency.
+            self._rebase_ramp(time.time())
+            self.data["ramp"] = ramp
+            self._save_config()
+            await self._update_freq()
 
-        current_freq = await self.get_freq()
-        await self.set_freq(
-            current_freq)  # needed to ensure update_freq's calculations start from now
+    def get_target_freq(self):
+        """Return the frequency the drift ramp calls for right now, in Hz.
 
-        self.data["ramp"] = ramp  # Hz per second
-
-        with open(self.logfile_path, "w") as f:  # Overwrites files
-            json.dump(self.data, f)
+        The output frequency follows this in steps of ``update_interval``, so the two
+        differ by up to one update worth of drift.
+        """
+        return self._ramp_freq(time.time())
 
     def get_time_freq_set(self):
+        """Return the UNIX time of the ramp reference point."""
         return self.data["time_freq_set"]
 
     def get_last_freq_set(self):
+        """Return the frequency of the ramp reference point, in Hz."""
         return self.data["last_freq_set"]
 
     def get_time_freq_updated(self):
+        """Return the UNIX time of the last successful frequency update, or ``None``
+        if there has not been one yet."""
         return self.time_freq_updated
+
+    async def get_pow(self):
+        """Return the current output power of the synth, in dBm."""
+        return self.synth_raw.get_pow()
+
+    async def set_pow(self, power):
+        """Set the output power of the synth to ``power`` (in dBm)."""
+        self.synth_raw.set_pow(power)
+
+    def identity(self):
+        """Return the device identification string."""
+        return self.synth_raw.identity()
 
     async def ping(self):
         """Master needs to be able to ping the device."""
         return self.synth_raw.ping()
 
-    def close(self):
-        self.synth_raw.close()
+    #
+    # Lifecycle
+    #
 
-    async def terminate(self):
-        """If something goes wrong the master calls this function."""
-        self.close()
+    async def start(self):
+        """Move the synth onto the drift ramp and start tracking it.
+
+        To be called once from the event loop the controller runs on, before serving any
+        requests.
+        """
+        if self._update_task is not None:
+            raise RuntimeError("Frequency update task already running")
+
+        jump = self._ramp_freq(time.time()) - self.synth_raw.get_freq()
+        if abs(jump) > self.max_step:
+            logger.warning(
+                "Drift ramp calls for a jump of %.3f Hz from the current output "
+                "frequency; check that '%s' is not stale", jump, self.config_file)
+
+        await self.update_freq()
+        self._update_task = asyncio.ensure_future(self._run_update_loop())
+
+    async def _run_update_loop(self):
+        """Follow the drift ramp until cancelled."""
+        while True:
+            await asyncio.sleep(self.update_interval)
+            try:
+                await self.update_freq()
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                # Keep going; a failed update just leaves the next one a bit more to
+                # do. (Bailing out here would silently stop tracking the drift.)
+                logger.exception("Error updating frequency, retrying in %s s",
+                                 self.update_interval)
+
+    async def stop(self):
+        """Stop tracking the drift ramp."""
+        if self._update_task is None:
+            return
+        task, self._update_task = self._update_task, None
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+    def close(self):
+        if self._update_task is not None:
+            self._update_task.cancel()
+            self._update_task = None
+        self.synth_raw.close()
