@@ -1,4 +1,4 @@
-"""Unit tests for the drift-ramp logic of the Holzworth synth driver.
+"""Unit tests for the drift-ramp and excursion logic of the Holzworth synth driver.
 
 The driver is exercised against a stand-in for
 :class:`oxart.devices.holzworth_synth.driver_raw.HolzworthSynthRaw`, so that the tests
@@ -336,6 +336,171 @@ class DeviceAccessTest(HolzworthSynthTestCase):
         dev.close()
         self.assertTrue(self.raw.closed)
         self.assertIsNone(dev._update_task)
+
+
+class ExcursionTest(HolzworthSynthTestCase):
+    """Temporary excursions from the drift ramp."""
+
+    async def test_excursion_moves_synth_and_leaves_ramp(self):
+        dev = self.make_dev(ramp=0.2, age=1e6)
+        await dev.update_freq()
+        before = self.ramp_state(dev)
+        config_before = self.read_config()
+
+        dev.begin_excursion("exp")
+        await dev.set_excursion("exp", -5e3)
+
+        self.assertAlmostEqual(self.raw.freq, dev.get_target_freq(), delta=1.)
+        self.assertAlmostEqual(self.raw.freq,
+                               self.freq_at(before, time.time()) - 5e3,
+                               delta=1.)
+        self.assertEqual(dev.get_excursion(), -5e3)
+        self.assertEqual(dev.get_excursion_owner(), "exp")
+        # The ramp itself is untouched, both in memory and on disk.
+        self.assertEqual(self.ramp_state(dev), before)
+        self.assertEqual(self.read_config(), config_before)
+
+    async def test_excursion_is_absolute(self):
+        dev = self.make_dev()
+        dev.begin_excursion("exp")
+        await dev.set_excursion("exp", -5e3)
+
+        # Setting the same value again does not touch the synth.
+        num_writes = len(self.raw.writes)
+        await dev.set_excursion("exp", -5e3)
+        self.assertEqual(len(self.raw.writes), num_writes)
+
+        # A different value moves by the difference, not by the value.
+        await dev.set_excursion("exp", -8e3)
+        self.assertAlmostEqual(self.raw.freq, self.initial_freq - 8e3, delta=1.)
+
+    async def test_end_excursion_returns_to_ramp(self):
+        dev = self.make_dev(ramp=0.2, age=1e6)
+        dev.begin_excursion("exp")
+        await dev.set_excursion("exp", -5e3)
+
+        await dev.end_excursion("exp")
+        self.assertEqual(dev.get_excursion(), 0.)
+        self.assertIsNone(dev.get_excursion_owner())
+        self.assertAlmostEqual(self.raw.freq,
+                               self.freq_at(self.ramp_state(dev), time.time()),
+                               delta=1.)
+
+        # Ending again (e.g. from a second cleanup path) is a no-op.
+        num_writes = len(self.raw.writes)
+        await dev.end_excursion("exp")
+        self.assertEqual(len(self.raw.writes), num_writes)
+
+    async def test_set_excursion_requires_session(self):
+        dev = self.make_dev()
+        with self.assertRaises(RuntimeError):
+            await dev.set_excursion("exp", 1e3)
+
+        dev.begin_excursion("exp")
+        await dev.set_excursion("exp", 1e3)
+        await dev.end_excursion("exp")
+        with self.assertRaises(RuntimeError):
+            await dev.set_excursion("exp", 1e3)
+        self.assertAlmostEqual(self.raw.freq, self.initial_freq, delta=1.)
+
+    async def test_session_owner(self):
+        dev = self.make_dev()
+        dev.begin_excursion("a")
+        await dev.set_excursion("a", 1e3)
+
+        # Beginning again for the same owner is fine (e.g. several fragments of one
+        # experiment sharing a session).
+        with self.assertNoLogs(holzworth.logger, "WARNING"):
+            dev.begin_excursion("a")
+        self.assertEqual(dev.get_excursion(), 1e3)
+
+        # Other clients can neither set nor end it…
+        with self.assertRaises(RuntimeError):
+            await dev.set_excursion("b", 2e3)
+        with self.assertLogs(holzworth.logger, "WARNING"):
+            await dev.end_excursion("b")
+        self.assertEqual(dev.get_excursion_owner(), "a")
+        self.assertEqual(dev.get_excursion(), 1e3)
+
+        # …but can take it over (e.g. after the previous experiment crashed), which
+        # keeps the excursion until they set their own.
+        with self.assertLogs(holzworth.logger, "WARNING"):
+            dev.begin_excursion("b")
+        self.assertEqual(dev.get_excursion_owner(), "b")
+        self.assertEqual(dev.get_excursion(), 1e3)
+        await dev.set_excursion("b", 2e3)
+        self.assertAlmostEqual(self.raw.freq, self.initial_freq + 2e3, delta=1.)
+
+    async def test_ramp_keeps_running_under_excursion(self):
+        dev = self.make_dev(ramp=0.2, age=1e6)
+        dev.begin_excursion("exp")
+        await dev.set_excursion("exp", -5e3)
+        before = self.ramp_state(dev)
+
+        # Permanent changes go to the ramp; the excursion stays on top.
+        await dev.step_freq(1e3)
+        self.assert_ramp_shifted_by(before, self.ramp_state(dev), 1e3)
+        self.assertEqual(dev.get_excursion(), -5e3)
+        self.assertAlmostEqual(self.raw.freq,
+                               self.freq_at(before, time.time()) + 1e3 - 5e3,
+                               delta=1.)
+
+        # As do the periodic updates.
+        await dev.update_freq()
+        self.assertAlmostEqual(self.raw.freq,
+                               self.freq_at(self.ramp_state(dev), time.time()) - 5e3,
+                               delta=1.)
+
+        # set_freq() sets the actual output, i.e. the shift goes to the ramp as well.
+        target = await dev.get_freq() + 12345.
+        await dev.set_freq(target)
+        self.assertAlmostEqual(self.raw.freq, target, delta=1.)
+        self.assertEqual(dev.get_excursion(), -5e3)
+
+        await dev.end_excursion("exp")
+        self.assertAlmostEqual(self.raw.freq, target + 5e3, delta=1.)
+        self.assertAlmostEqual(self.raw.freq,
+                               self.freq_at(self.ramp_state(dev), time.time()),
+                               delta=1.)
+
+    async def test_excursion_is_not_persisted(self):
+        dev = self.make_dev(ramp=0.2)
+        dev.begin_excursion("exp")
+        await dev.set_excursion("exp", -5e3)
+        state = self.ramp_state(dev)
+        dev.close()
+
+        raw = FakeHolzworthSynthRaw(self.raw.freq)
+        with self.patch_raw(raw):
+            restarted = holzworth.HolzworthSynth(config_file=self.config_file)
+        self.addCleanup(restarted.close)
+        self.assertEqual(restarted.get_excursion(), 0.)
+        self.assertIsNone(restarted.get_excursion_owner())
+        self.assertEqual(self.ramp_state(restarted), state)
+
+        # The restarted controller returns to the nominal ramp.
+        await restarted.update_freq()
+        self.assertAlmostEqual(raw.freq, self.freq_at(state, time.time()), delta=1.)
+
+    async def test_out_of_range_excursion_rejected(self):
+        dev = self.make_dev()
+        dev.begin_excursion("exp")
+        with self.assertRaises(ValueError):
+            await dev.set_excursion("exp", 3e9)
+        self.assertEqual(dev.get_excursion(), 0.)
+        self.assertEqual(self.raw.writes, [])
+
+    async def test_step_freq_range_check_includes_excursion(self):
+        dev = self.make_dev()
+        dev.max_step = 1e9  # Keep the (simulated) moves cheap.
+        dev.begin_excursion("exp")
+        await dev.set_excursion("exp", 1.9e9)
+        before = self.read_config()
+
+        with self.assertRaises(ValueError):
+            await dev.step_freq(10e6)  # Would exceed the maximum frequency.
+        self.assertEqual(self.read_config(), before)
+        self.assertEqual(dev.get_excursion(), 1.9e9)
 
 
 if __name__ == "__main__":

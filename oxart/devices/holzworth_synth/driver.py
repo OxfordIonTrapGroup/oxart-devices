@@ -33,9 +33,16 @@ class HolzworthSynth:
     Frequency changes requested by the user do not interrupt the ramp: they shift it
     as a whole, leaving the rate and the drift accumulated so far untouched (see
     :meth:`step_freq`).
+
+    On top of the ramp, a client (e.g. an ARTIQ experiment) can temporarily move the
+    laser away from its nominal frequency in what we call an "excursion"
+    (see :meth:`begin_excursion`). The excursion is an absolute offset from the ramp,
+    with zero meaning the nominal frequency. It deliberately isn't stored in the ramp
+    state file; the frequency is reset at the end of the excursion "session"
+    (:meth:`end_excursion`)
     """
 
-    def __init__(self, config_file=None, update_interval=10.):
+    def __init__(self, config_file=None, update_interval=10.0):
         """
         :param config_file: Path to the JSON file holding the ramp state; defaults to
             ``Holzworth_synth_config.txt`` next to this module.
@@ -58,6 +65,11 @@ class HolzworthSynth:
         self.synth_raw = HolzworthSynthRaw()  # The raw driver
 
         self.time_freq_updated = None
+
+        # Temporary offset from the ramp, and the name of the client holding it (see
+        # begin_excursion()).
+        self._excursion = 0.0
+        self._excursion_owner = None
 
         # Serialises everything that moves the frequency or touches self.data, so that
         # a user request and a periodic update cannot interleave halfway through a
@@ -104,10 +116,21 @@ class HolzworthSynth:
 
     def _ramp_freq(self, t):
         """Return the frequency the ramp calls for at UNIX time ``t``."""
-        return (self.data["last_freq_set"] + self.data["ramp"] *
-                (t - self.data["time_freq_set"]))
+        return self.data["last_freq_set"] + self.data["ramp"] * (
+            t - self.data["time_freq_set"])
 
-    def _rebase_ramp(self, t, offset=0.):
+    def _target_freq(self, t):
+        """Return the output frequency called for at UNIX time ``t``, i.e. the ramp
+        plus any excursion."""
+        return self._ramp_freq(t) + self._excursion
+
+    def _check_freq_range(self, freq):
+        if not self.synth_raw.min_freq <= freq <= self.synth_raw.max_freq:
+            raise ValueError(
+                "Requested frequency {} Hz is out of range ({} to {} Hz)".format(
+                    freq, self.synth_raw.min_freq, self.synth_raw.max_freq))
+
+    def _rebase_ramp(self, t, offset=0.0):
         """Move the ramp reference point to time ``t``, shifting the whole ramp up by
         ``offset`` Hz.
 
@@ -140,11 +163,11 @@ class HolzworthSynth:
                 "read back {} Hz".format(freq, freq_actual))
 
     async def _update_freq(self):
-        """Move the synth onto the ramp target for the current time.
+        """Move the synth onto the target frequency for the current time.
 
         The caller must hold ``self._lock``.
         """
-        await self._move_freq(self._ramp_freq(time.time()))
+        await self._move_freq(self._target_freq(time.time()))
         self.time_freq_updated = time.time()
 
     async def _step_freq(self, delta):
@@ -153,14 +176,10 @@ class HolzworthSynth:
         The caller must hold ``self._lock``.
         """
         t = time.time()
-        target = self._ramp_freq(t) + delta
         # Check before touching the stored state; a request the synth cannot execute
         # would otherwise leave the ramp permanently pointing out of range, and every
         # subsequent update failing with it.
-        if not self.synth_raw.min_freq <= target <= self.synth_raw.max_freq:
-            raise ValueError(
-                "Requested frequency {} Hz is out of range ({} to {} Hz)".format(
-                    target, self.synth_raw.min_freq, self.synth_raw.max_freq))
+        self._check_freq_range(self._target_freq(t) + delta)
 
         self._rebase_ramp(t, offset=delta)
         # Save before moving: the file is the authoritative copy of the ramp state, so
@@ -185,7 +204,8 @@ class HolzworthSynth:
 
         The request is applied as a shift of the ramp by the difference between
         ``freq`` and the current output frequency, so the drift accumulated so far is
-        preserved rather than being thrown away (see :meth:`step_freq`).
+        preserved rather than being thrown away (see :meth:`step_freq`). Any excursion
+        stays on top of the shifted ramp.
         """
         async with self._lock:
             await self._step_freq(freq - self.synth_raw.get_freq())
@@ -195,10 +215,107 @@ class HolzworthSynth:
         running.
 
         The ramp is shifted as a whole: the rate is untouched, and the offset persists
-        across the periodic updates rather than being undone by the next one.
+        across the periodic updates rather than being undone by the next one. This is
+        the permanent counterpart to an excursion, which is left untouched.
         """
         async with self._lock:
             await self._step_freq(delta)
+
+    def begin_excursion(self, owner: str):
+        """Open an excursion session for ``owner``, allowing the output frequency to
+        be temporarily moved away from the ramp with :meth:`set_excursion`.
+
+        This is effectively a no-op as far as the hardware is concerned, but helps
+        track potential conflicts if different experiments were to try and use this at
+        the same time.
+
+        If a session from a different owner is still open, it is currently taken over
+        with a warning being logged. This is to gracefully handle e.g. experiment
+        crashes, although we could tighten this up in the future. Repeat calls with the
+        current owner are silent no-ops, so several parts of one experiment can share a
+        session by agreeing on the name.
+
+        :param owner: Free-form name identifying the client, used to match up the
+            :meth:`set_excursion`/:meth:`end_excursion` calls and for diagnostics.
+        """
+        if self._excursion_owner == owner:
+            return
+        if self._excursion_owner is not None:
+            logger.warning(
+                "Excursion session from '%s' taken over by '%s' "
+                "(excursion currently %.3f Hz)",
+                self._excursion_owner,
+                owner,
+                self._excursion,
+            )
+        else:
+            logger.info("Excursion session started by '%s'", owner)
+        self._excursion_owner = owner
+
+    async def set_excursion(self, owner: str, excursion: float):
+        """Move the output frequency to ``excursion`` Hz away from the drift ramp.
+
+        The excursion is absolute (zero being the nominal frequency), so setting the
+        same value again does not move the synth. The ramp keeps running underneath;
+        its periodic updates and :meth:`step_freq`/:meth:`set_freq` keep the excursion
+        on top.
+
+        :param owner: Name the session was opened with; see :meth:`begin_excursion`.
+        """
+        async with self._lock:
+            if self._excursion_owner is None:
+                raise RuntimeError(
+                    "No excursion session open; call begin_excursion() first")
+            if self._excursion_owner != owner:
+                raise RuntimeError("Excursion session is held by '{}', not '{}'".format(
+                    self._excursion_owner, owner))
+            self._check_freq_range(self._ramp_freq(time.time()) + excursion)
+            if excursion != self._excursion:
+                logger.info("Excursion set (by '%s') to %.3f Hz", owner, excursion)
+            # Set before moving, so that a move failing halfway is completed by the
+            # next periodic update (as for step_freq()).
+            self._excursion = excursion
+            await self._update_freq()
+
+    async def end_excursion(self, owner):
+        """End the excursion session, returning the output frequency to the drift ramp.
+
+        Does nothing if no session is open, so that clients can call it from every
+        cleanup path. A session held by a different owner is left alone (with a
+        warning): the call is then a stale cleanup from a previous client, and the
+        current owner is responsible for ending its own session.
+
+        :param owner: Name the session was opened with; see :meth:`begin_excursion`.
+        """
+        async with self._lock:
+            if self._excursion_owner is None:
+                return
+            if self._excursion_owner != owner:
+                logger.warning(
+                    "Ignoring end of excursion session by '%s'; the session is held by "
+                    "'%s'",
+                    owner,
+                    self._excursion_owner,
+                )
+                return
+            logger.info(
+                "Excursion session ended by '%s (excursion was %.3f Hz, zeroing)",
+                owner,
+                self._excursion,
+            )
+            self._excursion = 0.0
+            self._excursion_owner = None
+            await self._update_freq()
+
+    def get_excursion(self):
+        """Return the current excursion from the drift ramp, in Hz (zero if no
+        session is open)."""
+        return self._excursion
+
+    def get_excursion_owner(self):
+        """Return the owner of the open excursion session, or ``None`` if there is
+        none."""
+        return self._excursion_owner
 
     async def update_freq(self):
         """Move the synth onto the frequency the drift ramp calls for right now."""
@@ -221,12 +338,13 @@ class HolzworthSynth:
             await self._update_freq()
 
     def get_target_freq(self):
-        """Return the frequency the drift ramp calls for right now, in Hz.
+        """Return the frequency called for right now, in Hz, i.e. the drift ramp plus
+        any excursion.
 
         The output frequency follows this in steps of ``update_interval``, so the two
         differ by up to one update worth of drift.
         """
-        return self._ramp_freq(time.time())
+        return self._target_freq(time.time())
 
     def get_time_freq_set(self):
         """Return the UNIX time of the ramp reference point."""
@@ -270,11 +388,14 @@ class HolzworthSynth:
         if self._update_task is not None:
             raise RuntimeError("Frequency update task already running")
 
-        jump = self._ramp_freq(time.time()) - self.synth_raw.get_freq()
+        jump = self._target_freq(time.time()) - self.synth_raw.get_freq()
         if abs(jump) > self.max_step:
             logger.warning(
                 "Drift ramp calls for a jump of %.3f Hz from the current output "
-                "frequency; check that '%s' is not stale", jump, self.config_file)
+                "frequency; check that '%s' is not stale",
+                jump,
+                self.config_file,
+            )
 
         await self.update_freq()
         self._update_task = asyncio.ensure_future(self._run_update_loop())
