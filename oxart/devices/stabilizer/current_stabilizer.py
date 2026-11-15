@@ -215,6 +215,45 @@ async def set_feedforward(connection, ff):
     return await exchange_json(connection, msg)
 
 
+ADC_STREAM_PORT = 1238
+
+
+async def read_adc_stream(host, num_samples, stall_timeout=1., port=ADC_STREAM_PORT):
+    """Capture a contiguous block of raw ADC0 samples.
+
+    Each connection starts a fresh capture. Overflow of the ~1 ms firmware buffer
+    stops logging until reconnect, so a stalled stream aborts the capture.
+
+    :param host: Stabilizer host name/IP address.
+    :param num_samples: Number of samples to capture.
+    :param stall_timeout: Maximum wait for new data, in seconds.
+    :param port: TCP port to connect to.
+    :return: Array of raw ADC codes (``np.int16``).
+    """
+    if num_samples < 1:
+        raise ValueError("num_samples must be positive")
+    num_bytes = 2 * num_samples
+    data = bytearray()
+    reader, writer = await asyncio.open_connection(host=host, port=port)
+    try:
+        while len(data) < num_bytes:
+            try:
+                chunk = await asyncio.wait_for(reader.read(num_bytes - len(data)),
+                                               timeout=stall_timeout)
+            except asyncio.TimeoutError:
+                chunk = None
+            if not chunk:
+                raise StabilizerError(
+                    "ADC stream {} after {} of {} samples (firmware buffer overflow?)".
+                    format("stalled" if chunk is None else "closed",
+                           len(data) // 2, num_samples))
+            data += chunk
+    finally:
+        writer.close()
+        await writer.wait_closed()
+    return np.frombuffer(data, dtype="<i2").astype(np.int16)
+
+
 class Stabilizer:
 
     def __init__(self, fb_connection, ff_connection):
@@ -283,3 +322,21 @@ class Stabilizer:
         ff.set_sine_amplitudes(sin_amps)
         ff.set_offset(offset)
         await set_feedforward(self.ff_connection, ff)
+
+    async def read_adc_samples(self, num_samples, stall_timeout=1.):
+        """Capture a contiguous block of raw ADC0 samples.
+
+        Avoid connecting to the status port (1234) during capture, as this consumes the
+        the same buffer.
+
+        :param num_samples: Number of samples to capture.
+        :param stall_timeout: Maximum wait for new data, in seconds.
+        :return: Array of raw ADC codes (``np.int16``).
+        """
+        # TODO: We need the host/port information here, as we don't want to keep the TCP
+        # stream going all the time, which would take up a good chunk of bandwidth. The
+        # sensible option would be to refactor this driver to handle the connections
+        # internally; for now, and since this is for a legacy firmware about to be
+        # replaced, just read the host from fb_connection and use the default port.
+        host = self.fb_connection[1].get_extra_info("peername")[0]
+        return await read_adc_stream(host, num_samples, stall_timeout)
